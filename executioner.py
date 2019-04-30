@@ -269,7 +269,8 @@ async def new(ctx, description):
 
 
 @bot.command(pass_context=True)
-async def clear(ctx, nbr=1, user=None)
+async def clear(ctx, nbr=1, user=None):
+	pass
 
 
 
