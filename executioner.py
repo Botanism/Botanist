@@ -25,6 +25,18 @@ bot = commands.Bot(command_prefix=PREFIX)
 #########################################
 
 
+#command that lets admin update the bot without shutting it down
+@bot.command()
+@commands.has_any_role(*ADMIN_ROLE)
+async def reload(ctx, extension:str):
+	try:
+		bot.reload_extension(extension)
+	except Exception as e:
+		raise ctx.send("Couldn't reload extension {} because:```python\n{}```".format(extension, e))
+
+
+
+
 bot.load_extension("BotEssentials")
 bot.load_extension("Role")
 bot.load_extension("Slapping")

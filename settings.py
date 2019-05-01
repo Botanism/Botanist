@@ -8,7 +8,7 @@
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XMjofQ.c0Chs2b0q4Wjp2yqh3MuWfhDU0M"
+TOKEN = "your_token"
 AUTHOR_ID=289426079544901633
 
 #can be both str and discord snowflake IDs.
