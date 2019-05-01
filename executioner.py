@@ -19,7 +19,7 @@ import random
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XMh_YQ.hHI7xlS9Gy8AX1flofIwTIJ6HOk"
+TOKEN = "your_token"
 
 #can be both str and discord snowflake IDs.
 POLL_ALLOWED_CHANNELS = ["polls"]
