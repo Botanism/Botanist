@@ -1,3 +1,4 @@
+import logging
 #########################################
 #										#
 #										#
@@ -30,3 +31,11 @@ for role in ADMIN_ROLE:
 
 SLAPPED_LOG_FILE = "slapped.txt"
 ENABLED_EXTENSIONS_FILE = "enabled_ext.txt"
+
+
+#logging settings
+LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")
+LOGGING_FORMATTER	= logging.Formatter("[%(asctime)s]:%(name)s:%(message)s")
+LOGGING_LEVEL		= "WARNING"
+LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
+LOGGING_HANDLER.setLevel(LOGGING_LEVEL)

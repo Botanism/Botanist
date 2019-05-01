@@ -9,11 +9,26 @@ import requests as rq
 from bs4 import BeautifulSoup
 import time
 import random
+import logging
 
 
 
 #INITS THE BOT
 bot = commands.Bot(command_prefix=PREFIX)
+
+#########################################
+#										#
+#										#
+#			Setting up logging			#
+#										#
+#										#
+#########################################
+
+#Creating main logger
+main_logger = logging.getLogger(__name__)
+main_logger.addHandler(LOGGING_HANDLER)
+
+main_logger.info("Initalized logger")
 
 
 #########################################
@@ -49,6 +64,7 @@ async def add(ctx, extension:str):
 		bot.load_extension(extension)
 
 	except Exception as e:
+		main_logger.exception(e)
 		await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
 		raise e
 
@@ -56,12 +72,13 @@ async def add(ctx, extension:str):
 	try:
 		#appending new extension to ENABLED_EXTENSIONS_FILE
 		with open(ENABLED_EXTENSIONS_FILE, "a") as file:
-			file.write(extension)
+			file.write("{}\n".format(extension))
 
 	except FileNotFoundError as e:
 		#if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
+		main_logger.warning("{} doesn't exist.".format(ENABLED_EXTENSIONS_FILE))
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			file.write(extension)
+			file.write("{}\n".format(extension))
 
 	except Exception as e:
 		#logging any other possible issue
@@ -88,21 +105,21 @@ try:
 	with open(ENABLED_EXTENSIONS_FILE, "r") as file:
 		for ext in file.readlines():
 			try:
-				bot.load_extension(str(ext))
-				#await ctx.send("Loaded {}".format(ext))
+				bot.load_extension(str(ext[:-1]))
+				main_logger.info("Loaded {}".format(ext))
 			
 			except Exception as e:
-				#await ctx.send("An error occured while loading the extension:\n{}".format(e))
+				main_logger.exception(e)
 				raise e
 
 #if no extension is enabled
 except FileNotFoundError as e:
+	main_logger.warning("No extension enabled, none loaded. You probably want to configure the bot or add some extensions")
 	raise e
-	#await ctx.send("No extension enabled, none loaded. You probably want to configure the bot or add some extensions")
 
 #unexpected error handling
 except Exception as e:
-	#await ctx.send("UnexpectedError:\tReport issue to an admin")
+	main_logger.exception(e)
 	raise e
 
 #running the bot, no matter what
