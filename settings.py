@@ -29,4 +29,4 @@ for role in ADMIN_ROLE:
 	DEV_ROLES.append(role)
 
 SLAPPED_LOG_FILE = "slapped.txt"
-TODO_FILE = "todo.txt"
+ENABLED_EXTENSIONS_FILE = "enabled_ext.txt"

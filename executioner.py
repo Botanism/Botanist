@@ -19,28 +19,93 @@ bot = commands.Bot(command_prefix=PREFIX)
 #########################################
 #										#
 #										#
-#			Setup & Execution			#
+#			Extension Manipulation		#
 #										#
 #										#
 #########################################
 
 
-#command that lets admin update the bot without shutting it down
-@bot.command()
+#commands that lets admin update the bot without shutting it down
+@bot.group()
 @commands.has_any_role(*ADMIN_ROLE)
+async def ext(ctx):
+	if ctx.invoked_subcommand is None:
+		await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+
+@ext.command()
 async def reload(ctx, extension:str):
 	try:
 		bot.reload_extension(extension)
+		await ctx.send("Successfully reloaded {}".format(extension))
 	except Exception as e:
-		raise ctx.send("Couldn't reload extension {} because:```python\n{}```".format(extension, e))
+		await ctx.send("Couldn't reload extension {} because:```python\n{}```".format(extension, e))
+		raise e
+
+@ext.command()
+async def add(ctx, extension:str):
+
+	#trying to load the extension. Should only fail if the extension is not installed
+	try:
+		bot.load_extension(extension)
+
+	except Exception as e:
+		await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+		raise e
+
+	#if the extension was correctly loaded, adding it to the enabled file
+	try:
+		#appending new extension to ENABLED_EXTENSIONS_FILE
+		with open(ENABLED_EXTENSIONS_FILE, "a") as file:
+			file.write(extension)
+
+	except FileNotFoundError as e:
+		#if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
+		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+			file.write(extension)
+
+	except Exception as e:
+		#logging any other possible issue
+		await ctx.send("UnexpectedError:\tReport issue to an admin")
+		raise e
+
+	await ctx.send("Successfully added and loadded {}".format(extension))
 
 
 
 
-bot.load_extension("BotEssentials")
-bot.load_extension("Role")
-bot.load_extension("Slapping")
-bot.load_extension("Embedding")
-bot.load_extension("Poll")
+#########################################
+#										#
+#										#
+#			Setup & Execution			#
+#										#
+#										#
+#########################################
+#loading enabled extensions and starting
+#bot
 
-bot.run(TOKEN)
+#trying to load all enabled extensions
+try:
+	with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+		for ext in file.readlines():
+			try:
+				bot.load_extension(str(ext))
+				#await ctx.send("Loaded {}".format(ext))
+			
+			except Exception as e:
+				#await ctx.send("An error occured while loading the extension:\n{}".format(e))
+				raise e
+
+#if no extension is enabled
+except FileNotFoundError as e:
+	raise e
+	#await ctx.send("No extension enabled, none loaded. You probably want to configure the bot or add some extensions")
+
+#unexpected error handling
+except Exception as e:
+	#await ctx.send("UnexpectedError:\tReport issue to an admin")
+	raise e
+
+#running the bot, no matter what
+finally:
+	bot.run(TOKEN)
+
