@@ -19,7 +19,8 @@ import random
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XMjofQ.c0Chs2b0q4Wjp2yqh3MuWfhDU0M"
+AUTHOR_ID=289426079544901633
 
 #can be both str and discord snowflake IDs.
 POLL_ALLOWED_CHANNELS = ["polls"]
@@ -41,7 +42,7 @@ for role in ADMIN_ROLE:
 SLAPPED_LOG_FILE = "slapped.txt"
 TODO_FILE = "todo.txt"
 
-#inits the bot
+#INITS THE BOT
 bot = commands.Bot(command_prefix=PREFIX)
 
 
@@ -55,7 +56,7 @@ bot = commands.Bot(command_prefix=PREFIX)
 
 def is_author():
 	def check_condition(ctx):
-		return ctx.message.author.id ==289426079544901633
+		return ctx.message.author.id ==AUTHOR_ID
 	return commands.check(check_condition)
 
 def in_channel():
@@ -87,15 +88,6 @@ class BotEssentials(commands.Cog):
 	@commands.Cog.listener()
 	async def on_ready(self):
 		print('We have logged in as {0.user}'.format(self.bot))
-
-	@commands.Cog.listener()
-	async def on_message(self, message):
-		if message.author == self.bot.user:
-			return
-
-		#allowing commands to be passed
-		await self.bot.process_commands(message)
-
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
@@ -257,7 +249,7 @@ class Poll(commands.Cog):
 
 		#checking that user isn't the bot
 		print(reaction.message.channel.name)
-		if user != bot and (reaction.message.channel.name in POLL_ALLOWED_CHANNELS):
+		if user != self.bot and (reaction.message.channel.name in POLL_ALLOWED_CHANNELS):
 
 			#checking if reaction is allowed
 			if reaction.emoji not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
@@ -268,6 +260,8 @@ class Poll(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
+		if message.author==self.bot.user: return
+
 		if message.channel.name == "polls" and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(
 				title = "Do you agree ?",
@@ -299,5 +293,7 @@ bot.add_cog(Role(bot))
 bot.add_cog(Slapping(bot))
 bot.add_cog(Embedding(bot))
 bot.add_cog(Poll(bot))
+bot.add_cog(BotEssentials(bot))
+
 
 bot.run(TOKEN)
