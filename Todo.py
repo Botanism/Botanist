@@ -2,49 +2,32 @@ import discord
 from settings import *
 from checks import *
 
-TOKEN = "NTY4MDkyNTY5NTE5NzgzOTM2.XMiBDw.zCL0KhV_gOtxfyACctgYCLcLlEY"
-# PREFIX = "g:"
-
-# EMOJIS = {
-#     "wastebasket": "\U0001F5D1",
-#     "check": "\U00002705",
-#     "hourglass": "\U000023F3"
-# }
-
-#bot = commands.Bot(command_prefix=PREFIX)
-
 class Todo(commands.Cog):
     """A suite of command to make a nice todo list."""
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author == bot.user:
-            return
-        await bot.process_commands(message)
-
-    @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):
         if reaction.user_id != bot.user.id:
             message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
 
-            with open(TODO_CHANNEL, "r") as file:
-                channelId = file.readlines()[0]
+            with open(TODO_CHANNEL_FILE , "r") as file:
+                channel_id = file.readline()
 
-            if reaction.channel_id == int(channelId): #Check if it's a todo-message (check if it's the good channel)
+            if reaction.channel_id == int(channel_id): #Check if it's a todo-message (check if it's the good channel)
                 if len(message.embeds) > 0: # Check if it's an embed, I think this will avoid most problems
                     if reaction.emoji.name == EMOJIS['wastebasket']:
                         await bot.get_channel(reaction.channel_id).delete_messages([message])
 
-                        repostFieldValue = None
+                        repost_field_value = None
                         for field in message.embeds[0].fields:
-                            if field.name == "Public repost":
-                                repostFieldValue = field.value
+                            if field.name == PUBLIC_REPOST:
+                                repost_field_value= field.value
                         
-                        if repostFieldValue != None:
-                            repostMessage = await bot.get_channel(int(repostFieldValue.split(':')[0][2:-2])).fetch_message(int(repostFieldValue.split(':')[1][1:]))
-                            await repostMessage.delete()
+                        if repost_field_value!= None:
+                            repost_message = await bot.get_channel(int(repost_field_value.split(':')[0][2:-2])).fetch_message(int(repost_field_value.split(':')[1][1:]))
+                            await repost_message.delete()
                     elif reaction.emoji.name == EMOJIS['check']:
                         await message.remove_reaction(EMOJIS['hourglass'], bot.user)
                     elif reaction.emoji.name == EMOJIS['hourglass']:
@@ -54,10 +37,10 @@ class Todo(commands.Cog):
     async def on_raw_reaction_remove(self, reaction):
         message = await bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
 
-        with open(TODO_CHANNEL, "r") as file:
-            channelId = file.readlines()[0]
+        with open(TODO_CHANNEL_FILE , "r") as file:
+            channel_id = file.readline()
 
-        if reaction.channel_id == int(channelId): # Check if it's a todo-message (check if it's the good channel)
+        if reaction.channel_id == int(channel_id): # Check if it's a todo-message (check if it's the good channel)
             if len(message.embeds) > 0: # Check if it's an embed, I think this will avoid most problems
                 if reaction.user_id != bot.user.id:
                     if reaction.emoji.name == EMOJIS['check']:
@@ -66,6 +49,7 @@ class Todo(commands.Cog):
                         await message.add_reaction(EMOJIS['check'])
 
     @commands.group()
+    @commands.has_any_role(*GESTION_ROLES, *ADMIN_ROLE)
     async def todo(self, ctx):
         '''Commands to manage a todolist.'''
         if ctx.invoked_subcommand is None:
@@ -74,34 +58,34 @@ class Todo(commands.Cog):
     @todo.command()
     async def add(self, ctx, *args):
         '''Command to add a todo. Usage : <the thing todo>;<type of todo>;<assigned to / false>;<repost public channel / false>'''
-        with open(TODO_CHANNEL, "r") as file:
-            channelId = file.readlines()[0]
-            if channelId == None or channelId == "":
+        with open(TODO_CHANNEL_FILE , "r") as file:
+            channel_id = file.readline()
+            if channel_id == None or channel_id == "":
                 await ctx.channel.send("The todos' channel must be selected with the command " + PREFIX + "todo channel")
                 return
-        channel = bot.get_channel(int(channelId))
+        channel = bot.get_channel(int(channel_id))
 
         command = ""
         for arg in args:
             command += " {}".format(arg)
         command = command.split(";")
 
-        todoType = None
+        todo_type = None
 
-        with open(TODO_TYPES, "r") as file:
+        with open(TODO_TYPES_FILE, "r") as file:
             lines = file.readlines()
             for line in lines:
                 line = line.split(';')
                 if command[1] == line[0]:
-                    todoType = line
+                    todo_type = line
                     break
         
-        if todoType != None:
-            embedColor = int(todoType[1], 16)
+        if todo_type != None:
+            embed_color = int(todo_type[1], 16)
         else:
-            embedColor = 0x28a745
+            embed_color = 0x28a745
         
-        newEmbed = discord.Embed(description=command[0], url="", color=embedColor)
+        new_embed = discord.Embed(description=command[0], url="", color=embed_color)
         
         command[2] = command[2].replace(' ', '') #TODO: Use dfind instead ?
         if command[2] != "false":
@@ -111,24 +95,24 @@ class Todo(commands.Cog):
                 user = ctx.guild.get_member_named(command[2])
             
             if user != None:
-                newEmbed.add_field(name="Asssigned to", value=user.mention, inline=True)
+                new_embed.add_field(name="Asssigned to", value=user.mention, inline=True)
         
         if command[3] != "false":
             if command[3].startswith("<#"):
-                repostChannel = ctx.guild.get_channel(int(command[3][2:-1]))
+                repost_channel = ctx.guild.get_channel(int(command[3][2:-1]))
             else:
                 for chan in ctx.guild.channels:
                     if(chan.name == command[3]):
-                        repostChannel = chan
+                        repost_channel = chan
         else:
-            repostChannel = None
+            repost_channel = None
         
-        newEmbed.set_footer(text=command[1])
-        if repostChannel != None:
-            publicTodo = await repostChannel.send(embed=newEmbed)
-            newEmbed.add_field(name="Public repost", value=repostChannel.mention + " : " + str(publicTodo.id), inline=True)
+        new_embed.set_footer(text=command[1])
+        if repost_channel != None:
+            public_todo = await repost_channel.send(embed=new_embed)
+            new_embed.add_field(name=PUBLIC_REPOST, value=repost_channel.mention + " : " + str(public_todo.id), inline=True)
         
-        message = await channel.send(embed=newEmbed)
+        message = await channel.send(embed=new_embed)
         await message.add_reaction(EMOJIS['wastebasket'])
         await message.add_reaction(EMOJIS['check'])
         await message.add_reaction(EMOJIS['hourglass'])
@@ -149,7 +133,7 @@ class Todo(commands.Cog):
                 command[1] = command[1]+command[1]
         color = "0x" + command[1]
 
-        with open(TODO_TYPES, "r+") as file:
+        with open(TODO_TYPES_FILE, "r+") as file:
             content = file.readlines()
             for line in content:
                 line = line.split(";")
@@ -163,9 +147,9 @@ class Todo(commands.Cog):
     @todo.command()
     async def removetype(self, ctx, command):
         '''Command to add a remove type.'''
-        with open(TODO_TYPES, "r") as file:
+        with open(TODO_TYPES_FILE, "r") as file:
             lines = file.readlines()
-        with open(TODO_TYPES, "w") as file:
+        with open(TODO_TYPES_FILE, "w") as file:
             deleted=False
             for line in lines:
                 line = line.split(";")
@@ -183,21 +167,22 @@ class Todo(commands.Cog):
     async def listtypes(self, ctx):
         '''Command to list all the todo types.'''
         text = "**Type** - *Color*\n\n"
-        with open(TODO_TYPES, "r") as file:
+        with open(TODO_TYPES_FILE, "r") as file:
             lines = file.readlines()
             for line in lines:
                 line = line.split(';')
                 text += "**" + line[0] + "** - *#"+line[1][2:] + "*\n"
 
-        newEmbed = discord.Embed(description=text, url="", color=0x28a745)
-        message = await ctx.channel.send(embed=newEmbed)
+        new_embed = discord.Embed(description=text, url="", color=0x28a745)
+        message = await ctx.channel.send(embed=new_embed)
 
     @todo.command()
     async def channel(self, ctx):
         '''Command to select the channel where the todos will be'''
-        with open(TODO_CHANNEL, "w") as file:
+        with open(TODO_CHANNEL_FILE , "w") as file:
             file.write(str(ctx.channel.id))
         await ctx.channel.send('Okay ! This channel wil be used for the todos !')
 
 def setup(bot):
     bot.add_cog(Todo(bot))
+    
