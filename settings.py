@@ -43,15 +43,12 @@ PUBLIC_REPOST="Public repost"
 
 SLAPPED_LOG_FILE = "slapped.txt"
 ENABLED_EXTENSIONS_FILE = "enabled_ext.txt"
-<<<<<<< HEAD
 POLL_ALLOWED_CHANNELS_FILE = "poll_channels.txt"
-=======
->>>>>>> 69c41b626b42274ca81d5674ff0aaf6714fe15ba
 TODO_CHANNEL_FILE = "todo_channel.txt"
 TODO_TYPES_FILE = "todo_types.txt"
 
 #data used only for Todo -> maybe remove it ?
- PUBLIC_REPOST="Public repost" 
+PUBLIC_REPOST="Public repost" 
 
 #logging settings
 LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")
