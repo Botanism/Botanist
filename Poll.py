@@ -1,3 +1,4 @@
+import os
 import logging
 import discord
 from settings import *
@@ -31,12 +32,18 @@ class Poll(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
+		#making sure POLL_ALLOWED_CHANNELS_FILE exists
+		if POLL_ALLOWED_CHANNELS_FILE not in os.listdir():
+			local_logger.warning("{} doesn't exist & not configured".format(POLL_ALLOWED_CHANNELS_FILE))
+			with open(POLL_ALLOWED_CHANNELS_FILE, "w") as file:
+				pass
+
 		#making poll_allowed channels according to the message's guild
 		self.poll_allowed_chans = {}
-		with open(POLL_ALLOWED_CHANNELS_FILE) as file:
+		with open(POLL_ALLOWED_CHANNELS_FILE, "r") as file:
 			for line in file.readlines():
-				guild_id = line.split(";")[0]
-				self.poll_allowed_chans[guild_id] = [chan_id for chan_id in line.split(";")[1:]]
+				guild_id = int(line.split(";")[0])
+				self.poll_allowed_chans[guild_id] = [int(chan_id) for chan_id in line.split(";")[1:]]
 
 
 		
@@ -50,7 +57,6 @@ class Poll(commands.Cog):
 
 
 		#checking that user isn't the bot
-		print(reaction.message.channel.name)
 		if (user != self.bot.user) and (reaction.message.channel.id in self.poll_allowed_chans[reaction.message.guild.id]):
 
 			#checking if reaction is allowed
@@ -66,7 +72,7 @@ class Poll(commands.Cog):
 	async def on_message(self, message):
 		if message.author==self.bot.user: return
 
-		if message.channel.name in  and message.content.startswith(PREFIX)!=True:
+		if message.channel.id in self.poll_allowed_chans[message.guild.id] and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(
 				title = "Do you agree ?",
 				description = message.content,

@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XMj3MA.yF2biw9arAeVyZiON30-y2oQV1w"
 AUTHOR_ID=289426079544901633
 
 
