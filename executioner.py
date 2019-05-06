@@ -26,9 +26,16 @@ bot = commands.Bot(command_prefix=PREFIX)
 
 #Creating main logger
 main_logger = logging.getLogger(__name__)
+main_logger.setLevel(LOGGING_LEVEL)
 main_logger.addHandler(LOGGING_HANDLER)
-
 main_logger.info("Initalized logger")
+
+
+#Creating discord.py's logger
+discord_logger = logging.getLogger("discord")
+discord_logger.setLevel(LOGGING_LEVEL)
+discord_logger.addHandler(LOGGING_HANDLER)
+discord_logger.info("Initalized discord's logger")
 
 
 #########################################

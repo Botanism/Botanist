@@ -1,6 +1,23 @@
+import logging
 from settings import *
 import discord
 from checks import *
+
+
+
+#########################################
+#										#
+#										#
+#			Setting up logging			#
+#										#
+#										#
+#########################################
+local_logger = logging.getLogger(__name__)
+local_logger.setLevel(LOGGING_LEVEL)
+local_logger.addHandler(LOGGING_HANDLER)
+local_logger.info("Innitalized {} logger".format(__name__))
+
+
 
 #########################################
 #										#
@@ -9,7 +26,7 @@ from checks import *
 #										#
 #										#
 #########################################
-'''This cog contains all basemost functions that all bots should contain.
+'''This cog contains all the basemost functions that all bots should contain.
 See https://github.com/organic-bots/ForeBot for more information'''
 
 
@@ -24,10 +41,8 @@ class BotEssentials(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
-
-		faq_channel = discord.utils.get(member.guild.channels, name="faq")
-		rules_channel = discord.utils.get(member.guild.channels, name="rules")
-		await member.guild.system_channel.send("Welcome to {} {}! Please make sure to take a look at our {} and before asking a question, at the {}".format(member.guild.name, member.mention, rules_channel.mention, faq_channel.mention))
+		local_logger.info("User {0.name}[{0.id}] joined {1.name}[{1.id}]".format(member, member.guild))
+		await member.guild.system_channel.send("Welcome to {} {}! Please make sure to take a look at our {} and before asking a question, at the {}".format(member.guild.name, member.mention, CHANNELS["rules"].mention, CHANNELS["faq"].mention))
 
 
 	@commands.command()
@@ -42,10 +57,13 @@ class BotEssentials(commands.Cog):
 	@is_author()
 	async def shutdown(self, ctx):
 		print("Goodbye")
+		local_logger.info("Switching to invisible mode")
 		await self.bot.change_presence(status=discord.Status.offline)
 		#time.sleep(0.1)
 		await ctx.send("Goodbye")
+		local_logger.info("Closing connection to discord")
 		await self.bot.close()
+		local_logger.info("Quitting python")
 		await quit()
 
 
