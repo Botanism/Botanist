@@ -54,6 +54,9 @@ class Poll(commands.Cog):
 			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
 			return
 
+		#fetching concerned message and the user who added the reaction
+		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+		user = self.bot.get_user(payload.user_id)
 
 		#checking that user isn't the bot
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
@@ -62,10 +65,6 @@ class Poll(commands.Cog):
 			if payload.emoji.name not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
 				#deleting  reaction of the user. Preserves other reactions
 				try:
-					#I've spent an hour trying to find out if there was a better way to do this
-					message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
-					user = self.bot.get_user(payload.user_id)
-
 					#iterating over message's reactions to find out which was added
 					for reaction in message.reactions:
 						#testing if current emoji is the one just added
@@ -77,6 +76,47 @@ class Poll(commands.Cog):
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
 					raise e
 
+			#if the reaction is allowed -> recalculating ractions ratio and changing embed's color accordingly
+			else:
+				#currently using integers -> may need to change to their values by checcking them one by one
+				react_for = message.reactions[0].count
+				react_against = message.reactions[2].count
+				#changing color of the embed
+				await self.balance_poll_color(message, react_for, react_against)
+
+
+
+	@commands.Cog.listener()
+	async def on_raw_reaction_remove(self, payload):
+		if not self.poll_allowed_chans[payload.guild_id]:
+			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
+			return
+
+		#fetching concerned message and the user who added the reaction
+		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+		#checking that user isn't the bot
+		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):		
+
+			react_for = message.reactions[0].count
+			react_against = message.reactions[2].count
+			#changing color of the embed
+			await self.balance_poll_color(message, react_for, react_against)	
+
+
+	async def balance_poll_color(self, msg, rfor, ragainst):
+		#determining their rgb values
+		r_value = (ragainst/max(rfor, ragainst))*255
+		g_value = (rfor/max(rfor, ragainst))*255
+		#making the color
+		color = int((r_value*(256**2)) + (g_value*256))
+		#getting messages's embed (there should only be one)
+		embed = msg.embeds[0].copy()
+		embed.color = color
+		await msg.edit(embed=embed)
+
+		return msg
+
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
@@ -86,7 +126,7 @@ class Poll(commands.Cog):
 			embed_poll = discord.Embed(
 				title = "{}{}".format(message.author.name, message.author.avatar_url),
 				description = message.content,
-				colour = discord.Color(7726379),
+				colour = discord.Color(16776960),
 				url = None
 				)
 
