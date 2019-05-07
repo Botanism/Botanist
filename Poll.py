@@ -50,8 +50,6 @@ class Poll(commands.Cog):
 	@commands.Cog.listener()
 	async def on_raw_reaction_add(self, payload):
 		'''currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs'''
-
-		print(payload.emoji.name)
 		if not self.poll_allowed_chans[payload.guild_id]:
 			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
 			return
@@ -64,11 +62,17 @@ class Poll(commands.Cog):
 			if payload.emoji.name not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
 				#deleting  reaction of the user. Preserves other reactions
 				try:
-					message = self.bot.get_message(payload.message_id)
+					#I've spent an hour trying to find out if there was a better way to do this
+					message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 					user = self.bot.get_user(payload.user_id)
+
+					#iterating over message's reactions to find out which was added
 					for reaction in message.reactions:
-						if reaction.emoji == payload.emoji:
+						#testing if current emoji is the one just added
+						if reaction.emoji == payload.emoji.name:
+							#removing unauthorized emoji
 							await reaction.remove(user)
+
 				except Exception as e:
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
 					raise e
