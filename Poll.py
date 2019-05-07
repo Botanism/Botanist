@@ -48,24 +48,30 @@ class Poll(commands.Cog):
 
 		
 	@commands.Cog.listener()
-	async def on_reaction_add(self, reaction, user):
+	async def on_raw_reaction_add(self, payload):
 		'''currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs'''
 
-		if not self.poll_allowed_chans[reaction.message.guild.id]:
-			local_logger.warning("Guild {0.name}[{0.id}] doesn't have any channel for polls".format(reaction.message.guild))
+		print(payload.emoji.name)
+		if not self.poll_allowed_chans[payload.guild_id]:
+			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
 			return
 
 
 		#checking that user isn't the bot
-		if (user != self.bot.user) and (reaction.message.channel.id in self.poll_allowed_chans[reaction.message.guild.id]):
+		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
 
 			#checking if reaction is allowed
-			if reaction.emoji not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
+			if payload.emoji.name not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
 				#deleting  reaction of the user. Preserves other reactions
 				try:
-					await reaction.remove(user)
+					message = self.bot.get_message(payload.message_id)
+					user = self.bot.get_user(payload.user_id)
+					for reaction in message.reactions:
+						if reaction.emoji == payload.emoji:
+							await reaction.remove(user)
 				except Exception as e:
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
+					raise e
 
 
 	@commands.Cog.listener()
@@ -74,14 +80,14 @@ class Poll(commands.Cog):
 
 		if message.channel.id in self.poll_allowed_chans[message.guild.id] and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(
-				title = "Do you agree ?",
+				title = "{}{}".format(message.author.name, message.author.avatar_url),
 				description = message.content,
 				colour = discord.Color(7726379),
 				url = None
 				)
 
 			#embed_poll.set_thumbnail(url=message.author.avatar_url)
-			embed_poll.set_footer(text=message.author.name, icon_url=message.author.avatar_url)
+			#embed_poll.set_footer(text=message.author.name, icon_url=message.author.avatar_url)
 
 			try:
 				await message.delete()
