@@ -147,5 +147,49 @@ class Poll(commands.Cog):
 			except Exception as e:
 				local_logger.exception("Couldn't send and delete all reaction")
 
+
+	@commands.group()
+	async def poll(self, ctx):
+		'''a suite of commands that lets one have more control over polls'''
+		if ctx.invoked_subcommand == None:
+			local_logger.warning("User didn't provide any subcommand")
+			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+
+
+#	@poll.command()
+#	async def add(self, ctx, channel, *args):
+#		pass
+
+
+	@poll.command()
+	async def rm(self, ctx, msg_id):
+		'''allows one to delete one of their poll by issuing its id'''
+		for chan in ctx.guild.text_channels:
+			try:
+				msg = await chan.fetch_message(msg_id)
+				break
+
+			#if the message isn't in this channel
+			except discord.NotFound as e:
+				local_logger.info("poll isn't in {0.name}[{0.id}]".format(chan))
+
+			except Exception as e:
+				local_logger.exception("An unexpected error occured")
+				raise e
+
+
+		#making sure that the message is a poll. doesn't work, any msg with a embed could be considered a poll
+		if len(msg.embeds)!=1: return
+		#checking if the poll was created by the user. Is name safe enough ?
+		if msg.embeds[0].title == ctx.author.name:
+			try:
+				await msg.delete()
+			except Exception as e:
+				local_logger.exception("Couldn't delete poll".format(msg))
+				raise e
+			
+
+
+
 def setup(bot):
 	bot.add_cog(Poll(bot))
