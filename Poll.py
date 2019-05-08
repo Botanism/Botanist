@@ -76,7 +76,7 @@ class Poll(commands.Cog):
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
 					raise e
 
-			#if the reaction is allowed -> recalculating ractions ratio and changing embed's color accordingly
+			#if the reaction is allowed -> recalculating reactions ratio and changing embed's color accordingly
 			else:
 				#preventing users from having multiple reactions
 				for reaction in message.reactions:
@@ -114,7 +114,7 @@ class Poll(commands.Cog):
 		r_value = (ragainst/max(rfor, ragainst))*255
 		g_value = (rfor/max(rfor, ragainst))*255
 		#making the color
-		color = int((r_value*(256**2)) + (g_value*256))
+		color = int((r_value*65536) + (g_value*256))
 		#getting messages's embed (there should only be one)
 		embed = msg.embeds[0].copy()
 		embed.color = color
@@ -135,8 +135,6 @@ class Poll(commands.Cog):
 				url = None
 				)
 			embed_poll.set_thumbnail(url=message.author.avatar_url)
-
-			#embed_poll.set_thumbnail(url=message.author.avatar_url)
 			#embed_poll.set_footer(text=message.author.name, icon_url=message.author.avatar_url)
 
 			try:
