@@ -57,6 +57,8 @@ class Poll(commands.Cog):
 		#fetching concerned message and the user who added the reaction
 		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 		user = self.bot.get_user(payload.user_id)
+		for r in message.reactions: 
+			print(r.users)
 
 		#checking that user isn't the bot
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
@@ -70,7 +72,7 @@ class Poll(commands.Cog):
 						#testing if current emoji is the one just added
 						if reaction.emoji == payload.emoji.name:
 							#removing unauthorized emoji
-							await reaction.remove(user)
+							await reaction.remove(user())
 
 				except Exception as e:
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
@@ -124,11 +126,12 @@ class Poll(commands.Cog):
 
 		if message.channel.id in self.poll_allowed_chans[message.guild.id] and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(
-				title = "{}{}".format(message.author.name, message.author.avatar_url),
+				title = message.author.name,
 				description = message.content,
 				colour = discord.Color(16776960),
 				url = None
 				)
+			embed_poll.set_thumbnail(url=message.author.avatar_url)
 
 			#embed_poll.set_thumbnail(url=message.author.avatar_url)
 			#embed_poll.set_footer(text=message.author.name, icon_url=message.author.avatar_url)
