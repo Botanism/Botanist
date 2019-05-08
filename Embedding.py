@@ -47,15 +47,20 @@ class Embedding(commands.Cog):
 
 		msg = ""
 		for arg in args:
-			msg += " {}".format(arg)
+			if arg.startswith("https://"):
+				img_url = arg
+			else:
+				msg += " {}".format(arg)
 
+		print(msg)
 		embed_msg = discord.Embed(
 				title = None,
 				description = msg,
 				colour = ctx.author.color,
 				url = None
 				)
-
+		if img_url:
+			embed_msg.set_image(url=img_url)
 		embed_msg.set_footer(text=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
 
 		await ctx.message.delete()
