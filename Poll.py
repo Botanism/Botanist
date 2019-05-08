@@ -42,8 +42,12 @@ class Poll(commands.Cog):
 		self.poll_allowed_chans = {}
 		with open(POLL_ALLOWED_CHANNELS_FILE, "r") as file:
 			for line in file.readlines():
-				guild_id = int(line.split(";")[0])
-				self.poll_allowed_chans[guild_id] = [int(chan_id) for chan_id in line.split(";")[1:]]
+				clean_line = line.strip("\n")
+				guild_id = int(clean_line.split(";")[0])
+				local_logger.warning("\nChans:{}".format(clean_line.split(";")[1:]))
+				self.poll_allowed_chans[guild_id] = [int(chan_id) for chan_id in clean_line.split(";")[1:]]
+
+				local_logger.warning(self.poll_allowed_chans)
 
 
 		
