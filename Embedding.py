@@ -46,6 +46,7 @@ class Embedding(commands.Cog):
 			return
 
 		msg = ""
+		img_url = None
 		for arg in args:
 			if arg.startswith("https://"):
 				img_url = arg
