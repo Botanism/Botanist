@@ -57,8 +57,6 @@ class Poll(commands.Cog):
 		#fetching concerned message and the user who added the reaction
 		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 		user = self.bot.get_user(payload.user_id)
-		for r in message.reactions: 
-			print(r.users)
 
 		#checking that user isn't the bot
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
@@ -72,7 +70,7 @@ class Poll(commands.Cog):
 						#testing if current emoji is the one just added
 						if reaction.emoji == payload.emoji.name:
 							#removing unauthorized emoji
-							await reaction.remove(user())
+							await reaction.remove(user)
 
 				except Exception as e:
 					local_logger.exception("Couldn't remove reaction {}".format("reaction"))
@@ -80,6 +78,11 @@ class Poll(commands.Cog):
 
 			#if the reaction is allowed -> recalculating ractions ratio and changing embed's color accordingly
 			else:
+				#preventing users from having multiple reactions
+				for reaction in message.reactions:
+					if reaction.emoji != payload.emoji.name:
+						await reaction.remove(user)
+
 				#currently using integers -> may need to change to their values by checcking them one by one
 				react_for = message.reactions[0].count
 				react_against = message.reactions[2].count
