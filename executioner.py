@@ -49,7 +49,7 @@ discord_logger.info("Initalized discord's logger")
 
 #commands that lets admin update the bot without shutting it down
 @bot.group()
-@commands.has_any_role(*ADMIN_ROLE)
+@is_runner()
 async def ext(ctx):
 	if ctx.invoked_subcommand is None:
 		await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")

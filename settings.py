@@ -9,8 +9,8 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XMj3MA.yF2biw9arAeVyZiON30-y2oQV1w"
-AUTHOR_ID=289426079544901633
+TOKEN = "your_token"
+RUNNER_ID=289426079544901633
 
 
 #emojis dict. May be possible to change incomprehensible unicode to other strings recognized by discord

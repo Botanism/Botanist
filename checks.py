@@ -24,9 +24,9 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #										#
 #########################################
 
-def is_author():
+def is_runner():
 	def check_condition(ctx):
-		return ctx.message.author.id ==AUTHOR_ID
+		return ctx.message.author.id ==RUNNER_ID
 	return commands.check(check_condition)
 
 def in_channel():

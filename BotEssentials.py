@@ -54,7 +54,7 @@ class BotEssentials(commands.Cog):
 
 	#Command that shuts down the bot
 	@commands.command()
-	@is_author()
+	@is_runner()
 	async def shutdown(self, ctx):
 		print("Goodbye")
 		local_logger.info("Switching to invisible mode")
@@ -65,6 +65,20 @@ class BotEssentials(commands.Cog):
 		await self.bot.close()
 		local_logger.info("Quitting python")
 		await quit()
+
+	@commands.command()
+	@commands.has_any_role(*GESTION_ROLES)
+	async def clear(slef, ctx, nbr:int):
+		'''deletes specified <nbr> number of messages in the current channel'''
+		async for msg in ctx.channel.history(limit=nbr):
+			local_logger.info("Deleting {}".format(msg))
+			try:
+				await msg.delete()
+			except Exception as e:
+				local_logger.exception("Couldn't delete {}".format(msg))
+				raise e
+			
+
 
 
 def setup(bot):
