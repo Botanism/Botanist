@@ -16,7 +16,7 @@ Here is an exhaustive list of all extensions and the commands they provide. This
 
 #### Poll: `poll`
 
-This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion.
+This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed.
 
 - `rm`  `<msg_id>`: if the user is the author of the poll with the `<msg_id>` message, the bot deletes the specified poll.
 
@@ -30,3 +30,28 @@ This extension allow nay user to send a message as an embed. The color of the em
 
 
 
+#### Bot Essentials
+
+This extension contains some of the most basic managing commands and should almost always be enabled.
+
+- `ping`: replies with the rounded latency of the message transfer
+- `shutdown`: shuts down the bot. Restricted to the user with `RUNNER_ID`
+- `clear` `<nbr>` : deletes the specified `<nbr>` number of messages in the current channel. chronogically.
+
+
+
+#### Slapping
+
+Allows administrators to give quick and light warnings to disrespectful members. By slapping a member he gets notified of his misbehavior and knows who did it. Both the administrator and the user can see his/her slap count. The slap count is also cross-server.
+
+- `slap` `<member>`: slaps the specified `<member>` member one time.
+- `pardon` `<member>` `<nbr>` : slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member.
+
+
+
+#### Role
+
+Allows moderators to add and remove roles to members.
+
+- `add` `<member>` `<roles>`: adds the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member.
+- `rm` `<member>` `<roles>`: removes the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member.
