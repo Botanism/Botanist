@@ -55,3 +55,13 @@ Allows moderators to add and remove roles to members.
 
 - `add` `<member>` `<roles>`: adds the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member.
 - `rm` `<member>` `<roles>`: removes the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member.
+
+#### Todo
+
+Allows moderators to make a to-do list  in one or more channels. It's also possible to make types for the to-do's, to assign a member to a to-do and to make a copy of the to-do in a public or in a other channel. If the to-do is deleted the replica will also be deleted. For all the command where arguments are split with : `;` you must respect those.
+
+- `todo` `add` `<to-do content>;<to-do type>;<assigned member/false>;<repost channel/false>`: adds the to-do in the selected channel (see `todo channel` command) . A color will be used for the embeds if the to-do type exist. The member can be mention or just wrote normally, he will be mention in both case. The channel can be a mention or can be wrote manually, he will be write as mentioned is both case.
+- `todo` `addtype` `<type's name>;<color>`: adds a type for the to-dos.
+- `todo` `removetype` `<type's name>`: Remove the type.
+- `todo` `listypes` `<type's name>`: List created types.
+- `todo` `channel`: Select the channel for the future to-do's
