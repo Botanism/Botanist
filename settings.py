@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XNK7DA.rbTMbw_KwBPOpCaV793UsK6xoCc"
 RUNNER_ID=289426079544901633
 
 
@@ -20,7 +20,8 @@ EMOJIS = {
 	"shrug": "\U0001f937",
 	"wastebasket": "\U0001F5D1",
     "check": "\U00002705",
-    "hourglass": "\U000023F3"
+    "hourglass": "\U000023F3",
+    "wave": "\U0001F44B"
 }
 
 #a set of channel names bound to their ids

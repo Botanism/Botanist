@@ -44,6 +44,11 @@ class BotEssentials(commands.Cog):
 		local_logger.info("User {0.name}[{0.id}] joined {1.name}[{1.id}]".format(member, member.guild))
 		await member.guild.system_channel.send("Welcome to {} {}! Please make sure to take a look at our {} and before asking a question, at the {}".format(member.guild.name, member.mention, CHANNELS["rules"].mention, CHANNELS["faq"].mention))
 
+	@commands.Cog.listener()
+	async def on_member_remove(self, member):
+		local_logger.info("User {0.name}[{0.id}] left {1.name}[{1.id}]".format(member, member.guild))
+		await member.guilg.system_channel.send("Goodbye {0.name} {1}, may your wandering be fun!".format(member, EMOJIS["wave"]))
+
 
 	@commands.command()
 	async def ping(self, ctx):
