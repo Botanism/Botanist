@@ -82,7 +82,6 @@ class BotEssentials(commands.Cog):
 			except Exception as e:
 				local_logger.exception("Couldn't delete {}".format(msg))
 				raise e
-			
 
 
 

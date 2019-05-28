@@ -5,12 +5,9 @@ from discord.utils import find as dfind
 from settings import *
 from checks import *
 import math
-import requests as rq
-from bs4 import BeautifulSoup
 import time
 import random
 import logging
-
 
 
 #INITS THE BOT
@@ -28,7 +25,7 @@ bot = commands.Bot(command_prefix=PREFIX)
 main_logger = logging.getLogger(__name__)
 main_logger.setLevel(LOGGING_LEVEL)
 main_logger.addHandler(LOGGING_HANDLER)
-main_logger.info("Initalized logger")
+main_logger.info(f"Initalized {__name__} logger")
 
 
 #Creating discord.py's logger
@@ -52,7 +49,7 @@ discord_logger.info("Initalized discord's logger")
 @is_runner()
 async def ext(ctx):
 	if ctx.invoked_subcommand is None:
-		await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+		await ctx.send(ERR_NOT_ENOUGH_ARG)
 
 @ext.command()
 async def reload(ctx, extension:str):
@@ -93,7 +90,29 @@ async def add(ctx, extension:str):
 		raise e
 
 	await ctx.send("Successfully added and loadded {}".format(extension))
+@ext.command()
+async def rm(ctx, extension:str):
+	try:
+		bot.unload(extension)
 
+	except Exception as e:
+		main_logger.exception(e)
+		await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+		raise e
+
+	#if the extension was correctly unloaded, removing it from the enblaed extension file
+	try:
+		with open(ENABLED_EXTENSIONS_FILE, "aw") as file:
+			lines = []
+			for line in file.readlines():
+				if line == extension:
+					continue
+				lines.append(line)
+			file.write(lines)
+	except Exception as e:
+		main_logger.exception(e)
+		await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+		raise e
 
 
 
@@ -132,4 +151,3 @@ except Exception as e:
 #running the bot, no matter what
 finally:
 	bot.run(TOKEN)
-
