@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XNK7DA.rbTMbw_KwBPOpCaV793UsK6xoCc"
+TOKEN = "your_token"
 RUNNER_ID=289426079544901633
 
 
