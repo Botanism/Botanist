@@ -116,7 +116,7 @@ try:
 				main_logger.info("Loaded {}".format(ext))
 			
 			except Exception as e:
-				main_loggerre.exception(e)
+				main_logger.exception(e)
 				raise e
 
 #if no extension is enabled
