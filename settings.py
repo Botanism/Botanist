@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XOUOKA.WQ4i2B_Jer-mWptaXZlrsNsMVF0"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XOUOKA.WQ4i2B_Jer-mWptaXZlrsNsMVF"
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
@@ -23,7 +23,8 @@ EMOJIS = {
 	"wastebasket": "\U0001F5D1",
 	"check": "\U00002705",
 	"hourglass": "\U000023F3",
-	"wave": "\U0001F44B"
+	"wave": "\U0001F44B",
+	"no_entry_sign": "\U0001F6AB"
 }
 
 ROLES_FILE = "roles.txt"

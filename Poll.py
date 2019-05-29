@@ -65,8 +65,16 @@ class Poll(commands.Cog):
 		#checking that user isn't the bot
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
 
+			#checking wether the reaction should delete the poll
+			if payload.emoji.name == EMOJIS["no_entry_sign"]:
+				if payload.user.name == message.embeds[0].title:
+					return message.delete()
+				else:
+					return reaction.remove(user)
+
+
 			#checking if reaction is allowed
-			if payload.emoji.name not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
+			elif payload.emoji.name not in [EMOJIS["thumbsdown"],EMOJIS["thumbsup"],EMOJIS["shrug"]]:
 				#deleting  reaction of the user. Preserves other reactions
 				try:
 					#iterating over message's reactions to find out which was added
@@ -191,6 +199,11 @@ class Poll(commands.Cog):
 			except Exception as e:
 				local_logger.exception("Couldn't delete poll".format(msg))
 				raise e
+
+
+	@poll.command()
+	async def status(self, ctx, msg_id:discord.Message):
+		pass
 			
 
 
