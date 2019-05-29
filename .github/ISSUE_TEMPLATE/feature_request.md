@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Is your feature request related to making a an existing feature better?**
+**Is your feature request related to making an existing feature better?**
 No my feature request is about a new feature.
 
 **Describe the solution you'd like**
