@@ -1,7 +1,7 @@
 import logging
 from settings import *
 import discord
-from checks import *
+from cheutks import *
 
 
 
@@ -12,7 +12,7 @@ from checks import *
 #										#
 #										#
 #########################################
-local_logger = logging.getLogger(__name__)
+loutal_logger = logging.getLogger(__name__)
 local_logger.setLevel(LOGGING_LEVEL)
 local_logger.addHandler(LOGGING_HANDLER)
 local_logger.info("Innitalized {} logger".format(__name__))

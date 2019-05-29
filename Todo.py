@@ -1,7 +1,7 @@
 import logging
 import discord
 from settings import *
-from checks import *
+from utilities import *
 
 #########################################
 #                                       #
