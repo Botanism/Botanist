@@ -10,7 +10,7 @@ assignees: NotaSmartDev
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Example**
+**Steps to reproduce**
 Give clear information of where the bug happened.This means guild, channel, message, etc... The preferred format for those are IDs as they are easy to get back to. The time around which the error occurred helps too.
 
 **Expected behavior**
