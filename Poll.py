@@ -168,11 +168,6 @@ class Poll(commands.Cog):
 			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
 
 
-#	@poll.command()
-#	async def add(self, ctx, channel, *args):
-#		pass
-
-
 	@poll.command()
 	async def rm(self, ctx, msg_id):
 		'''allows one to delete one of their poll by issuing its id'''

@@ -32,12 +32,6 @@ def is_runner():
 		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 	return result
 
-def yes_no_ans():
-	async def check_condition(ctx):
-		return ctx.message.content == ("yes" or "no")
-	return commands.check(check_condition)
-
-
 
 #########################################
 #										#

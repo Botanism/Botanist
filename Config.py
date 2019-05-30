@@ -85,9 +85,6 @@ class Config(commands.Cog):
 		if ctx.channel == self.config_channels[ctx.guild.id]: return True
 		return False
 
-	@cfg.command()
-	async def leave(self, ctx):
-		ctx.send("You are about to remove the bot from the server. This will erase all of your configuration from the mainframe and you won't be able to recover the bot without getting another invite. Are you sure you want to continue ? (y/N)")
 
 	async def cfg_poll(self, ctx):
 		try:
@@ -97,18 +94,29 @@ class Config(commands.Cog):
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
 			if not response.content[0].lower() =="y": return False
 
-			await self.config_channels[ctx.guild.id].send("List all the channels you want to use as poll channels. Only put the channel mentions in your answer")
-			response = await self.bot.wait_for("message", check=self.is_answer)
-			poll_channels = response.channel_mentions
-			local_logger.info((response.channel_mentions, "which makes", poll_channels))
-			poll_channels_str = ""
-			for chan in response.channel_mentions:
-				poll_channels_str+= " "+chan.mention
+			retry = True
+			while retry:
+				await self.config_channels[ctx.guild.id].send("List all the channels you want to use as poll channels.")
+				response = await self.bot.wait_for("message", check=self.is_answer)
+				poll_channels = response.channel_mentions
+				local_logger.info((response.channel_mentions, "which makes", poll_channels))
+				poll_channels_str = ""
+				for chan in response.channel_mentions:
+					poll_channels_str+= " "+chan.mention
 
-			await self.config_channels[ctx.guild.id].send(f"You are about to make {poll_channels_str} poll channels. Do you want to continue? [y/n]")
+				await self.config_channels[ctx.guild.id].send(f"You are about to make {poll_channels_str} poll channels. Do you want to continue? [y/n]")
 
-			response = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if not response.content[0].lower() =="y": return False
+				response = await self.bot.wait_for("message", check=self.is_yn_answer)
+				#wether the asnwer was positive
+				if not response.content[0].lower() =="y":
+					#making sure the user really wants to cancel poll configuration
+					self.config_channels[ctx.guild.id].send("Aborting addition of poll channels. Do you want to leave the poll configuration interface ? [y/n]")
+					response = await self.bot.wait_for("message", check=self.is_yn_answer)
+					if response.content[0].lower()=="y":
+						retry = False
+
+
+
 
 			#making the data to be saved
 			with open(POLL_ALLOWED_CHANNELS_FILE, "r") as file:
@@ -142,19 +150,20 @@ class Config(commands.Cog):
 			await self.config_channels[ctx.guild.id].send("Poll configuration is done.")
 
 
-
-
-
-			local_logger.info(response)
+			local_logger.info(f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed.")
 
 		except Exception as e:
 			local_logger.exception(e)
 
 
-
-
 	async def cfg_roll(self, ctx):
 		pass
+
+
+
+
+
+
 
 	async def cfg_todo(self, ctx):
 		pass
@@ -164,6 +173,12 @@ class Config(commands.Cog):
 
 	async def yes_no_answer(self, ctx):
 		pass
+
+	@cfg.command()
+	async def leave(self, ctx):
+		ctx.send("You are about to remove the bot from the server. This will erase all of your configuration from the mainframe and you won't be able to recover the bot without getting another invite. Are you sure you want to continue ? (y/N)")
+
+
 
 
 def setup(bot):
