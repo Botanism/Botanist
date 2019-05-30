@@ -9,11 +9,14 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XOUOKA.WQ4i2B_Jer-mWptaXZlrsNsMVF"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XO8J4w.7m10-9uaESNdWTExQtK69LNdx7I"
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
 DEV_SRV = 564213369834307600
+
+#github website URL
+WEBSITE = "https://github.com/organic-bots/ForeBot"
 
 #emojis dict. May be possible to change incomprehensible unicode to other strings recognized by discord
 EMOJIS = {
@@ -38,15 +41,18 @@ WELCOME_MESSAGE_FILE = "welcome_messages.txt"
 #data used only for Todo -> maybe remove it ?
 PUBLIC_REPOST="Public repost"
 
+#TEMP
+GESTION_ROLES = ["Community Manager", "Server Admin"]
+
 #logging settings
 LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")
 LOGGING_FORMATTER	= logging.Formatter("[%(asctime)s]:%(name)s:%(message)s")
-LOGGING_LEVEL		= logging.WARNING
+LOGGING_LEVEL		= logging.INFO
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 
 #generic error messages
 ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` for more info on command usage."
-ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server.".format(DEV_SRV)
+ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
 ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"
 ERR_UNSUFFICIENT_PRIVILEGE = "You don't have the permission to do this..."
 

@@ -3,7 +3,7 @@
 import discord
 from discord.utils import find as dfind
 from settings import *
-from checks import *
+from utilities import *
 import math
 import time
 import random
@@ -135,7 +135,7 @@ try:
 				main_logger.info("Loaded {}".format(ext))
 			
 			except Exception as e:
-				main_loggerre.exception(e)
+				main_logger.exception(e)
 				raise e
 
 #if no extension is enabled

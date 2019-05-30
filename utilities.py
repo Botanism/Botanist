@@ -31,3 +31,27 @@ def is_runner():
 	if result == False:
 		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 	return result
+
+def yes_no_ans():
+	async def check_condition(ctx):
+		return ctx.message.content == ("yes" or "no")
+	return commands.check(check_condition)
+
+
+
+#########################################
+#										#
+#										#
+#			Utility functions			#
+#										#
+#										#
+#########################################
+
+def load_roles():
+	roles_dict = {}
+	with open(ROLES_FILE, "r") as file:
+		for line in file.readlines():
+			segments = line.split(";")
+			guild_id = int(segments[0])
+			
+
