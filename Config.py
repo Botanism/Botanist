@@ -32,7 +32,7 @@ class Config(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		#change to make it cross-server
-		self.config_channel=None
+		self.config_channels={}
 
 		#other values can't be added as of now
 		self.allowed_answers = {1:["yes", "y"],
@@ -53,22 +53,20 @@ class Config(commands.Cog):
 		ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
 		ctx.guild.owner : discord.PermissionOverwrite(read_messages=True)
 		}
-		self.config_channel = await ctx.guild.create_text_channel("cli-bot-config")
+		self.config_channels[ctx.guild.id] = await ctx.guild.create_text_channel("cli-bot-config")
 
 		#starting all configurations
 		await ctx.send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities\n*Starting full configuration...*''')
 		
 		try:
 			await self.cfg_poll(ctx)
-			local_logger.info("Setup is done")
+			local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
 
 		except Exception as e:
 			await ctx.send(ERR_UNEXCPECTED.format(None))
-			await ctx.send("Dropping cofiguration and rolling back unconfirmed changes.")
-			#await self.config_channel.delete(reason="Failed to interactively configure the bot")
+			await ctx.send("Dropping configuration and rolling back unconfirmed changes.")
+			#await self.config_channels[ctx.guild.id].delete(reason="Failed to interactively configure the bot")
 			local_logger.exception(e)
-
-
 
 
 	async def chg(self, ctx, setting):
@@ -80,11 +78,11 @@ class Config(commands.Cog):
 
 
 	async def is_yn_answer(self, ctx):
-		if (ctx.channel == self.config_channel) and (ctx.content in (self.allowed_answers[0] or self.allowed_answers[1])): return True
+		if (ctx.channel == self.config_channels[ctx.guild.id]) and (ctx.content in (self.allowed_answers[0] or self.allowed_answers[1])): return True
 		return False
 
 	async def is_answer(self, ctx):
-		if ctx.channel == self.config_channel: return True
+		if ctx.channel == self.config_channels[ctx.guild.id]: return True
 		return False
 
 	@cfg.command()
@@ -93,13 +91,13 @@ class Config(commands.Cog):
 
 	async def cfg_poll(self, ctx):
 		try:
-			await self.config_channel.send("**Starting poll configuration**")
-			await self.config_channel.send("Do you want to activate polls on this server ? [yes/no]")
+			await self.config_channels[ctx.guild.id].send("**Starting poll configuration**")
+			await self.config_channels[ctx.guild.id].send("Do you want to activate polls on this server ? [yes/no]")
 			#awaiting the user response
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
 			if not response.content[0].lower() =="y": return False
 
-			await self.config_channel.send("List all the channels you want to use as poll channels. Only put the channel mentions in your answer")
+			await self.config_channels[ctx.guild.id].send("List all the channels you want to use as poll channels. Only put the channel mentions in your answer")
 			response = await self.bot.wait_for("message", check=self.is_answer)
 			poll_channels = response.channel_mentions
 			local_logger.info((response.channel_mentions, "which makes", poll_channels))
@@ -107,7 +105,7 @@ class Config(commands.Cog):
 			for chan in response.channel_mentions:
 				poll_channels_str+= " "+chan.mention
 
-			await self.config_channel.send(f"You are about to make {poll_channels_str} poll channels. Do you want to continue? [y/n]")
+			await self.config_channels[ctx.guild.id].send(f"You are about to make {poll_channels_str} poll channels. Do you want to continue? [y/n]")
 
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
 			if not response.content[0].lower() =="y": return False
@@ -141,7 +139,7 @@ class Config(commands.Cog):
 			with open(POLL_ALLOWED_CHANNELS_FILE, "w") as file:
 				file.write(write_str)
 
-			await self.config_channel.send("Poll configuration is done.")
+			await self.config_channels[ctx.guild.id].send("Poll configuration is done.")
 
 
 
