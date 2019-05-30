@@ -117,22 +117,27 @@ class Config(commands.Cog):
 				to_write = []
 				for line in file.readlines():
 					'''the file is organized like this:
-					guild_id;poll_chan_1_id;poll_chan_2_id;\n'''
+					\nguild_id;poll_chan_1_id;poll_chan_2_id;'''
 					segments = line.split(";")
-					if not segments[0]==ctx.guild.id:
+					if not int(segments[0])==ctx.guild.id:
 						to_write.append(line)
 
 				guild_chans = f"{ctx.guild.id};"
-				for chan in response.channel_mentions:
+				for chan in poll_channels:
 					guild_chans+= f"{chan.id};"
-				guild_chans+="\n"
+
+				#removing the last ";" to prevent Poll from trying to convert it to an int
+				guild_chans = guild_chans[:-1] + "\n"
 
 				to_write.append(guild_chans)
+				local_logger.info(str(guild_chans))
 
 			#writting to the file
 			write_str = ""
 			for line in to_write:
 				write_str+=line
+
+			local_logger.info(write_str)
 			with open(POLL_ALLOWED_CHANNELS_FILE, "w") as file:
 				file.write(write_str)
 
