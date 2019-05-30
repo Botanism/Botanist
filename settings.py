@@ -41,8 +41,9 @@ WELCOME_MESSAGE_FILE = "welcome_messages.txt"
 #data used only for Todo -> maybe remove it ?
 PUBLIC_REPOST="Public repost"
 
-#TEMP
-GESTION_ROLES = ["Community Manager", "Server Admin"]
+#rolls
+ROLES_LEVEL = ["manager", "admin"]
+
 
 #logging settings
 LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")
@@ -63,11 +64,6 @@ CHANNELS = {
 	"rules": 566569408416186377,
 	"faq": 566618400307019776
 }
-
-
-#DEPRECATED
-ADMIN_ROLE = ["Server Admin", "Bot Admin"]
-GESTION_ROLES = ["Community Manager", "Server Admin"]
-for role in ADMIN_ROLE:
-	GESTION_ROLES.append(role)
 '''
+
+ For a complete list of all commands enbaled for this clearance see {WEBSITE}
