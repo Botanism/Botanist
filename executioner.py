@@ -74,9 +74,19 @@ async def add(ctx, extension:str):
 
 	#if the extension was correctly loaded, adding it to the enabled file
 	try:
-		#appending new extension to ENABLED_EXTENSIONS_FILE
-		with open(ENABLED_EXTENSIONS_FILE, "a") as file:
-			file.write("{}\n".format(extension))
+		#fetching laready enabled extensions
+		with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+			to_write = ""
+			for line in file.readlines():
+				if line[:-1]==extension:
+					continue
+				to_write+=line
+
+			to_write+= f"{extension}\n"
+
+		#writting to file
+		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+			file.write(to_write)
 
 	except FileNotFoundError as e:
 		#if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
@@ -90,10 +100,12 @@ async def add(ctx, extension:str):
 		raise e
 
 	await ctx.send("Successfully added and loadded {}".format(extension))
+
+
 @ext.command()
 async def rm(ctx, extension:str):
 	try:
-		bot.unload(extension)
+		bot.unload_extension(extension)
 
 	except Exception as e:
 		main_logger.exception(e)
@@ -102,17 +114,29 @@ async def rm(ctx, extension:str):
 
 	#if the extension was correctly unloaded, removing it from the enblaed extension file
 	try:
-		with open(ENABLED_EXTENSIONS_FILE, "aw") as file:
+		with open(ENABLED_EXTENSIONS_FILE, "r") as file:
 			lines = []
 			for line in file.readlines():
-				if line == extension:
+				if line[:-1] == extension:
 					continue
 				lines.append(line)
-			file.write(lines)
+
+
+		#building new file
+		to_write = ""
+		for line in lines:
+			to_write+=line
+
+		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+			file.write(to_write)
+
 	except Exception as e:
 		main_logger.exception(e)
 		await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
 		raise e
+
+	await ctx.send("Successfully removed and unloaded {}".format(extension))
+	local_logger.info(f"Disabled and removed {extension}")
 
 
 
