@@ -174,25 +174,37 @@ class Config(commands.Cog):
 
 			new_roles = []
 			for role_lvl in ROLES_LEVEL:
-				new_role = []
-				#asking the owner which roles he wants to give clearance to
-				await self.config_channels[ctx.guild.ig].send(f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
-				response = self.bot.wait_for("message", check=self.is_answer)
-				roles = response.role_mentions
+				retry = True
+				while retry:
+					new_role = []
+					#asking the owner which roles he wants to give clearance to
+					await self.config_channels[ctx.guild.ig].send(f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
+					response = self.bot.wait_for("message", check=self.is_answer)
+					roles = response.role_mentions
 
-				#building roll string
-				roles_str = ""
-				for role in roles:
-					roles_str+= f" {role}"
+					#building roll string
+					roles_str = ""
+					for role in roles:
+						roles_str+= f" {role}"
 
-				#asking for confirmation
-				await self.config_channels[ctx.guild.id].send(f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ? [y/n]")
-				response = self.bot.wait_for("message", check=self.is_yn_answer)
-				if repsonse[0].lower() == "n": return False
+					#asking for confirmation
+					await self.config_channels[ctx.guild.id].send(f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ? [y/n]")
+					response = self.bot.wait_for("message", check=self.is_yn_answer)
+					if repsonse[0].lower() == "n":
+						await self.config_channels[ctx.guild.id].send(f"Aborting configuration of {role_lvl}. Do you want to retry? [y/n]")
+						response = self.bot.wait_for("message", check=self.is_yn_answer)
+						if response[0].lower() == "n":
+							local_logger.info(f"The configuration for the {role_lvl} clearance has been cancelled for server {ctx.guild.name}")
+							retry = False
+
+
 				local_logger.info(f"Server {ctx.guild.name} configured its {role_lvl} roles")
 
 				for role in roles:
 					new_role.append(role.id)
+
+				#adding to master role list
+				new_roles.append(new_role)
 
 			#writting configuration to file
 			with open(ROLES_FILE, "r") as file:
@@ -206,21 +218,28 @@ class Config(commands.Cog):
 					#if the line isn't defining the server's role settings, marking it for rewrite
 					to_write += line
 
-			#building the roles lists
-			for m_role in new_roles[0]:
-				new_roles[1].append(m_role)
+			#giving admin roles the manager clearance
+			for m_role in new_roles[1]:
+				new_roles[0].append(m_role)
 
 			#adding management roles
 			guild_line = f"{ctx.guild.id};"
 			for role in new_roles[0]:
-				guild_line += f"{role};"
+				guild_line += f"{role}|"
 
-			#adding weak seperator
-			guild_line+="|"
+			#adding strong separator between clearance levels
+			guild_line+=";"
 
 			#adding admin roles
 			for role in new_roles[1]:
-				guild_line += f"{role};"
+				guild_line += f"{role}|"
+
+			#addind the modified guild role configuration
+			to_write+= guild_line[:-1]+"\n"
+
+			#writting to file
+			with open(ROLES_FILE, "w") as file:
+				file.write(to_write)
 
 
 
