@@ -42,17 +42,29 @@ class Slapping(commands.Cog):
 		with open(SLAPPED_LOG_FILE, "r") as file:
 			content = file.readlines()
 			for line in content:
-				if line.startswith(str(member.id)):
-					slap_count = int(line.split(";")[1])+1
-					to_write+= "{};{}\n".format(member.id, slap_count)
+				#finding the right server
+				if line.startswith(str(ctx.guild.id)):
+					#looking for the user in the guild slaps log
+					guild_line = ""
+					for user in line.split(";")[:1]:
+						#whether the user if the member
+						if int(user.split("|")[0]) == member.id:
+							slap_count = int(user.split("|")[1])+1
+							guild_line+=f"{member.id}|{slap_count};"
+							continue
+
+						#if the user does not match
+						guild_line+=user
+
+					#if the user wasn't found
+					if slap_count==0:
+						guild_line+=f"{member.id}|1;"
+
+					#removing the last ";" and appending a line return
+					to_write+=guild_line[-1]+"\n"
 
 				else:
 					to_write += line
-
-		#creates a log for the member if he's never been slapped
-		if slap_count==0:
-			slap_count = 1
-			to_write += "{};{}\n".format(member.id, slap_count)
 
 
 		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slap_count))
@@ -70,22 +82,37 @@ class Slapping(commands.Cog):
 
 		#reads the file and prepares logging of slaps
 		with open(SLAPPED_LOG_FILE, "r") as file:
-			content = file.readlines()
-			for line in content:
-				if not line.startswith(str(member.id)):
+			for line in file.readlines():
+				if not line.startswith(str(ctx.guild.id)):
 					to_write+=line
+					continue
 
-				#if iterating over the user, removing the right number of slaps
-				else:
-					crt_slaps = int(line.split(";")[1])
-					print(crt_slaps)
-					if crt_slaps<nbr or nbr==0:
-						crt_slaps =0
+				#looking for the user
+				guild_line = ""
+				for user in line.split(";")[:1]:
+					#whether the user is member
+					if int(user.split("|")[0]) == member.id:
+						local_logger.info(f"Found user {member.name} who has ot be pardonnned")
+						crt_slaps = int(user.split("|")[1])
+						#pardonnning the user
+						if crt_slaps<nbr or nbr==0:
+							crt_slaps =0
 
-					else:
-						crt_slaps-=nbr
-					to_write+="{};{}".format(member.id, crt_slaps)
-					print(crt_slaps)
+						else:
+							crt_slaps-=nbr
+
+						local_logger.info(f"{member.name} now has been slapped {crt_slaps} times")
+						guild_line+=f"{member.id}|{crt_slaps};"
+
+						continue
+
+					#if the user isn't the right one
+					guild_line+=user
+
+				#removing the last ";" and appending a line return
+				to_write+=guild_line[-1]+"\n"				
+
+
 
 
 		#writting updated file
