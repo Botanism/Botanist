@@ -7,8 +7,9 @@ assignees: ''
 
 ---
 
-**Is your feature request related to making an existing feature better?**
-No my feature request is about a new feature.
+**what kind of feature are you requesting (tick one)**
+- [ ] My feature request is about a new feature
+- [ ] My feature request is about changing a feature
 
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen.
@@ -18,3 +19,7 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Additional context**
 Add any other context or screenshots about the feature request here.
+
+**What needs to be done**
+- [ ] Implement feature X
+- [ ] Write documentation for feature X
