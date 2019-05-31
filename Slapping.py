@@ -110,9 +110,7 @@ class Slapping(commands.Cog):
 					guild_line+=user
 
 				#removing the last ";" and appending a line return
-				to_write+=guild_line[-1]+"\n"				
-
-
+				to_write+=guild_line[-1]+"\n"
 
 
 		#writting updated file
