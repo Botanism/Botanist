@@ -33,6 +33,17 @@ def is_runner():
 		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 	return result
 
+def is_init():
+	def check_condition(ctx):
+		conf_files = os.listdir()
+		file_name = f"{ctx.guild.id}.json"
+		return file_name in conf_files
+
+	result = commands.check(check_condition)
+	if result == False:
+		ctx.send(ERR_NOT_SETUP)
+	return result
+
 
 #########################################
 #										#
@@ -43,10 +54,33 @@ def is_runner():
 #########################################
 
 def get_m_time(file):
-	return os.getmtime(file+".conf")
+	return os.getmtime(file+"json")
 
 def has_changed(server, last_time):
 	last_update = get_m_time(file)
 	if last_update != last_time:
 		return True
 	return False
+
+def get_conf(guild_id):
+	with open(f"{guild_id}.json", "r") as file:
+		return conf = json.load(file)
+
+def update_conf(guild_id, conf_dict):
+	try:
+		with open(f"{guild_id}.json", "r") as file:
+			json.dump(file, conf_dict)
+		return True
+
+	except Exception as e:
+		local_logger.exception(e)
+		return False
+
+def del_conf(guild_id):
+	try:
+		os.remove(f"{guild_id}.json")
+		return True
+
+	except Exception as e:
+		local_logger.exception(e)
+		return False

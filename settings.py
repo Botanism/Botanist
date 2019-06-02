@@ -30,14 +30,6 @@ EMOJIS = {
 	"no_entry_sign": "\U0001F6AB"
 }
 
-ROLES_FILE = "roles.txt"
-SLAPPED_LOG_FILE = "slapped.txt"
-ENABLED_EXTENSIONS_FILE = "enabled_ext.txt"
-POLL_ALLOWED_CHANNELS_FILE = "poll_channels.txt"
-TODO_CHANNEL_FILE = "todo_channel.txt"
-TODO_TYPES_FILE = "todo_types.txt"
-WELCOME_MESSAGE_FILE = "welcome_messages.txt"
-
 #data used only for Todo -> maybe remove it ?
 PUBLIC_REPOST="Public repost"
 
@@ -56,14 +48,4 @@ ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` f
 ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
 ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"
 ERR_UNSUFFICIENT_PRIVILEGE = "You don't have the permission to do this..."
-
-
-
-'''#DEPRECATED
-CHANNELS = {
-	"rules": 566569408416186377,
-	"faq": 566618400307019776
-}
-'''
-
- For a complete list of all commands enbaled for this clearance see {WEBSITE}
+ERR_NOT_SETUP = "This server hasn't been configured. If you're the owner of the server you can initialise the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that."
