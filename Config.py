@@ -221,7 +221,99 @@ class Config(commands.Cog):
 
 
 	async def cfg_welcome(self, ctx):
-		
+		try:
+			await self.config_channels[ctx.guild.id].send("**Starting welcome message configuration**")
+			retry = True
+
+			await self.config_channels[ctx.guild.id].send("Do you want to have a welcome message sent when a new user joins the server ? [y/n]")
+
+			response = await self.bot.wait_for("message", check=self.is_yn_answer)
+			if response[0].lower() == "n":
+				message = False
+				retry = False
+
+			while retry:
+
+				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent to the new users. If you want to mention them use `{}`")
+
+				message = await self.bot.wait_for("message", check=self.is_answer)
+
+				self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you.")
+				await self.config_channels[ctx.guild.id].send(message.format(ctx.guild.owner.mention))
+
+				await self.config_channels[ctx.guild.id].send("Is this the message you want to set as the welcome message ? [y/n]")
+				response = await self.bot.wait_for("message", check=self.is_yn_answer)
+
+				#the user has made a mistake
+				if response[0].lower() == "n":
+					await self.config_channels[ctx.guild.id].send("Do you want to retry ? [y/n]")
+					response = self.bot.wait_for("message", check=self.is_yn_answer)
+					if response[0].lower == "n":
+						message = False
+						retry = False
+					#otherwise retry
+					continue
+
+			old_conf = get_conf(ctx.guild.id)
+			old_conf["messages"]["welcome"]= message
+
+			if update_conf(ctx.guild.id, old_conf) == False:
+				await self.config_channels[ctx.guild.id]send(ERR_UNEXCPECTED)
+
+
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
+
+	async def cfg_welcome(self, ctx):
+		try:
+			await self.config_channels[ctx.guild.id].send("**Starting goodbye message configuration**")
+			retry = True
+
+			await self.config_channels[ctx.guild.id].send("Do you want to have a goodbye message sent when an user leaves the server ? [y/n]")
+
+			response = await self.bot.wait_for("message", check=self.is_yn_answer)
+			if response[0].lower() == "n":
+				message = False
+				retry = False
+
+			while retry:
+
+				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent. If you want to mention them use `{}`")
+
+				message = await self.bot.wait_for("message", check=self.is_answer)
+
+				self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you. Enventual mentions will be directed to you.")
+				await self.config_channels[ctx.guild.id].send(message.format(ctx.guild.owner.mention))
+
+				await self.config_channels[ctx.guild.id].send("Is this the message you want to set as the goodbye message ? [y/n]")
+				response = await self.bot.wait_for("message", check=self.is_yn_answer)
+
+				#the user has made a mistake
+				if response[0].lower() == "n":
+					await self.config_channels[ctx.guild.id].send("Do you want to retry ? [y/n]")
+					response = self.bot.wait_for("message", check=self.is_yn_answer)
+					if response[0].lower == "n":
+						message = False
+						retry = False
+					#otherwise retry
+					continue
+
+			old_conf = get_conf(ctx.guild.id)
+			old_conf["messages"]["goodbye"]= message
+
+			if update_conf(ctx.guild.id, old_conf) == False:
+				await self.config_channels[ctx.guild.id]send(ERR_UNEXCPECTED)
+
+
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
+
 
 
 	@cfg.command()
