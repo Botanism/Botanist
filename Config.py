@@ -38,6 +38,8 @@ class Config(commands.Cog):
 		self.allowed_answers = {1:["yes", "y"],
 								0:["no", "n"]}
 
+		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(self.bot.mention, self.invite_url, EMOJIS["wave"])
+
 
 
 	@commands.group()
@@ -242,7 +244,7 @@ class Config(commands.Cog):
 
 			while retry:
 
-				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent to the new users. If you want to mention them use `{}`")
+				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent to the new users. If you want to mention them use `{0}`")
 
 				message = await self.bot.wait_for("message", check=self.is_answer)
 
@@ -289,7 +291,7 @@ class Config(commands.Cog):
 
 			while retry:
 
-				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent. If you want to mention them use `{}`")
+				await self.config_channels[ctx.guild.id].send("Enter the message you'd like to be sent. If you want to mention them use `{0}`")
 
 				message = await self.bot.wait_for("message", check=self.is_answer)
 
@@ -332,6 +334,14 @@ class Config(commands.Cog):
 
 			old_conf = get_conf(ctx.guild.id)
 			old_conf["advertisement"] = reponse.channel_mentions[0].id
+
+			chan = dfind(lambda c: c.id==old_conf["advertisement"], ctx.guild.channels)
+			chan.send(self.ad_msg)
+
+			#updating conf
+			update_conf(ctx.guild.id, old_conf)
+
+
 
 		except Exception as e:
 			local_logger.exception(e)

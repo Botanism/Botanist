@@ -34,6 +34,8 @@ class BotEssentials(commands.Cog):
 	"""All of the essential methods all of our bots should have"""
 	def __init__(self, bot):
 		self.bot = bot
+		self.invite_url = "https://discord.gg/mpGM5cg"
+
 			
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -42,20 +44,22 @@ class BotEssentials(commands.Cog):
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
 		local_logger.info("User {0.name}[{0.id}] joined {1.name}[{1.id}]".format(member, member.guild))
-		await member.guild.system_channel.send("Welcome to {} {}! Please make sure to take a look at our {} and before asking a question, at the {}".format(member.guild.name, member.mention, CHANNELS["rules"].mention, CHANNELS["faq"].mention))
+		welcome_msg = get_conf(member.guild.id)["messages"]["welcome"]
+		if welcome_msg != False:
+			await member.guild.system_channel.send(welcome_msg.format(member.mention))
 
 	@commands.Cog.listener()
 	async def on_member_remove(self, member):
 		local_logger.info("User {0.name}[{0.id}] left {1.name}[{1.id}]".format(member, member.guild))
-		await member.guilg.system_channel.send("Goodbye {0.name} {1}, may your wandering be fun!".format(member, EMOJIS["wave"]))
-
+		goodbye_msg = get_conf(member.guild.id)["messages"]["welcome"]
+		if goodbye_msg != False:
+			await member.guild.system_channel.send(goodbye_msg.format(member.mention))		
 
 	@commands.command()
 	async def ping(self, ctx):
 		'''This command responds with the current latency.'''
 		latency = self.bot.latency
 		await ctx.send("**Pong !** Latency of {0:.3f} seconds".format(latency))
-
 
 	#Command that shuts down the bot
 	@commands.command()
