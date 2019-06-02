@@ -1,4 +1,5 @@
 import logging
+import os
 from settings import *
 from discord.ext import commands
 
@@ -41,11 +42,11 @@ def is_runner():
 #										#
 #########################################
 
-def load_roles():
-	roles_dict = {}
-	with open(ROLES_FILE, "r") as file:
-		for line in file.readlines():
-			segments = line.split(";")
-			guild_id = int(segments[0])
-			
+def get_m_time(file):
+	return os.getmtime(file+".conf")
 
+def has_changed(server, last_time):
+	last_update = get_m_time(file)
+	if last_update != last_time:
+		return True
+	return False
