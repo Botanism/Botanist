@@ -84,3 +84,12 @@ def del_conf(guild_id):
 	except Exception as e:
 		local_logger.exception(e)
 		return False
+
+def get_roles(guild_id, lvl):
+	try:
+		with open(f"{guild_id}.json", "r") as file:
+			return json.load(file)["roles"][lvl]
+
+	except Exception as e:
+		local_logger.exception(e)
+		raise e

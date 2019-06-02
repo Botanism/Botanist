@@ -32,12 +32,22 @@ class Role(commands.Cog):
 		self.bot = bot
 
 	@commands.group()
-	@commands.has_any_role(*GESTION_ROLES)
 	async def role(self, ctx):
 		'''role management utility. Requires a Gestion role'''
 		if ctx.invoked_subcommand is None:
 			local_logger.warning("User didn't provide any subcommand")
 			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+
+		allowed_roles = get_roles(ctx.guild.id, "manager")
+		ok = False
+		for role in ctx.author.roles:
+			if role in allowed_roles:
+				ok = True
+
+		if not ok:
+			ctx.channel.send(ERR_UNSUFFICIENT_PRIVILEGE)
+			return False
+
 
 	@role.command()
 	async def add(self, ctx, member: discord.Member, *roles:discord.Role):
