@@ -72,6 +72,14 @@ class Config(commands.Cog):
 			await self.cfg_poll(ctx)
 			await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherise no one will be able to use administration commands.")
 			await self.cfg_roll(ctx)
+			await self.cfg_welcome(ctx)
+			await self.cfg_goodbye(ctx)
+			await self.cfg_todo(ctx)
+
+			#asking for permisison to advertise
+			await self.config_channels[ctx.guild.id]send("You're almost done ! Just one more thing...")
+			await self.allow_ad(ctx)
+
 
 			local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
 
@@ -267,7 +275,7 @@ class Config(commands.Cog):
 			raise e
 
 
-	async def cfg_welcome(self, ctx):
+	async def cfg_goodbye(self, ctx):
 		try:
 			await self.config_channels[ctx.guild.id].send("**Starting goodbye message configuration**")
 			retry = True
@@ -312,6 +320,23 @@ class Config(commands.Cog):
 		except Exception as e:
 			local_logger.exception(e)
 			raise e
+
+	async def allow_ad(ctx):
+		try:
+			await self.config_channels[ctx.guild.id]send("Do you allow me to send a message in a channel of your choice ? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it (you can always change this later). [y/n]")
+			repsonse = self.bot.wait_for("message", check=self.is_yn_answer)
+			if reponse[0].lower()=="n": return False
+
+			await self.config_channels[ctx.guild.id]send("Thank you very much ! In which channel do you want me to post this message ?")
+			reponse = self.bot.wait_for("message", check=self.is_answer)
+
+			old_conf = get_conf(ctx.guild.id)
+			old_conf["advertisement"] = reponse.channel_mentions[0].id
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
 
 
 
