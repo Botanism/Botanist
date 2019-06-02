@@ -32,38 +32,25 @@ class Poll(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-		#making sure POLL_ALLOWED_CHANNELS_FILE exists
-		if POLL_ALLOWED_CHANNELS_FILE not in os.listdir():
-			local_logger.warning("{} doesn't exist & not configured".format(POLL_ALLOWED_CHANNELS_FILE))
-			with open(POLL_ALLOWED_CHANNELS_FILE, "w") as file:
-				pass
-
-		#making poll_allowed channels according to the message's guild
-		self.poll_allowed_chans = {}
-		with open(POLL_ALLOWED_CHANNELS_FILE, "r") as file:
-			for line in file.readlines():
-				clean_line = line.strip("\n")
-				guild_id = int(clean_line.split(";")[0])
-				local_logger.warning("\nChans:{}".format(clean_line.split(";")[1:]))
-				self.poll_allowed_chans[guild_id] = [int(chan_id) for chan_id in clean_line.split(";")[1:]]
-
-				local_logger.warning(self.poll_allowed_chans)
-
-
+	@is_init
+	async def get_poll_chans(self, guild_id):
+		with open(f"{guild_id}.json", "r") as file:
+			return poll_chans = json.load(file)["poll_channels"]
 		
 	@commands.Cog.listener()
 	async def on_raw_reaction_add(self, payload):
 		'''currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs'''
-		if not self.poll_allowed_chans[payload.guild_id]:
-			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
-			return
 
 		#fetching concerned message and the user who added the reaction
 		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 		user = self.bot.get_user(payload.user_id)
 
+		#getting poll_allowed_chans
+		poll_allowed_chans = get_poll_chans(payload.guild.id)
+
+
 		#checking that user isn't the bot
-		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):
+		if (payload.user_id != self.bot.user.id) and (payload.channel_id in poll_allowed_chans):
 
 			#checking wether the reaction should delete the poll
 			if payload.emoji.name == EMOJIS["no_entry_sign"]:
@@ -105,15 +92,15 @@ class Poll(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_raw_reaction_remove(self, payload):
-		if not self.poll_allowed_chans[payload.guild_id]:
-			local_logger.warning("Guild [{0.id}] doesn't have any channel for polls".format(payload.guild_id))
-			return
+
+		#getting poll_allowed_chans
+		poll_allowed_chans = get_poll_chans(payload.guild.id)
 
 		#fetching concerned message and the user who added the reaction
 		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 
 		#checking that user isn't the bot
-		if (payload.user_id != self.bot.user.id) and (payload.channel_id in self.poll_allowed_chans[payload.guild_id]):		
+		if (payload.user_id != self.bot.user.id) and (payload.channel_id in poll_allowed_chans):
 
 			react_for = message.reactions[0].count
 			react_against = message.reactions[2].count
@@ -139,7 +126,10 @@ class Poll(commands.Cog):
 	async def on_message(self, message):
 		if message.author==self.bot.user: return
 
-		if message.channel.id in self.poll_allowed_chans[message.guild.id] and message.content.startswith(PREFIX)!=True:
+		#getting poll_allowed_chans
+		poll_allowed_chans = get_poll_chans(payload.guild.id)
+
+		if message.channel.id in poll_allowed_chans and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(
 				title = message.author.name,
 				description = message.content,
