@@ -81,13 +81,13 @@ async def add(ctx, extension:str):
 		enabled_exts[extension] = True
 
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			json.dump(file, enabled_exts)
+			json.dump(enabled_exts, file)
 
 	except FileNotFoundError as e:
 		#if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
 		main_logger.warning("{} doesn't exist.".format(ENABLED_EXTENSIONS_FILE))
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			file.write()
+			file.write(DEFAULT_EXTENSIONS_JSON)
 
 	except Exception as e:
 		#logging any other possible issue
@@ -115,7 +115,7 @@ async def rm(ctx, extension:str):
 		enabled_exts[extension] = False
 
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			json.dump(file, enabled_exts)
+			json.dump(enabled_exts, file)
 
 	except Exception as e:
 		main_logger.exception(e)

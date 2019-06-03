@@ -49,10 +49,11 @@ def has_auth(clearance):
 	def predicate(ctx):
 		allowed_roles = get_roles(ctx.guild.id, clearance)
 		for role in ctx.author.roles:
-			print(role.id)
 			if role.id in allowed_roles:
 				return True
+		local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
 		local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+		return False
 
 	return commands.check(predicate)
 

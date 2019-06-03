@@ -39,6 +39,21 @@ SLAPPING_FILE = "slapped.json"
 #roles
 ROLES_LEVEL = ["manager", "admin"]
 
+#default JSON files
+DEFAULT_EXTENSIONS_JSON = '''{
+	"Slapping": false,
+	"BotEssentials":true,
+	"Role":false,
+	"Embedding":false,
+	"Config":false,
+	"Poll":false
+}'''
+
+DEFAULT_SLAPPED_FILE = {
+	"463665420054953995": {
+		"563848071214268429": 0
+	}
+}
 
 #logging settings
 LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")

@@ -32,6 +32,7 @@ class Role(commands.Cog):
 		self.bot = bot
 
 	@commands.group()
+	@has_auth("admin")
 	async def role(self, ctx):
 		'''role management utility. Requires a Gestion role'''
 		if ctx.invoked_subcommand is None:
