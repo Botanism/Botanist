@@ -32,46 +32,24 @@ class Slapping(commands.Cog):
 		self.bot = bot
 		
 	@commands.command()
-	@commands.has_any_role(*GESTION_ROLES)
+	@commands.has_any_role(get_roles(ctx.guild.id, "manager"))
 	async def slap(self, ctx, member:discord.Member):
 		'''Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server'''
-		to_write = ""
-		slap_count=0
 
-		#reads the file and prepares logging of slaps
-		with open(SLAPPED_LOG_FILE, "r") as file:
-			content = file.readlines()
-			for line in content:
-				#finding the right server
-				if line.startswith(str(ctx.guild.id)):
-					#looking for the user in the guild slaps log
-					guild_line = ""
-					for user in line.split(";")[:1]:
-						#whether the user if the member
-						if int(user.split("|")[0]) == member.id:
-							slap_count = int(user.split("|")[1])+1
-							guild_line+=f"{member.id}|{slap_count};"
-							continue
+		with open(SLAPPING_FILE, "r") as file:
+			slaps = json.load(file)
 
-						#if the user does not match
-						guild_line+=user
+		slap_count = slaps[ctx.guild.id][member.id]
+		if not slap_count:
+			slap_count = 1
+		else:
+			slap_count+= 1
 
-					#if the user wasn't found
-					if slap_count==0:
-						guild_line+=f"{member.id}|1;"
+		#writting to file
+		with open(SLAPPING_FILE, "w") as file:
+			json.dump(file, slaps)
 
-					#removing the last ";" and appending a line return
-					to_write+=guild_line[-1]+"\n"
-
-				else:
-					to_write += line
-
-
-		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slap_count))
-
-		#writes out updated data to the file
-		with open(SLAPPED_LOG_FILE, "w") as file:
-			file.write(to_write)			
+		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slap_count))		
 
 	@commands.command()
 	@commands.has_any_role(*GESTION_ROLES)

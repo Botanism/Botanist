@@ -2,7 +2,7 @@ import logging
 from settings import *
 import discord
 from utilities import *
-
+import json
 
 
 #########################################
@@ -76,10 +76,10 @@ class BotEssentials(commands.Cog):
 		await quit()
 
 	@commands.command()
-	@commands.has_any_role(*GESTION_ROLES)
-	async def clear(slef, ctx, nbr:int):
+	@has_auth("manager")
+	async def clear(self, ctx, nbr:int):
 		'''deletes specified <nbr> number of messages in the current channel'''
-		async for msg in ctx.channel.history(limit=nbr):
+		async for msg in ctx.channel.history(limit=nbr+1):
 			local_logger.info("Deleting {}".format(msg))
 			try:
 				await msg.delete()

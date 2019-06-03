@@ -73,7 +73,7 @@ class Config(commands.Cog):
 		try:
 			await self.cfg_poll(ctx)
 			await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherise no one will be able to use administration commands.")
-			await self.cfg_roll(ctx)
+			await self.cfg_role(ctx)
 			await self.cfg_welcome(ctx)
 			await self.cfg_goodbye(ctx)
 			await self.cfg_todo(ctx)
@@ -161,7 +161,7 @@ class Config(commands.Cog):
 			local_logger.exception(e)
 
 
-	async def cfg_roll(self, ctx):
+	async def cfg_role(self, ctx):
 		try:
 			#introducing the clearance levels the bot uses
 			await self.config_channels[ctx.guild.id].send("**Starting role configuration**")

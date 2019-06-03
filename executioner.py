@@ -8,6 +8,7 @@ import math
 import time
 import random
 import logging
+import json
 
 
 #INITS THE BOT
@@ -74,25 +75,19 @@ async def add(ctx, extension:str):
 
 	#if the extension was correctly loaded, adding it to the enabled file
 	try:
-		#fetching laready enabled extensions
 		with open(ENABLED_EXTENSIONS_FILE, "r") as file:
-			to_write = ""
-			for line in file.readlines():
-				if line[:-1]==extension:
-					continue
-				to_write+=line
+			enabled_exts = json.load(file)
+		
+		enabled_exts[extension] = True
 
-			to_write+= f"{extension}\n"
-
-		#writting to file
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			file.write(to_write)
+			json.dump(file, enabled_exts)
 
 	except FileNotFoundError as e:
 		#if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
 		main_logger.warning("{} doesn't exist.".format(ENABLED_EXTENSIONS_FILE))
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			file.write("{}\n".format(extension))
+			file.write()
 
 	except Exception as e:
 		#logging any other possible issue
@@ -115,20 +110,12 @@ async def rm(ctx, extension:str):
 	#if the extension was correctly unloaded, removing it from the enblaed extension file
 	try:
 		with open(ENABLED_EXTENSIONS_FILE, "r") as file:
-			lines = []
-			for line in file.readlines():
-				if line[:-1] == extension:
-					continue
-				lines.append(line)
-
-
-		#building new file
-		to_write = ""
-		for line in lines:
-			to_write+=line
+			enabled_exts = json.load(file)
+		
+		enabled_exts[extension] = False
 
 		with open(ENABLED_EXTENSIONS_FILE, "w") as file:
-			file.write(to_write)
+			json.dump(file, enabled_exts)
 
 	except Exception as e:
 		main_logger.exception(e)
@@ -153,14 +140,10 @@ async def rm(ctx, extension:str):
 #trying to load all enabled extensions
 try:
 	with open(ENABLED_EXTENSIONS_FILE, "r") as file:
-		for ext in file.readlines():
-			try:
-				bot.load_extension(str(ext[:-1]))
-				main_logger.info("Loaded {}".format(ext))
-			
-			except Exception as e:
-				main_logger.exception(e)
-				raise e
+		extensions = json.load(file)
+	for ext in extensions:
+		if extensions[ext]==True:
+			bot.load_extension(ext)
 
 #if no extension is enabled
 except FileNotFoundError as e:

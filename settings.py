@@ -33,7 +33,10 @@ EMOJIS = {
 #data used only for Todo -> maybe remove it ?
 PUBLIC_REPOST="Public repost"
 
-#rolls
+#files
+ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
+SLAPPING_FILE = "slapped.json"
+#roles
 ROLES_LEVEL = ["manager", "admin"]
 
 

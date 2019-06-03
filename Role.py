@@ -38,14 +38,7 @@ class Role(commands.Cog):
 			local_logger.warning("User didn't provide any subcommand")
 			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
 
-		allowed_roles = get_roles(ctx.guild.id, "manager")
-		ok = False
-		for role in ctx.author.roles:
-			if role in allowed_roles:
-				ok = True
-
-		if not ok:
-			ctx.channel.send(ERR_UNSUFFICIENT_PRIVILEGE)
+		if not has_auth(ctx.guild_id.id, ctx.author.roles, "manager"):
 			return False
 
 

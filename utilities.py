@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from settings import *
 from discord.ext import commands
 
@@ -44,6 +45,18 @@ def is_init():
 		ctx.send(ERR_NOT_SETUP)
 	return result
 
+def has_auth(clearance):
+	def predicate(ctx):
+		allowed_roles = get_roles(ctx.guild.id, clearance)
+		for role in ctx.author.roles:
+			print(role.id)
+			if role.id in allowed_roles:
+				return True
+		local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+
+	return commands.check(predicate)
+
+
 
 #########################################
 #										#
@@ -64,7 +77,7 @@ def has_changed(server, last_time):
 
 def get_conf(guild_id):
 	with open(f"{guild_id}.json", "r") as file:
-		return conf = json.load(file)
+		return json.load(file)
 
 def update_conf(guild_id, conf_dict):
 	try:
@@ -93,3 +106,4 @@ def get_roles(guild_id, lvl):
 	except Exception as e:
 		local_logger.exception(e)
 		raise e
+
