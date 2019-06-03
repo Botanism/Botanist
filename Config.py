@@ -38,7 +38,7 @@ class Config(commands.Cog):
 		self.allowed_answers = {1:["yes", "y"],
 								0:["no", "n"]}
 
-		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(self.bot.mention, self.invite_url, EMOJIS["wave"])
+		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(self.bot.user.mention, DEV_SRV_URL, EMOJIS["wave"])
 
 
 
@@ -79,7 +79,7 @@ class Config(commands.Cog):
 			await self.cfg_todo(ctx)
 
 			#asking for permisison to advertise
-			await self.config_channels[ctx.guild.id]send("You're almost done ! Just one more thing...")
+			await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
 			await self.allow_ad(ctx)
 
 
@@ -215,10 +215,10 @@ class Config(commands.Cog):
 			old_conf["roles"]["admin"] = new_roles[1]
 
 			if update_conf(ctx.guild.id, old_conf) == False:
-				await self.config_channels[ctx.guild.id]send(ERR_UNEXCPECTED)
+				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
 
 			else:
-				await self.config_channels[ctx.guild.id]send("Successfully updated role configuration")
+				await self.config_channels[ctx.guild.id].send("Successfully updated role configuration")
 
 
 		except Exception as e:
@@ -268,7 +268,7 @@ class Config(commands.Cog):
 			old_conf["messages"]["welcome"]= message
 
 			if update_conf(ctx.guild.id, old_conf) == False:
-				await self.config_channels[ctx.guild.id]send(ERR_UNEXCPECTED)
+				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
 
 
 
@@ -315,7 +315,7 @@ class Config(commands.Cog):
 			old_conf["messages"]["goodbye"]= message
 
 			if update_conf(ctx.guild.id, old_conf) == False:
-				await self.config_channels[ctx.guild.id]send(ERR_UNEXCPECTED)
+				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
 
 
 
@@ -325,11 +325,11 @@ class Config(commands.Cog):
 
 	async def allow_ad(ctx):
 		try:
-			await self.config_channels[ctx.guild.id]send("Do you allow me to send a message in a channel of your choice ? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it (you can always change this later). [y/n]")
+			await self.config_channels[ctx.guild.id].send("Do you allow me to send a message in a channel of your choice ? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it (you can always change this later). [y/n]")
 			repsonse = self.bot.wait_for("message", check=self.is_yn_answer)
 			if reponse[0].lower()=="n": return False
 
-			await self.config_channels[ctx.guild.id]send("Thank you very much ! In which channel do you want me to post this message ?")
+			await self.config_channels[ctx.guild.id].send("Thank you very much ! In which channel do you want me to post this message ?")
 			reponse = self.bot.wait_for("message", check=self.is_answer)
 
 			old_conf = get_conf(ctx.guild.id)

@@ -39,14 +39,14 @@ class Role(commands.Cog):
 			local_logger.warning("User didn't provide any subcommand")
 			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
 
-		if not has_auth(ctx.guild_id.id, ctx.author.roles, "manager"):
+		if not has_auth(ctx.guild.id, ctx.author.roles, "manager"):
 			return False
 
 
 	@role.command()
 	async def add(self, ctx, member: discord.Member, *roles:discord.Role):
 		'''adds role(s) to <member>'''
-		if len(role)==0:
+		if len(roles)==0:
 			local_logger.warning("User didn't provide a role")
 			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
 
@@ -60,7 +60,7 @@ class Role(commands.Cog):
 	@role.command()
 	async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
 		'''removes role(s) to <member>'''
-		if len(role)==0:
+		if len(roles)==0:
 			local_logger.warning("User didn't provide a role")
 			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
 

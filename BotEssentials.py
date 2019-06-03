@@ -34,7 +34,6 @@ class BotEssentials(commands.Cog):
 	"""All of the essential methods all of our bots should have"""
 	def __init__(self, bot):
 		self.bot = bot
-		self.invite_url = "https://discord.gg/mpGM5cg"
 
 			
 	@commands.Cog.listener()

@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XPP-wA.Vk1crS4mZ124y0Ljr8tYOvWQuzM"
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
@@ -17,6 +17,9 @@ DEV_SRV = 564213369834307600
 
 #github website URL
 WEBSITE = "https://github.com/organic-bots/ForeBot"
+
+#invite to dev server URL
+DEV_SRV_URL = "https://discord.gg/mpGM5cg"
 
 #emojis dict. May be possible to change incomprehensible unicode to other strings recognized by discord
 EMOJIS = {

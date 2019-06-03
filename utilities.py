@@ -45,7 +45,7 @@ def is_init():
 		ctx.send(ERR_NOT_SETUP)
 	return result
 
-def has_auth(clearance):
+def has_auth(clearance, *args):
 	def predicate(ctx):
 		allowed_roles = get_roles(ctx.guild.id, clearance)
 		for role in ctx.author.roles:
@@ -57,6 +57,8 @@ def has_auth(clearance):
 
 	return commands.check(predicate)
 
+def is_server_owner():
+	pass
 
 
 #########################################
