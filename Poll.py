@@ -31,11 +31,6 @@ class Poll(commands.Cog):
 	"""TODO: A suite of commands providing users with tools to more easilly get the community's opinion on an idea"""
 	def __init__(self, bot):
 		self.bot = bot
-
-	@is_init
-	async def get_poll_chans(self, guild_id):
-		with open(f"{guild_id}.json", "r") as file:
-			return poll_chans = json.load(file)["poll_channels"]
 		
 	@commands.Cog.listener()
 	async def on_raw_reaction_add(self, payload):
@@ -46,6 +41,7 @@ class Poll(commands.Cog):
 		user = self.bot.get_user(payload.user_id)
 
 		#getting poll_allowed_chans
+		#@is_init
 		poll_allowed_chans = get_poll_chans(payload.guild.id)
 
 
@@ -127,7 +123,7 @@ class Poll(commands.Cog):
 		if message.author==self.bot.user: return
 
 		#getting poll_allowed_chans
-		poll_allowed_chans = get_poll_chans(payload.guild.id)
+		poll_allowed_chans = get_poll_chans(message.guild.id)
 
 		if message.channel.id in poll_allowed_chans and message.content.startswith(PREFIX)!=True:
 			embed_poll = discord.Embed(

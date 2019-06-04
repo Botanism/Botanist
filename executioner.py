@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import discord
-from discord.utils import find as dfind
 from settings import *
 from utilities import *
 import math

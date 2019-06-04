@@ -58,7 +58,13 @@ def has_auth(clearance, *args):
 	return commands.check(predicate)
 
 def is_server_owner():
-	pass
+	def predicate(ctx):
+		if ctx.author == ctx.guild.owmer:
+			return True
+		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
+		return False
+
+	return commands.check(predicate)
 
 
 #########################################
@@ -110,3 +116,6 @@ def get_roles(guild_id, lvl):
 		local_logger.exception(e)
 		raise e
 
+async def get_poll_chans(guild_id):
+	with open(f"{guild_id}.json", "r") as file:
+		return json.load(file)["poll_channels"]

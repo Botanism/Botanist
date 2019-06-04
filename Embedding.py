@@ -30,12 +30,7 @@ class Embedding(commands.Cog):
 	"""A suite of command providing users with embeds manipulation tools."""
 	def __init__(self, bot):
 		self.bot = bot
-		#making poll_allowed channels according to the message's guild
-		self.poll_allowed_chans = {}
-		with open(POLL_ALLOWED_CHANNELS_FILE) as file:
-			for line in file.readlines():
-				self.poll_allowed_chans[line.split(";")[0]] = [chan_id for chan_id in line.split(";")[1:]]
-
+		#maybe think to block sending an embed in a poll channel
 
 	@commands.command()
 	async def embed(self, ctx, *args):
@@ -44,6 +39,10 @@ class Embedding(commands.Cog):
 			local_logger.info("Preventing user from making an embed in a poll channel")
 			await ctx.message.delete()
 			return
+
+		attachements = ctx.message.attachements
+		print(attachements)
+
 
 		msg = ""
 		img_url = None
