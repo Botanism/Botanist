@@ -7,10 +7,10 @@ assignees: ''
 
 ---
 
-**what kind of feature are you requesting**
+**My feature request is about**
 Keep one of the 2 sentences:
-- My feature request is about a new feature
-- My feature request is about changing a feature
+- A new feature
+- Changing a feature
 
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen.
