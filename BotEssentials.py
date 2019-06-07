@@ -78,13 +78,16 @@ class BotEssentials(commands.Cog):
 	@has_auth("manager")
 	async def clear(self, ctx, nbr:int):
 		'''deletes specified <nbr> number of messages in the current channel'''
+		to_del = []
 		async for msg in ctx.channel.history(limit=nbr+1):
 			local_logger.info("Deleting {}".format(msg))
-			try:
-				await msg.delete()
-			except Exception as e:
-				local_logger.exception("Couldn't delete {}".format(msg))
-				raise e
+			to_del.append(msg)
+
+		try:
+			await self.bot.delete_messages(to_del)
+		except Exception as e:
+			local_logger.exception("Couldn't delete at least on of{}".format(to_del))
+			raise e
 
 
 
