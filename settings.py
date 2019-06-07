@@ -9,7 +9,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "NTYzODQ4MDcxMjE0MjY4NDI5.XPP-wA.Vk1crS4mZ124y0Ljr8tYOvWQuzM"
+TOKEN = "your_token"
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
