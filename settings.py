@@ -59,7 +59,8 @@ DEFAULT_SLAPPED_FILE = {
 }
 
 #logging settings
-LOGGING_HANDLER 	= logging.FileHandler("forebot.log", "a")
+LOG_FILE = "forebot.log"
+LOGGING_HANDLER 	= logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER	= logging.Formatter("[%(asctime)s]:%(name)s:%(message)s")
 LOGGING_LEVEL		= logging.INFO
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)

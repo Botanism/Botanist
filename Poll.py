@@ -184,6 +184,7 @@ class Poll(commands.Cog):
 
 	@poll.command()
 	async def status(self, ctx, msg_id:discord.Message):
+		'''returns stats about your running polls. This is also called when one of you poll gets deleted.'''
 		pass
 			
 

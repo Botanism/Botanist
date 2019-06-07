@@ -40,21 +40,24 @@ class Embedding(commands.Cog):
 			await ctx.message.delete()
 			return
 
+		#lining attachements
 		attachments = ctx.message.attachments
-		files = []
-		for a in attachments:
-			fl_name = a.filename
-			contents = await a.read()
-			print(type(a), type(fl_name), type(contents))
-			files.append(discord.File(contents, filename=fl_name))
 
-		msg = ""
+		to_link = []
 		img_url = None
-		for arg in args:
-			if arg.startswith("https://"):
-				img_url = arg
+		for attachment in attachments:
+			#whether the attachment is the image
+			if attachment.height:
+				img_url = attachment
+			
 			else:
-				msg += " {}".format(arg)
+				to_link.append(attachment.url)
+
+		#building msg
+		msg = ctx.message.content
+		msg +="\n"
+		for attachment in to_link:
+			msg += f"{attachment}\n"
 
 		embed_msg = discord.Embed(
 				title = None,
@@ -67,7 +70,7 @@ class Embedding(commands.Cog):
 		embed_msg.set_footer(text=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
 
 		await ctx.message.delete()
-		await ctx.message.channel.send(embed=embed_msg, files=files)
+		await ctx.message.channel.send(embed=embed_msg)
 
 def setup(bot):
 	bot.add_cog(Embedding(bot))
