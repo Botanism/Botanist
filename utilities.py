@@ -116,6 +116,6 @@ def get_roles(guild_id, lvl):
 		local_logger.exception(e)
 		raise e
 
-async def get_poll_chans(guild_id):
+def get_poll_chans(guild_id):
 	with open(f"{guild_id}.json", "r") as file:
 		return json.load(file)["poll_channels"]

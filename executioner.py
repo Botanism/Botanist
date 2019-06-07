@@ -126,7 +126,7 @@ async def rm(ctx, extension:str):
 
 
 @ext.command()
-async def list(ctx):
+async def ls(ctx):
 	try:
 		ext_list = ""
 		for e in bot.extensions.keys():
