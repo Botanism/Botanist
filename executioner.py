@@ -125,6 +125,18 @@ async def rm(ctx, extension:str):
 	local_logger.info(f"Disabled and removed {extension}")
 
 
+@ext.command()
+async def list(ctx):
+	try:
+		ext_list = ""
+		for e in bot.extensions.keys():
+			ext_list+=f"**{e}**, "
+		ext_list = ext_list[:-2]
+		await ctx.send(f"The loaded extenions are: {ext_list}")
+
+	except Exception as e:
+		main_logger.exception(e)
+
 
 #########################################
 #										#
