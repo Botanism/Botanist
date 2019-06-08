@@ -1,5 +1,6 @@
 import logging
 import discord
+import io
 from settings import *
 from utilities import *
 
@@ -41,36 +42,24 @@ class Embedding(commands.Cog):
 			return
 
 		#lining attachements
-		attachments = ctx.message.attachments
-
-		to_link = []
-		img_url = None
-		for attachment in attachments:
-			#whether the attachment is the image
-			if attachment.height:
-				img_url = attachment
-			
-			else:
-				to_link.append(attachment.url)
-
-		#building msg
-		msg = ctx.message.content
-		msg +="\n"
-		for attachment in to_link:
-			msg += f"{attachment}\n"
+		files = []
+		for attachment in ctx.message.attachments:
+			content = await attachment.read()
+			io_content = io.BytesIO(content)
+			file = discord.File(io_content, filename=attachment.filename)
+			files.append(file)
 
 		embed_msg = discord.Embed(
 				title = None,
-				description = msg,
+				description = ctx.message.content,
 				colour = ctx.author.color,
 				url = None
 				)
-		if img_url:
-			await embed_msg.set_image(url=img_url)
-		embed_msg.set_footer(text=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
+		print(ctx.message.author.name)
+		embed_msg.set_author(name=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
 
 		await ctx.message.delete()
-		await ctx.message.channel.send(embed=embed_msg)
+		await ctx.message.channel.send(embed=embed_msg, files=files)
 
 def setup(bot):
 	bot.add_cog(Embedding(bot))

@@ -33,20 +33,20 @@ class Config(commands.Cog):
 		self.bot = bot
 		#change to make it cross-server
 		self.config_channels={}
-		self.bot_member = self.bot.fetch_user(self.bot.user.id)
 		#other values can't be added as of now
 		self.allowed_answers = {1:["yes", "y"],
 								0:["no", "n"]}
 
-		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(self.bot_member, DEV_SRV_URL, EMOJIS["wave"])
+
 
 
 
 	@commands.group()
-	@commands.is_owner()
+	@is_server_owner()
 	async def cfg(self, ctx):
+		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"])
 		if ctx.invoked_subcommand == None:
-			ctx.send(ERROR_NO_SUBCOMMAND)
+			await ctx.send(ERR_NO_SUBCOMMAND)
 
 
 	@cfg.command()
@@ -67,7 +67,7 @@ class Config(commands.Cog):
 		await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities\n*Starting full configuration...*''')
 		await self.config_channels[ctx.guild.id].send("This will overwrite all of your existing configurations. Do you want to continue ? [y/n]")
 		response = await self.bot.wait_for("message", check=self.is_yn_answer)
-		if response[0].lower() == "n":return False
+		if response.content[0].lower() == "n":return False
 		await self.config_channels[ctx.guild.id].send("**Starting full bot configuration...**")
 
 		try:
@@ -135,13 +135,16 @@ class Config(commands.Cog):
 
 				response = await self.bot.wait_for("message", check=self.is_yn_answer)
 				#wether the asnwer was positive
+				print(response.content)
 				if not response.content[0].lower() =="y":
 					#making sure the user really wants to cancel poll configuration
-					self.config_channels[ctx.guild.id].send("Aborting addition of poll channels. Do you want to leave the poll configuration interface ? [y/n]")
+					await self.config_channels[ctx.guild.id].send("Aborting addition of poll channels. Do you want to leave the poll configuration interface ? [y/n]")
 					response = await self.bot.wait_for("message", check=self.is_yn_answer)
 					if response.content[0].lower()=="y":
 						local_logger.info(f"Poll configuration has been cancelled for server {ctx.guild.name}")
 						retry = False
+
+				else: retry=False
 
 
 
@@ -165,9 +168,9 @@ class Config(commands.Cog):
 		try:
 			#introducing the clearance levels the bot uses
 			await self.config_channels[ctx.guild.id].send("**Starting role configuration**")
-			await self.config_channels[ctx.guild.ig].send("This bot uses two level of clearance for its commands.")
-			await self.config_channels[ctx.guild.ig].send("The first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.")
-			await self.config_channels[ctx.guild.ig].send("The second level of clearance is **admin**. Anyonw who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
+			await self.config_channels[ctx.guild.id].send("This bot uses two level of clearance for its commands.")
+			await self.config_channels[ctx.guild.id].send("The first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.")
+			await self.config_channels[ctx.guild.id].send("The second level of clearance is **admin**. Anyonw who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
 			new_roles = []
 			for role_lvl in ROLES_LEVEL:
@@ -175,7 +178,7 @@ class Config(commands.Cog):
 				while retry:
 					new_role = []
 					#asking the owner which roles he wants to give clearance to
-					await self.config_channels[ctx.guild.ig].send(f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
+					await self.config_channels[ctx.guild.id].send(f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
 					response = await self.bot.wait_for("message", check=self.is_answer)
 					roles = response.role_mentions
 
@@ -187,7 +190,7 @@ class Config(commands.Cog):
 					#asking for confirmation
 					await self.config_channels[ctx.guild.id].send(f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ? [y/n]")
 					response = await self.bot.wait_for("message", check=self.is_yn_answer)
-					if repsonse[0].lower() == "n":
+					if response.content[0].lower() == "n":
 						await self.config_channels[ctx.guild.id].send(f"Aborting configuration of {role_lvl}. Do you want to retry? [y/n]")
 						response = await self.bot.wait_for("message", check=self.is_yn_answer)
 						if response[0].lower() == "n":
@@ -304,7 +307,7 @@ class Config(commands.Cog):
 				#the user has made a mistake
 				if response[0].lower() == "n":
 					await self.config_channels[ctx.guild.id].send("Do you want to retry ? [y/n]")
-					response = self.bot.wait_for("message", check=self.is_yn_answer)
+					response = await self.bot.wait_for("message", check=self.is_yn_answer)
 					if response[0].lower == "n":
 						message = False
 						retry = False
@@ -327,7 +330,7 @@ class Config(commands.Cog):
 		try:
 			await self.config_channels[ctx.guild.id].send("Do you allow me to send a message in a channel of your choice ? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it (you can always change this later). [y/n]")
 			repsonse = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if reponse[0].lower()=="n": return False
+			if reponse.content[0].lower()=="n": return False
 
 			await self.config_channels[ctx.guild.id].send("Thank you very much ! In which channel do you want me to post this message ?")
 			reponse = await self.bot.wait_for("message", check=self.is_answer)

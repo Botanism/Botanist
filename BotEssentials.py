@@ -35,6 +35,13 @@ class BotEssentials(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
+
+	@commands.Cog.listener()
+	async def on_guild_join(self, guild):
+		with open(f"{guild.id}.json", "w") as file:
+			file.write(DEFAULT_SERVER_FILE)
+		local_logger.info(f"Joined server {guild.name}")
+
 			
 	@commands.Cog.listener()
 	async def on_ready(self):

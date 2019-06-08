@@ -58,6 +58,21 @@ DEFAULT_SLAPPED_FILE = {
 	}
 }
 
+DEFAULT_SERVER_FILE = '''{
+    "poll_channels": [],
+    "todo_channel": false,
+    "roles": {
+        "manager": [],
+        "admin": []
+    },
+    "messages": {
+        "welcome": false,
+        "goodbye": false
+    },
+    "advertisement": false
+
+}'''
+
 #logging settings
 LOG_FILE = "forebot.log"
 LOGGING_HANDLER 	= logging.FileHandler(LOG_FILE, "a")

@@ -59,7 +59,7 @@ def has_auth(clearance, *args):
 
 def is_server_owner():
 	def predicate(ctx):
-		if ctx.author == ctx.guild.owmer:
+		if ctx.author == ctx.guild.owner:
 			return True
 		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 		return False
