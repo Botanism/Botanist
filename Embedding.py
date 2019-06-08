@@ -51,11 +51,10 @@ class Embedding(commands.Cog):
 
 		embed_msg = discord.Embed(
 				title = None,
-				description = ctx.message.content,
+				description = ctx.message.content[8:],
 				colour = ctx.author.color,
 				url = None
 				)
-		print(ctx.message.author.name)
 		embed_msg.set_author(name=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
 
 		await ctx.message.delete()

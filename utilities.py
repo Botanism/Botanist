@@ -86,12 +86,14 @@ def has_changed(server, last_time):
 
 def get_conf(guild_id):
 	with open(f"{guild_id}.json", "r") as file:
-		return json.load(file)
+		conf = json.load(file)
+	print(conf)
+	return conf
 
 def update_conf(guild_id, conf_dict):
 	try:
-		with open(f"{guild_id}.json", "r") as file:
-			json.dump(file, conf_dict)
+		with open(f"{guild_id}.json", "w") as file:
+			json.dump(conf_dict, file)
 		return True
 
 	except Exception as e:
@@ -118,4 +120,12 @@ def get_roles(guild_id, lvl):
 
 def get_poll_chans(guild_id):
 	with open(f"{guild_id}.json", "r") as file:
-		return json.load(file)["poll_channels"]
+		fl = json.load(file)
+		
+	print(fl)
+	chans = fl["poll_channels"]
+	print(chans)
+	if len(chans)==0:
+		return None
+
+	return chans

@@ -61,7 +61,7 @@ class Config(commands.Cog):
 		#making conf file if it doesn't exist
 		if not is_init():
 			with open(f"{ctx.guild.id}.json", "w") as file:
-				pass
+				file.write(DEFAULT_SERVER_FILE)
 
 		#starting all configurations
 		await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities\n*Starting full configuration...*''')
@@ -102,11 +102,11 @@ class Config(commands.Cog):
 			local_logger.exception(e)
 
 
-	async def is_yn_answer(self, ctx):
-		if (ctx.channel == self.config_channels[ctx.guild.id]) and (ctx.content in (self.allowed_answers[0] or self.allowed_answers[1])): return True
+	def is_yn_answer(self, ctx):
+		if (ctx.channel == self.config_channels[ctx.guild.id]) and ((ctx.content in self.allowed_answers[0]) or (ctx.content in self.allowed_answers[1])): return True
 		return False
 
-	async def is_answer(self, ctx):
+	def is_answer(self, ctx):
 		if ctx.channel == self.config_channels[ctx.guild.id]: return True
 		return False
 
@@ -114,7 +114,7 @@ class Config(commands.Cog):
 	async def cfg_poll(self, ctx):
 		try:
 			await self.config_channels[ctx.guild.id].send("**Starting poll configuration**")
-			await self.config_channels[ctx.guild.id].send("Do you want to activate polls on this server ? [yes/no]")
+			await self.config_channels[ctx.guild.id].send("Do you want to activate polls on this server ? [y/n]")
 			#awaiting the user response
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
 			if not response.content[0].lower() =="y": return False
@@ -122,9 +122,12 @@ class Config(commands.Cog):
 			retry = True
 			while retry:
 				#getting the list of channels to be marked polls
-				await self.config_channels[ctx.guild.id].send("List all the channels you want to use as poll channels.")
+				await self.config_channels[ctx.guild.id].send(f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channels[ctx.guild.id].mention}")
 				response = await self.bot.wait_for("message", check=self.is_answer)
 				poll_channels = response.channel_mentions
+				if len(poll_channels) == 0:
+					await self.config_channels[ctx.guild.id].send("You need to add at least one channel.")
+					continue
 				
 				#building string with all the channels that will be marked for polls
 				poll_channels_str = ""
@@ -135,7 +138,7 @@ class Config(commands.Cog):
 
 				response = await self.bot.wait_for("message", check=self.is_yn_answer)
 				#wether the asnwer was positive
-				print(response.content)
+				print(f"User's response: {response.content}")
 				if not response.content[0].lower() =="y":
 					#making sure the user really wants to cancel poll configuration
 					await self.config_channels[ctx.guild.id].send("Aborting addition of poll channels. Do you want to leave the poll configuration interface ? [y/n]")
@@ -146,10 +149,14 @@ class Config(commands.Cog):
 
 				else: retry=False
 
+			poll_channels_ids = []
+			for chan in poll_channels:
+				poll_channels_ids.append(chan.id)
 
+			print(poll_channels_ids)
 
 			old_conf = get_conf(ctx.guild.id)
-			old_conf["poll_channels"] = poll_channels
+			old_conf["poll_channels"] = poll_channels_ids
 
 			if update_conf(ctx.guild.id, old_conf) == False:
 				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
@@ -162,6 +169,7 @@ class Config(commands.Cog):
 
 		except Exception as e:
 			local_logger.exception(e)
+			raise e
 
 
 	async def cfg_role(self, ctx):
@@ -170,7 +178,7 @@ class Config(commands.Cog):
 			await self.config_channels[ctx.guild.id].send("**Starting role configuration**")
 			await self.config_channels[ctx.guild.id].send("This bot uses two level of clearance for its commands.")
 			await self.config_channels[ctx.guild.id].send("The first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.")
-			await self.config_channels[ctx.guild.id].send("The second level of clearance is **admin**. Anyonw who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
+			await self.config_channels[ctx.guild.id].send("The second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
 			new_roles = []
 			for role_lvl in ROLES_LEVEL:

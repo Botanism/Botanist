@@ -82,7 +82,7 @@ class Poll(commands.Cog):
 				react_for = message.reactions[0].count
 				react_against = message.reactions[2].count
 				#changing color of the embed
-				await self.balance_poll_color(message, react_for, react_against)
+				await self.balance_poll_color(message, message.reactions[0].count, message.reactions[2].count)
 
 
 
@@ -97,19 +97,26 @@ class Poll(commands.Cog):
 
 		#checking that user isn't the bot
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in poll_allowed_chans):
-
-			react_for = message.reactions[0].count
-			react_against = message.reactions[2].count
 			#changing color of the embed
-			await self.balance_poll_color(message, react_for, react_against)	
+			await self.balance_poll_color(message, message.reactions[0].count, message.reactions[2].count)
 
 
-	async def balance_poll_color(self, msg, rfor, ragainst):
-		#determining their rgb values
-		r_value = (ragainst/max(rfor, ragainst))*255
-		g_value = (rfor/max(rfor, ragainst))*255
-		#making the color
-		color = int((r_value*65536) + (g_value*256))
+
+
+
+
+	async def poll_color(self, msg, for_count, against_count):
+		r = g = 128
+		diff = for_count - against_count
+		votes = for_count + against_count
+		r -= (diff/votes)*64
+		g += (diff/votes)*64
+
+		#checking whether the number is over 255
+		r = int(min(255, r))
+		g = int(min(255, g))
+		
+		color = int((r*65536) + (g*256))
 		#getting messages's embed (there should only be one)
 		embed = msg.embeds[0].copy()
 		embed.color = color
