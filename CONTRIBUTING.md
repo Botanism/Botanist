@@ -12,4 +12,3 @@ Although contributing to the project is allowed and even encouraged it has to fo
 
 
 This is a *guideline* which means that some exceptions may be made. However it is recommend that you respect it for your contribution to be validated. If you have any other question or think a point is unclear or too limiting feel free to contact an @admin
-

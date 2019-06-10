@@ -31,20 +31,24 @@ def is_runner():
 		return ctx.message.author.id ==RUNNER_ID
 	result = commands.check(check_condition)
 	if result == False:
-		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
+		pass
+		#ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 	return result
 
 def is_init():
-	print("Checking initialization !")
-	print("586661861458575391.json" in os.listdir())
 	def check_condition(ctx):
 		conf_files = os.listdir()
 		file_name = f"{ctx.guild.id}.json"
-		print(f"Looking for {file_name} in {conf_files}")
-		local_logger.info(f"Looking for {file_name} in {conf_files}")
+		#ctx.send(ERR_NOT_SETUP)
 		return file_name in conf_files
 
 	return commands.check(check_condition)
+
+def was_init(ctx):
+	'''same as the previous function except this one isn't a decorator. Mainly used for listenners'''
+	if f"{ctx.guild.id}.json" in os.listdir():
+		return True
+	return False
 
 def has_auth(clearance, *args):
 	def predicate(ctx):
@@ -62,7 +66,7 @@ def is_server_owner():
 	def predicate(ctx):
 		if ctx.author == ctx.guild.owner:
 			return True
-		ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
+		#ctx.send(ERR_UNSUFFICIENT_PRIVILEGE)
 		return False
 
 	return commands.check(predicate)
@@ -123,9 +127,7 @@ def get_poll_chans(guild_id):
 	with open(f"{guild_id}.json", "r") as file:
 		fl = json.load(file)
 		
-	print(fl)
 	chans = fl["poll_channels"]
-	print(chans)
 	if len(chans)==0:
 		return None
 

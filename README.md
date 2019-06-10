@@ -14,6 +14,14 @@ After the very first version I got some help of a friend of mine. Together we ma
 
 Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates.
 
+#### Defaults `ext` (runner)
+
+A suite of commands always activated which handle 
+
+
+
+
+
 #### Poll `poll`
 
 This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed.
@@ -58,9 +66,10 @@ Allows moderators to add and remove roles to members.
 
 
 
-#### Config (owner)
+#### Config `cfg` (owner)
 
 Allows the owner of a server to configure the behavior of the bot.
 
 - `init`: starts full configuration of the bot
 - `chg` `<extensions>`: starts the configuration of the `<extension>` extension.
+

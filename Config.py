@@ -1,5 +1,6 @@
 import logging
 import discord
+import asyncio
 from settings import *
 from utilities import *
 
@@ -57,8 +58,7 @@ class Config(commands.Cog):
 		self.config_channels[ctx.guild.id] = await ctx.guild.create_text_channel("cli-bot-config")
 
 		#making conf file if it doesn't exist
-		if not is_init():
-			print("\nThis server wasn't innitalized")
+		if not was_init(ctx):
 			with open(f"{ctx.guild.id}.json", "w") as file:
 				file.write(DEFAULT_SERVER_FILE)
 
@@ -89,6 +89,11 @@ class Config(commands.Cog):
 			await ctx.send("Dropping configuration and rolling back unconfirmed changes.")
 			#await self.config_channels[ctx.guild.id].delete(reason="Failed to interactively configure the bot")
 			local_logger.exception(e)
+
+		finally:
+			await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
+			await asyncio.sleep(10)
+
 
 
 	@cfg.command()
@@ -137,7 +142,6 @@ class Config(commands.Cog):
 
 				response = await self.bot.wait_for("message", check=self.is_yn_answer)
 				#wether the asnwer was positive
-				print(f"User's response: {response.content}")
 				if not response.content[0].lower() =="y":
 					#making sure the user really wants to cancel poll configuration
 					await self.config_channels[ctx.guild.id].send("Aborting addition of poll channels. Do you want to leave the poll configuration interface ? [y/n]")
@@ -152,7 +156,6 @@ class Config(commands.Cog):
 			for chan in poll_channels:
 				poll_channels_ids.append(chan.id)
 
-			print(poll_channels_ids)
 
 			old_conf = get_conf(ctx.guild.id)
 			old_conf["poll_channels"] = poll_channels_ids
@@ -174,10 +177,7 @@ class Config(commands.Cog):
 	async def cfg_role(self, ctx):
 		try:
 			#introducing the clearance levels the bot uses
-			await self.config_channels[ctx.guild.id].send("**Starting role configuration**")
-			await self.config_channels[ctx.guild.id].send("This bot uses two level of clearance for its commands.")
-			await self.config_channels[ctx.guild.id].send("The first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.")
-			await self.config_channels[ctx.guild.id].send("The second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
+			await self.config_channels[ctx.guild.id].send("**Starting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
 			new_roles = []
 			for role_lvl in ROLES_LEVEL:
@@ -192,7 +192,7 @@ class Config(commands.Cog):
 					#building roll string
 					roles_str = ""
 					for role in roles:
-						roles_str+= f" {role}"
+						roles_str+= f" {role.mention}"
 
 					#asking for confirmation
 					await self.config_channels[ctx.guild.id].send(f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ? [y/n]")
@@ -200,9 +200,11 @@ class Config(commands.Cog):
 					if response.content[0].lower() == "n":
 						await self.config_channels[ctx.guild.id].send(f"Aborting configuration of {role_lvl}. Do you want to retry? [y/n]")
 						response = await self.bot.wait_for("message", check=self.is_yn_answer)
-						if response[0].lower() == "n":
+						if response.content[0].lower() == "n":
 							local_logger.info(f"The configuration for the {role_lvl} clearance has been cancelled for server {ctx.guild.name}")
 							retry = False
+
+					else: retry = False
 
 
 				local_logger.info(f"Server {ctx.guild.name} configured its {role_lvl} roles")
@@ -248,7 +250,7 @@ class Config(commands.Cog):
 			await self.config_channels[ctx.guild.id].send("Do you want to have a welcome message sent when a new user joins the server ? [y/n]")
 
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if response[0].lower() == "n":
+			if response.content[0].lower() == "n":
 				message = False
 				retry = False
 
@@ -258,28 +260,30 @@ class Config(commands.Cog):
 
 				message = await self.bot.wait_for("message", check=self.is_answer)
 
-				self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you.")
-				await self.config_channels[ctx.guild.id].send(message.format(ctx.guild.owner.mention))
+				await self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you.\n**-- Beginning of message --**")
+				await self.config_channels[ctx.guild.id].send(message.content.format(ctx.guild.owner.mention))
 
-				await self.config_channels[ctx.guild.id].send("Is this the message you want to set as the welcome message ? [y/n]")
+				await self.config_channels[ctx.guild.id].send("**--End of message --**\nIs this the message you want to set as the welcome message ? [y/n]")
 				response = await self.bot.wait_for("message", check=self.is_yn_answer)
 
 				#the user has made a mistake
-				if response[0].lower() == "n":
+				if response.content[0].lower() == "n":
 					await self.config_channels[ctx.guild.id].send("Do you want to retry ? [y/n]")
 					response = await self.bot.wait_for("message", check=self.is_yn_answer)
-					if response[0].lower == "n":
+					if response.content[0].lower == "n":
 						message = False
 						retry = False
 					#otherwise retry
 					continue
 
-			old_conf = get_conf(ctx.guild.id)
-			old_conf["messages"]["welcome"]= message
+				else: retry = False
 
-			if update_conf(ctx.guild.id, old_conf) == False:
-				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
+			if message != False:
+				old_conf = get_conf(ctx.guild.id)
+				old_conf["messages"]["welcome"]= message.content
 
+				if update_conf(ctx.guild.id, old_conf) == False:
+					await self.config_channels[ctx.guild.id].send(ERR_CANT_SAVE)
 
 
 		except Exception as e:
@@ -295,7 +299,7 @@ class Config(commands.Cog):
 			await self.config_channels[ctx.guild.id].send("Do you want to have a goodbye message sent when an user leaves the server ? [y/n]")
 
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if response[0].lower() == "n":
+			if response.content[0].lower() == "n":
 				message = False
 				retry = False
 
@@ -305,27 +309,29 @@ class Config(commands.Cog):
 
 				message = await self.bot.wait_for("message", check=self.is_answer)
 
-				self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you. Enventual mentions will be directed to you.")
-				await self.config_channels[ctx.guild.id].send(message.format(ctx.guild.owner.mention))
+				await self.config_channels[ctx.guild.id].send("To make sure the message is as you'd like I'm sending it to you. Enventual mentions will be directed to you.\n**-- Beginning of message --**")
+				await self.config_channels[ctx.guild.id].send(message.content.format(ctx.guild.owner.mention))
 
-				await self.config_channels[ctx.guild.id].send("Is this the message you want to set as the goodbye message ? [y/n]")
+				await self.config_channels[ctx.guild.id].send("**--End of message --**\nIs this the message you want to set as the goodbye message ? [y/n]")
 				response = await self.bot.wait_for("message", check=self.is_yn_answer)
 
 				#the user has made a mistake
-				if response[0].lower() == "n":
+				if response.content[0].lower() == "n":
 					await self.config_channels[ctx.guild.id].send("Do you want to retry ? [y/n]")
 					response = await self.bot.wait_for("message", check=self.is_yn_answer)
-					if response[0].lower == "n":
+					if response.content[0].lower == "n":
 						message = False
 						retry = False
 					#otherwise retry
 					continue
+				else: retry = False
 
-			old_conf = get_conf(ctx.guild.id)
-			old_conf["messages"]["goodbye"]= message
+			if message != False:
+				old_conf = get_conf(ctx.guild.id)
+				old_conf["messages"]["goodbye"]= message.content
 
-			if update_conf(ctx.guild.id, old_conf) == False:
-				await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
+				if update_conf(ctx.guild.id, old_conf) == False:
+					await self.config_channels[ctx.guild.id].send(ERR_CANT_SAVE)
 
 
 
@@ -333,20 +339,20 @@ class Config(commands.Cog):
 			local_logger.exception(e)
 			raise e
 
-	async def allow_ad(ctx):
+	async def allow_ad(self, ctx):
 		try:
 			await self.config_channels[ctx.guild.id].send("Do you allow me to send a message in a channel of your choice ? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it (you can always change this later). [y/n]")
-			repsonse = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if reponse.content[0].lower()=="n": return False
+			response = await self.bot.wait_for("message", check=self.is_yn_answer)
+			if response.content[0].lower()=="n": return False
 
 			await self.config_channels[ctx.guild.id].send("Thank you very much ! In which channel do you want me to post this message ?")
-			reponse = await self.bot.wait_for("message", check=self.is_answer)
+			response = await self.bot.wait_for("message", check=self.is_answer)
 
 			old_conf = get_conf(ctx.guild.id)
-			old_conf["advertisement"] = reponse.channel_mentions[0].id
+			old_conf["advertisement"] = response.channel_mentions[0].id
 
-			chan = dfind(lambda c: c.id==old_conf["advertisement"], ctx.guild.channels)
-			chan.send(self.ad_msg)
+			chan = discord.utils.find(lambda c: c.id==old_conf["advertisement"], ctx.guild.channels)
+			await chan.send(self.ad_msg)
 
 			#updating conf
 			update_conf(ctx.guild.id, old_conf)

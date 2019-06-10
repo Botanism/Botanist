@@ -120,9 +120,12 @@ class Poll(commands.Cog):
 
 
 	@commands.Cog.listener()
-	@is_init()
 	async def on_message(self, message):
 		if message.author==self.bot.user: return
+
+		if not was_init(message):
+			await message.channel.send(ERR_NOT_SETUP)
+			return
 
 		#getting poll_allowed_chans
 		poll_allowed_chans = get_poll_chans(message.guild.id)
