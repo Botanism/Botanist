@@ -39,8 +39,6 @@ class Config(commands.Cog):
 
 
 
-
-
 	@commands.group()
 	@is_server_owner()
 	async def cfg(self, ctx):
@@ -60,6 +58,7 @@ class Config(commands.Cog):
 
 		#making conf file if it doesn't exist
 		if not is_init():
+			print("\nThis server wasn't innitalized")
 			with open(f"{ctx.guild.id}.json", "w") as file:
 				file.write(DEFAULT_SERVER_FILE)
 

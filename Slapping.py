@@ -68,7 +68,7 @@ class Slapping(commands.Cog):
 
 		#checking wether the user has already been slapped
 		if str(member.id) not in slaps[str(ctx.guild.id)]:
-			pass
+			return
 
 		else:
 			if nbr==0 or slaps[str(ctx.guild.id)][str(member.id)]<nbr:

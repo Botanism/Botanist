@@ -35,15 +35,16 @@ def is_runner():
 	return result
 
 def is_init():
+	print("Checking initialization !")
+	print("586661861458575391.json" in os.listdir())
 	def check_condition(ctx):
 		conf_files = os.listdir()
 		file_name = f"{ctx.guild.id}.json"
+		print(f"Looking for {file_name} in {conf_files}")
+		local_logger.info(f"Looking for {file_name} in {conf_files}")
 		return file_name in conf_files
 
-	result = commands.check(check_condition)
-	if result == False:
-		ctx.send(ERR_NOT_SETUP)
-	return result
+	return commands.check(check_condition)
 
 def has_auth(clearance, *args):
 	def predicate(ctx):

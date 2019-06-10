@@ -85,7 +85,6 @@ class Poll(commands.Cog):
 				await self.balance_poll_color(message, message.reactions[0].count, message.reactions[2].count)
 
 
-
 	@commands.Cog.listener()
 	async def on_raw_reaction_remove(self, payload):
 
@@ -99,11 +98,6 @@ class Poll(commands.Cog):
 		if (payload.user_id != self.bot.user.id) and (payload.channel_id in poll_allowed_chans):
 			#changing color of the embed
 			await self.balance_poll_color(message, message.reactions[0].count, message.reactions[2].count)
-
-
-
-
-
 
 	async def poll_color(self, msg, for_count, against_count):
 		r = g = 128
@@ -126,6 +120,7 @@ class Poll(commands.Cog):
 
 
 	@commands.Cog.listener()
+	@is_init()
 	async def on_message(self, message):
 		if message.author==self.bot.user: return
 

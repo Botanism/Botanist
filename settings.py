@@ -33,8 +33,6 @@ EMOJIS = {
 	"no_entry_sign": "\U0001F6AB"
 }
 
-#data used only for Todo -> maybe remove it ?
-PUBLIC_REPOST="Public repost"
 
 #files
 ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
