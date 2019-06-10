@@ -1,4 +1,6 @@
 import logging
+
+
 #########################################
 #										#
 #										#
@@ -33,6 +35,14 @@ EMOJIS = {
 	"no_entry_sign": "\U0001F6AB"
 }
 
+
+#########################################
+#										#
+#										#
+#				  Files					#
+#										#
+#										#
+#########################################
 
 #files
 ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
@@ -71,14 +81,31 @@ DEFAULT_SERVER_FILE = '''{
 
 }'''
 
-#logging settings
+#########################################
+#										#
+#										#
+#				Logging					#
+#										#
+#										#
+#########################################
+
+
+
 LOG_FILE = "forebot.log"
 LOGGING_HANDLER 	= logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER	= logging.Formatter("[%(asctime)s]:%(name)s:%(message)s")
 LOGGING_LEVEL		= logging.INFO
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 
-#generic error messages
+#########################################
+#										#
+#										#
+#				 Errors					#
+#										#
+#										#
+#########################################
+
+
 ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` for more info on command usage."
 ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
 ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"

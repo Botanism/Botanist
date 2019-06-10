@@ -129,6 +129,7 @@ def get_poll_chans(guild_id):
 		
 	chans = fl["poll_channels"]
 	if len(chans)==0:
-		return None
+		#isn't None to prevent Poll listener from crashing
+		return []
 
 	return chans

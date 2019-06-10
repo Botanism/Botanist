@@ -121,7 +121,7 @@ class Config(commands.Cog):
 			await self.config_channels[ctx.guild.id].send("Do you want to activate polls on this server ? [y/n]")
 			#awaiting the user response
 			response = await self.bot.wait_for("message", check=self.is_yn_answer)
-			if not response.content[0].lower() =="y": return False
+			if not response.content[0].lower() == "y": return False
 
 			retry = True
 			while retry:
@@ -129,9 +129,11 @@ class Config(commands.Cog):
 				await self.config_channels[ctx.guild.id].send(f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channels[ctx.guild.id].mention}")
 				response = await self.bot.wait_for("message", check=self.is_answer)
 				poll_channels = response.channel_mentions
-				if len(poll_channels) == 0:
-					await self.config_channels[ctx.guild.id].send("You need to add at least one channel.")
+				print(poll_channels)
+				if self.config_channels[ctx.guild.id] in poll_channels:
+					await self.config_channels[ctx.guild.id].send("You cannot set this channel as a poll one for safety reasons. Please try again...")
 					continue
+
 				
 				#building string with all the channels that will be marked for polls
 				poll_channels_str = ""
@@ -188,6 +190,9 @@ class Config(commands.Cog):
 					await self.config_channels[ctx.guild.id].send(f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
 					response = await self.bot.wait_for("message", check=self.is_answer)
 					roles = response.role_mentions
+					if len(roles) == 0:
+						await self.config_channels[ctx.guild.id].send(f"You need to set at least one role for the {role_lvl} clearance.")
+						continue
 
 					#building roll string
 					roles_str = ""
