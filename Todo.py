@@ -35,7 +35,7 @@ class Todo(commands.Cog):
 
                         repost_field_value = None
                         for field in message.embeds[0].fields:
-                            if field.name == PUBLIC_REPOST:
+                            if field.name == "Public repost":
                                 repost_field_value= field.value
                         
                         if repost_field_value!= None:
@@ -123,7 +123,7 @@ class Todo(commands.Cog):
         new_embed.set_footer(text=command[1])
         if repost_channel != None:
             public_todo = await repost_channel.send(embed=new_embed)
-            new_embed.add_field(name=PUBLIC_REPOST, value=repost_channel.mention + " : " + str(public_todo.id), inline=True)
+            new_embed.add_field(name="Public repost", value=repost_channel.mention + " : " + str(public_todo.id), inline=True)
         
         message = await channel.send(embed=new_embed)
         await message.add_reaction(EMOJIS['wastebasket'])
