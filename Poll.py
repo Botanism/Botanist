@@ -1,6 +1,7 @@
 import os
 import logging
 import discord
+import io
 from settings import *
 from utilities import *
 
@@ -42,7 +43,7 @@ class Poll(commands.Cog):
 
 		#getting poll_allowed_chans
 		#@is_init
-		poll_allowed_chans = get_poll_chans(payload.guild.id)
+		poll_allowed_chans = get_poll_chans(payload.guild_id)
 
 
 		#checking that user isn't the bot
@@ -89,7 +90,7 @@ class Poll(commands.Cog):
 	async def on_raw_reaction_remove(self, payload):
 
 		#getting poll_allowed_chans
-		poll_allowed_chans = get_poll_chans(payload.guild.id)
+		poll_allowed_chans = get_poll_chans(payload.guild_id)
 
 		#fetching concerned message and the user who added the reaction
 		message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
@@ -99,7 +100,7 @@ class Poll(commands.Cog):
 			#changing color of the embed
 			await self.balance_poll_color(message, message.reactions[0].count, message.reactions[2].count)
 
-	async def poll_color(self, msg, for_count, against_count):
+	async def balance_poll_color(self, msg, for_count, against_count):
 		r = g = 128
 		diff = for_count - against_count
 		votes = for_count + against_count
@@ -131,18 +132,30 @@ class Poll(commands.Cog):
 		poll_allowed_chans = get_poll_chans(message.guild.id)
 
 		if message.channel.id in poll_allowed_chans and message.content.startswith(PREFIX)!=True:
+
+			#rebuilding attachements
+			files = []
+			for attachment in message.attachments:
+				content = await attachment.read()
+				io_content = io.BytesIO(content)
+				file = discord.File(io_content, filename=attachment.filename)
+				files.append(file)			
+
+			#making embed
 			embed_poll = discord.Embed(
 				title = message.author.name,
 				description = message.content,
 				colour = discord.Color(16776960),
 				url = None
 				)
+			#embed_poll.set_author(name=message.author.name, icon_url=message.author.avatar_url)
 			embed_poll.set_thumbnail(url=message.author.avatar_url)
 			#embed_poll.set_footer(text=message.author.name, icon_url=message.author.avatar_url)
 
+			#sending message & adding reactions
 			try:
 				await message.delete()
-				sent_msg = await message.channel.send(embed=embed_poll)
+				sent_msg = await message.channel.send(embed=embed_poll, files=files)
 				await sent_msg.add_reaction(EMOJIS["thumbsup"])
 				await sent_msg.add_reaction(EMOJIS["shrug"])
 				await sent_msg.add_reaction(EMOJIS["thumbsdown"])

@@ -91,7 +91,7 @@ class BotEssentials(commands.Cog):
 			to_del.append(msg)
 
 		try:
-			await self.bot.delete_messages(to_del)
+			await ctx.channel.delete_messages(to_del)
 		except Exception as e:
 			local_logger.exception("Couldn't delete at least on of{}".format(to_del))
 			raise e
