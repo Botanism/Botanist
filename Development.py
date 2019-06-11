@@ -34,19 +34,25 @@ class Development(commands.Cog):
 		self.bot = bot
 
 
-	@commands.command
+	@commands.command()
 	@commands.is_owner()
-	async def update(self, ctx, message="The bot has been updated. Look at the development server for more information"): #should message be put in settings.py ?
+	async def update(self, ctx, *words): #should message be put in settings.py ?
 		'''Lets the owner of the bot update the bot from github's repositery. It also sends a notification to all server owners who use the bot. The message sent in the notification is the description of the release on github.
 		NB: as of now the bot only sends a generic notification & doesn't update the bot.'''
-		for g in self.bot.fetch_guilds():
-			#getting the dm with the server owner
-			dm = g.owner.dm_channel
-			if dm ==None:
-				dm = g.owner.create_dm()
+		#building message
+		if len(words)==0:
+			message = DEFAULT_UPDATE_MESSAGE
+		else:
+			message = ""
+			for w in words:
+				message+=f" {w}"
 
-			#sending the server owner the updates
-			dm.send(message)
+		owners = []
+		for g in self.bot.guilds:
+			if g.owner not in owners: owners.append(g.owner)
+			
+		for o in owners:
+			await o.send(message)
 
 	@commands.command()
 	@commands.is_owner() #-> this needs to be changed to is_dev()

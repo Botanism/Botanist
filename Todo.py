@@ -62,7 +62,7 @@ class Todo(commands.Cog):
                         await message.add_reaction(EMOJIS['check'])
 
     @commands.group()
-    @commands.has_any_role(*GESTION_ROLES, *ADMIN_ROLE)
+    @has_auth("manager")
     async def todo(self, ctx):
         '''Commands to manage a todolist.'''
         if ctx.invoked_subcommand is None:
@@ -132,7 +132,7 @@ class Todo(commands.Cog):
         await ctx.message.delete()
 
     @todo.command()
-    async def addtype(self, ctx, command):
+    async def addtype(self, ctx, todo_type, hex_color):
         '''Command to add a todo type.'''
         command = command.split(";")
 
@@ -158,36 +158,34 @@ class Todo(commands.Cog):
         await ctx.send('You added the label "'+command[0]+'", the embed\'s color for this todo type will be : #' + command[1])
 
     @todo.command()
-    async def removetype(self, ctx, command):
-        '''Command to add a remove type.'''
-        with open(TODO_TYPES_FILE, "r") as file:
-            lines = file.readlines()
-        with open(TODO_TYPES_FILE, "w") as file:
-            deleted=False
-            for line in lines:
-                line = line.split(";")
-                if line[0] != command:
-                    file.write(';'.join(line))
-                else:
-                    deleted=True
-        
-        if deleted:
-            await ctx.send('Todo type **'+command+'** deleted')
-        else:
-            await ctx.send('There is no type named **'+command+'**')
+    async def removetype(self, ctx, todo_type):
+        '''deletes the <todo_type> type'''
+        try:
+            old_conf = get_conf(ctx.guild.id)
+            print(old_conf["todo_types"])
+            #checking whether the type exists in the db
+            if todo_type not in old_conf["todo_types"]:
+                await ctx.send("Can't delete an unexisting type.")
+                return
+
+            old_conf["todo_types"].pop(todo_type)
+            update_conf(ctx.guild.id, old_conf)
+            await ctx.send(f"Successfully deleted {todo_type} type.")
+
+        except Exception as e:
+            local_logger.exception(e)
+            await ctx.send(ERR_UNEXCPECTED)
 
     @todo.command()
     async def listtypes(self, ctx):
-        '''Command to list all the todo types.'''
-        text = "**Type** - *Color*\n\n"
-        with open(TODO_TYPES_FILE, "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                line = line.split(';')
-                text += "**" + line[0] + "** - *#"+line[1][2:] + "*\n"
+        '''Lists all available types'''
+        conf = get_conf(ctx.guild.id)
+        text = ""
+        for t in conf["todo_types"]:
+            text += f'''\n**{t}** - \t*#{conf["todo_types"][t]}*'''
 
-        new_embed = discord.Embed(description=text, url="", color=0x28a745)
-        message = await ctx.channel.send(embed=new_embed)
+        new_embed = discord.Embed(title="**Type** - *Color*", description=text, color=0x28a745)
+        await ctx.send(embed=new_embed)
 
     @todo.command()
     async def channel(self, ctx):

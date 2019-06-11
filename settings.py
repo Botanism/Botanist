@@ -23,6 +23,9 @@ WEBSITE = "https://github.com/organic-bots/ForeBot"
 #invite to dev server URL
 DEV_SRV_URL = "https://discord.gg/mpGM5cg"
 
+#update message
+DEFAULT_UPDATE_MESSAGE = "The bot has been updated. Look at the development server for more information"
+
 #emojis dict. May be possible to change incomprehensible unicode to other strings recognized by discord
 EMOJIS = {
 	"thumbsup": "\U0001f44d",
