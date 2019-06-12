@@ -49,7 +49,7 @@ EMOJIS = {
 
 #files
 ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
-SLAPPING_FOLER = "slapping"
+SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 #roles
 ROLES_LEVEL = ["manager", "admin"]

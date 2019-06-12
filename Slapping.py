@@ -39,12 +39,11 @@ class Slapping(commands.Cog):
 		'''Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server'''
 		#slapping
 		slaps = get_slaps(ctx.guild.id, member.id)
-		print(type(slaps))
 		slaps += 1
-		update_slaps(ctx.guild.od, member.id, slaps)
+		update_slaps(ctx.guild.id, member.id, slaps)
 
 		#warning
-		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slaps[str(ctx.guild.id)][str(member.id)]))		
+		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slaps))		
 
 	@commands.command()
 	@is_init()
@@ -59,9 +58,9 @@ class Slapping(commands.Cog):
 		else:
 			slaps -=nbr
 
-		update_slaps(ctx.guild.od, member.id, slaps)
+		update_slaps(ctx.guild.id, member.id, slaps)
 
-		await ctx.send("{} you've been pardonned by {}.\t ({} slaps left)".format(member.mention, ctx.author.mention, slaps[str(ctx.guild.id)][str(member.id)]))
+		await ctx.send("{} you've been pardonned by {}.\t ({} slaps left)".format(member.mention, ctx.author.mention, slaps))
 
 def setup(bot):
 	bot.add_cog(Slapping(bot))

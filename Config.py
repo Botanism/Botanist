@@ -64,7 +64,7 @@ class Config(commands.Cog):
 			with open(os.path.join(CONFIG_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
 				file.write(DEFAULT_SERVER_FILE)
 			#making slapping file
-			with open(os.path.join(SLAPPING_FOLER, f"{ctx.guild.id}.json"), "w") as file:
+			with open(os.path.join(SLAPPING_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
 				file.write(DEFAULT_SLAPPED_FILE)
 
 		#starting all configurations
@@ -98,6 +98,7 @@ class Config(commands.Cog):
 		finally:
 			await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
 			await asyncio.sleep(10)
+			await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
 
 
 

@@ -149,7 +149,7 @@ def get_poll_chans(guild_id):
 
 def get_slaps(guild_id, user_id):
 	'''returns an int of the number of slaps of the user_id in the provided guild_id'''
-	with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "r") as file:
+	with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "r") as file:
 		fl = json.load(file)
 
 	try:
@@ -166,14 +166,14 @@ def get_slaps(guild_id, user_id):
 
 def update_slaps(guild_id, user_id, slaps):
 	'''changed the number of time the user has been slapped'''
-	with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "r") as file:
+	with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "r") as file:
 		fl = json.load(file)
 
 	try:
-		fl[f"user_id"] = slaps
+		fl[f"{user_id}"] = slaps
 
-		with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "w") as file:
-			file.write(fl)
+		with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "w") as file:
+			json.dump(fl, file)
 
 		return True
 	except Exception as e:
