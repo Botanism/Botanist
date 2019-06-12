@@ -49,7 +49,8 @@ EMOJIS = {
 
 #files
 ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
-SLAPPING_FILE = "slapped.json"
+SLAPPING_FOLER = "slapping"
+CONFIG_FOLDER = "servers"
 #roles
 ROLES_LEVEL = ["manager", "admin"]
 
@@ -63,11 +64,9 @@ DEFAULT_EXTENSIONS_JSON = '''{
 	"Poll":false
 }'''
 
-DEFAULT_SLAPPED_FILE = {
-	"463665420054953995": {
-		"563848071214268429": 0
-	}
-}
+DEFAULT_SLAPPED_FILE = '''{
+	"463665420054953995": 0
+}'''
 
 DEFAULT_SERVER_FILE = '''{
     "poll_channels": [],

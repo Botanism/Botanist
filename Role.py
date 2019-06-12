@@ -45,7 +45,7 @@ class Role(commands.Cog):
 
 	@role.command()
 	async def add(self, ctx, member: discord.Member, *roles:discord.Role):
-		'''adds role(s) to <member>'''
+		'''Gives <member> listed <roles> roles'''
 		if len(roles)==0:
 			local_logger.warning("User didn't provide a role")
 			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
@@ -59,7 +59,7 @@ class Role(commands.Cog):
 
 	@role.command()
 	async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
-		'''removes role(s) to <member>'''
+		'''Removes <member>'s <roles> roles'''
 		if len(roles)==0:
 			local_logger.warning("User didn't provide a role")
 			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")

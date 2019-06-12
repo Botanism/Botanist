@@ -1,6 +1,7 @@
 import logging
 import discord
 import asyncio
+import os
 from settings import *
 from utilities import *
 
@@ -59,8 +60,12 @@ class Config(commands.Cog):
 
 		#making conf file if it doesn't exist
 		if not was_init(ctx):
-			with open(f"{ctx.guild.id}.json", "w") as file:
+			#making config file
+			with open(os.path.join(CONFIG_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
 				file.write(DEFAULT_SERVER_FILE)
+			#making slapping file
+			with open(os.path.join(SLAPPING_FOLER, f"{ctx.guild.id}.json"), "w") as file:
+				file.write(DEFAULT_SLAPPED_FILE)
 
 		#starting all configurations
 		await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities\n*Starting full configuration...*''')
@@ -107,7 +112,7 @@ class Config(commands.Cog):
 
 
 	def is_yn_answer(self, ctx):
-		if (ctx.channel == self.config_channels[ctx.guild.id]) and ((ctx.content in self.allowed_answers[0]) or (ctx.content in self.allowed_answers[1])): return True
+		if (ctx.channel == self.config_channels[ctx.guild.id]) and ((ctx.content.lower() in self.allowed_answers[0]) or (ctx.content.lower() in self.allowed_answers[1])): return True
 		return False
 
 	def is_answer(self, ctx):
@@ -129,7 +134,6 @@ class Config(commands.Cog):
 				await self.config_channels[ctx.guild.id].send(f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channels[ctx.guild.id].mention}")
 				response = await self.bot.wait_for("message", check=self.is_answer)
 				poll_channels = response.channel_mentions
-				print(poll_channels)
 				if self.config_channels[ctx.guild.id] in poll_channels:
 					await self.config_channels[ctx.guild.id].send("You cannot set this channel as a poll one for safety reasons. Please try again...")
 					continue
@@ -367,9 +371,6 @@ class Config(commands.Cog):
 		except Exception as e:
 			local_logger.exception(e)
 			raise e
-
-
-
 
 
 	@cfg.command()

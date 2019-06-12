@@ -38,7 +38,7 @@ def is_runner(): # to be deleted sine it does the same as is_owner()
 def is_init():
 	'''checks whether the server has been initialized. Meant as a fale-safe for commands requiring configuration.'''
 	def check_condition(ctx):
-		conf_files = os.listdir()
+		conf_files = os.listdir(CONFIG_FOLDER)
 		file_name = f"{ctx.guild.id}.json"
 		#ctx.send(ERR_NOT_SETUP)
 		return file_name in conf_files
@@ -47,7 +47,7 @@ def is_init():
 
 def was_init(ctx):
 	'''same as the previous function except this one isn't a decorator. Mainly used for listenners'''
-	if f"{ctx.guild.id}.json" in os.listdir():
+	if f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER):
 		return True
 	return False
 
@@ -94,7 +94,7 @@ def has_changed(server, last_time):
 
 def get_conf(guild_id):
 	'''returns the configuration dict of the provided guild_id'''
-	with open(f"{guild_id}.json", "r") as file:
+	with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
 		conf = json.load(file)
 	print(conf)
 	return conf
@@ -102,7 +102,7 @@ def get_conf(guild_id):
 def update_conf(guild_id, conf_dict):
 	'''writes the conf_dict to the provided guild_id configuration file'''
 	try:
-		with open(f"{guild_id}.json", "w") as file:
+		with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "w") as file:
 			json.dump(conf_dict, file)
 		return True
 
@@ -113,7 +113,7 @@ def update_conf(guild_id, conf_dict):
 def del_conf(guild_id):
 	'''deletes the configuration entry for the provided guild_id'''
 	try:
-		os.remove(f"{guild_id}.json")
+		os.remove(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"))
 		return True
 
 	except Exception as e:
@@ -123,7 +123,7 @@ def del_conf(guild_id):
 def get_roles(guild_id, lvl):
 	'''returns the roles with the provided lvl of clearance for the specified guild_id'''
 	try:
-		with open(f"{guild_id}.json", "r") as file:
+		with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
 			return json.load(file)["roles"][lvl]
 
 	except Exception as e:
@@ -132,12 +132,52 @@ def get_roles(guild_id, lvl):
 
 def get_poll_chans(guild_id):
 	'''returns a list of channel ids marked as poll channels for the specified guild_id'''
-	with open(f"{guild_id}.json", "r") as file:
-		fl = json.load(file)
-		
-	chans = fl["poll_channels"]
-	if len(chans)==0:
-		#isn't None to prevent Poll listener from crashing
-		return []
+	try:
+		with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
+			fl = json.load(file)
+			
+		chans = fl["poll_channels"]
+		if len(chans)==0:
+			#isn't None to prevent Poll listener from crashing
+			return []
 
-	return chans
+		return chans
+
+	except Exception as e:
+		raise e
+		local_logger.exception(e)
+
+def get_slaps(guild_id, user_id):
+	'''returns an int of the number of slaps of the user_id in the provided guild_id'''
+	with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "r") as file:
+		fl = json.load(file)
+
+	try:
+		slaps = fl[f"{user_id}"]
+	except KeyError:
+		slaps = 0
+
+	except Exception as e:
+		raise e
+		local_logger.exception(e)
+
+	return slaps
+
+
+def update_slaps(guild_id, user_id, slaps):
+	'''changed the number of time the user has been slapped'''
+	with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "r") as file:
+		fl = json.load(file)
+
+	try:
+		fl[f"user_id"] = slaps
+
+		with open(os.path.join(SLAPPING_FOLER, f"{guild_id}.json"), "w") as file:
+			file.write(fl)
+
+		return True
+	except Exception as e:
+		raise e
+		local_logger.exception(e)
+		return False
+

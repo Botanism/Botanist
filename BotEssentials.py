@@ -57,7 +57,7 @@ class BotEssentials(commands.Cog):
 	@commands.Cog.listener()
 	async def on_member_remove(self, member):
 		local_logger.info("User {0.name}[{0.id}] left {1.name}[{1.id}]".format(member, member.guild))
-		goodbye_msg = get_conf(member.guild.id)["messages"]["welcome"]
+		goodbye_msg = get_conf(member.guild.id)["messages"]["goodbye"]
 		if goodbye_msg != False:
 			await member.guild.system_channel.send(goodbye_msg.format(member.mention))		
 
