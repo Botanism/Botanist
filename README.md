@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="512" height="512" src="https://raw.githubusercontent.com/NotaSmartDev/assets/master/Balance-2-512.png">
+</p>
+
 # Forebot
 
 This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using discord.py API which offers full compatibility to the official Discord API.
