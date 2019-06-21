@@ -1,5 +1,6 @@
 import logging
 import discord
+from typing import Union
 from settings import *
 from utilities import *
 
@@ -69,67 +70,41 @@ class Todo(commands.Cog):
             await ctx.send('Error: See for ``' + PREFIX + 'help todo``')
 
     @todo.command()
-    async def add(self, ctx, *args):
+    async def add(self, ctx, todo_type, assignee: Union[bool, discord.Member], repost:Union[bool, discord.TextChannel], *args):
         '''Command to add a todo. Usage : <the thing todo>;<type of todo>;<assigned to / false>;<repost public channel / false>'''
-        with open(TODO_CHANNEL_FILE , "r") as file:
-            channel_id = file.readline()
-            if channel_id == None or channel_id == "":
-                await ctx.channel.send("The todos' channel must be selected with the command " + PREFIX + "todo channel")
-                return
-        channel = self.bot.get_channel(int(channel_id))
 
-        command = ""
-        for arg in args:
-            command += " {}".format(arg)
-        command = command.split(";")
-
-        todo_type = None
-
-        with open(TODO_TYPES_FILE, "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                line = line.split(';')
-                if command[1] == line[0]:
-                    todo_type = line
-                    break
+        todo_dict = get_todo(ctx.guild.id)
         
-        if todo_type != None:
-            embed_color = int(todo_type[1], 16)
+        #making sure the type is valid
+        if todo_type not in todo_dict["todo_types"]:
+            await ctx.send("Can't assign to an unexisting type. To get a list of available types run `::todo listtypes`.")
+            return
+
         else:
-            embed_color = 0x28a745
-        
-        new_embed = discord.Embed(description=command[0], url="", color=embed_color)
-        
-        command[2] = command[2].replace(' ', '') #TODO: Use dfind instead ?
-        if command[2] != "false":
-            if command[2].startswith("<@"):
-                user = ctx.guild.get_member(int(command[2][2:-1]))
-            else:
-                user = ctx.guild.get_member_named(command[2])
-            
-            if user != None:
-                new_embed.add_field(name="Asssigned to", value=user.mention, inline=True)
-        
-        if command[3] != "false":
-            if command[3].startswith("<#"):
-                repost_channel = ctx.guild.get_channel(int(command[3][2:-1]))
-            else:
-                for chan in ctx.guild.channels:
-                    if(chan.name == command[3]):
-                        repost_channel = chan
-        else:
-            repost_channel = None
-        
-        new_embed.set_footer(text=command[1])
-        if repost_channel != None:
-            public_todo = await repost_channel.send(embed=new_embed)
-            new_embed.add_field(name="Public repost", value=repost_channel.mention + " : " + str(public_todo.id), inline=True)
-        
-        message = await channel.send(embed=new_embed)
+            print(todo_dict["todo_types"][todo_type][1])
+            #the color value is saved as an hexadecimal value so it is made an int to get the base 10 decimal value
+            embed_color = int(todo_dict["todo_types"][todo_type], 16)
+            print(embed_color)
+
+        #building the todo name string
+        crt_todo = ""
+        for word in args:
+            crt_todo+= word
+
+        #building the embed
+        new_embed = discord.Embed(description=crt_todo, color=embed_color)
+        new_embed.set_footer(todo_type)
+
+        if repost:
+            public_todo = await repost.send(embed=new_embed)
+            new_embed.add_field(name="Public repost", value=repost.mention+" : "+ str(public_todo.id), inline=True)
+
+        #sending message and reactions
+        msg = await ctx.send(embed=new_embed)
         await message.add_reaction(EMOJIS['wastebasket'])
         await message.add_reaction(EMOJIS['check'])
-        await message.add_reaction(EMOJIS['hourglass'])
-        await ctx.message.delete()
+        await message.add_reaction(EMOJIS['hourglass'])        
+
 
     @todo.command()
     async def addtype(self, ctx, todo_type, hex_color):
@@ -186,13 +161,6 @@ class Todo(commands.Cog):
 
         new_embed = discord.Embed(title="**Type** - *Color*", description=text, color=0x28a745)
         await ctx.send(embed=new_embed)
-
-    @todo.command()
-    async def channel(self, ctx):
-        '''Command to select the channel where the todos will be'''
-        with open(TODO_CHANNEL_FILE , "w") as file:
-            file.write(str(ctx.channel.id))
-        await ctx.channel.send('Okay ! This channel wil be used for the todos !')
 
 def setup(bot):
     bot.add_cog(Todo(bot))

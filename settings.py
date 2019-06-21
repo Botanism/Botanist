@@ -47,10 +47,12 @@ EMOJIS = {
 #										#
 #########################################
 
-#files
+#Files
 ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
+TODO_FOLDER = "todo"
+
 #roles
 ROLES_LEVEL = ["manager", "admin"]
 
@@ -83,6 +85,16 @@ DEFAULT_SERVER_FILE = '''{
 
 }'''
 
+DEFAULT_TODO_FILE = {
+	"groups": {
+	"level1": []
+	},
+	"types": {
+	"bug": "ffffff"
+	},
+
+}
+
 #########################################
 #										#
 #										#
@@ -90,8 +102,6 @@ DEFAULT_SERVER_FILE = '''{
 #										#
 #										#
 #########################################
-
-
 
 LOG_FILE = "forebot.log"
 LOGGING_HANDLER 	= logging.FileHandler(LOG_FILE, "a")

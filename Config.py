@@ -44,7 +44,7 @@ class Config(commands.Cog):
 	@commands.group()
 	@is_server_owner()
 	async def cfg(self, ctx):
-		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful for you. Hopefully you won't find me too many bugs. However if you do I would apreicate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"])
+		self.ad_msg = "I ({}) have recently been added to this server ! I hope I'll be useful to you. I hope you won't find me too many bugs. However if you do I would appreciate it if you could report them to the server ({}) where my developers are ~~partying~~ working hard to make me better ! This is also the place to share your thoughts on how to improve me. Have a nice day and maybe, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"])
 		if ctx.invoked_subcommand == None:
 			await ctx.send(ERR_NO_SUBCOMMAND)
 
@@ -248,10 +248,6 @@ class Config(commands.Cog):
 			raise e
 
 
-	async def cfg_todo(self, ctx):
-		pass
-
-
 	async def cfg_welcome(self, ctx):
 		try:
 			await self.config_channels[ctx.guild.id].send("**Starting welcome message configuration**")
@@ -377,6 +373,116 @@ class Config(commands.Cog):
 	@cfg.command()
 	async def leave(self, ctx):
 		ctx.send("You are about to remove the bot from the server. This will erase all of your configuration from the mainframe and you won't be able to recover the bot without getting another invite. Are you sure you want to continue ? (y/N)")
+
+	@cfg.command()
+	async def cfg_todo(self, ctx):
+			await self.config_channels[ctx.guild.id].send("You are entering the Todo extension configuration. This extension lets you manage a todo list directly from discord. This extension requires more configuration than most. It has thus been subdivided for you. I'm going to ask which parts you want me to configure with you...")
+
+			#asking for group configuration
+			await self.config_channels[ctx.guild.id].send("Do you want to configure the todo groups ?")
+			reponse = await self.bot.wait_for("message", check=self.is_yn_answer)
+				if response.content[0].lower() == "y": self.cfg_todo_grps(ctx)
+
+			#asking for channel configuration
+			await self.config_channels[ctx.guild.id].send("Do you want to configure the todo channels ?")
+			reponse = await self.bot.wait_for("message", check=self.is_yn_answer)
+				if response.content[0].lower() == "y": self.cfg_todo_chan(ctx)
+
+			#asking for type configuration
+			#await self.config_channels[ctx.guild.id].send("Do you want to configure the todo types ?")
+			#reponse = await self.bot.wait_for("message", check=self.is_yn_answer)
+			#	if response.content[0].lower() == "y": self.cfg_todo_type(ctx)
+
+	async def cfg_todo_grps(self, ctx):
+		try:
+			retry = True
+			groups = []
+			while retry:
+				await self.config_channels[ctx.guild.id].send("What is the name of the group you want to make ?")
+				response = await self.bot.wait_for("message", check=self.is_answer)
+
+				await self.config_channels[ctx.guild.id].send("About to create group {}. Do you want to confirm this?")
+				response = await self.bot.wait_for("message", check=self.is_yn_answer)
+				if response.content[0].lower() == "n":
+					continue
+
+				#if the creation was successfull
+				await self.config_channels[ctx.guild.id].send("Do you want to create another group ? [y/n]")
+				response =  await self.bot.wait_for("message", check=self.is_yn_answer)
+				if response.content[0].lower() == "n":
+					retry = False
+					continue
+
+			#building group string and making the group
+			grps_str = ""
+			todo_dict = get_todo(ctx.guild.id)
+			for grp in groups:
+				#building the string
+				grps_str+=f"`{grp}`, "
+
+				#making the group
+				todo_dict["groups"][grp] = []
+
+			update_todo(ctx.guild.id, todo_dict)
+
+			await self.config_channels[ctx.guild.id].send(f"You created the following groups: {grps_str}")
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
+
+
+	async def cfg_todo_chan(self, ctx):
+		try:
+			await self.config_channels[ctx.guild.id].send("Each group you've set earlier can be attached to several channels. Each time a new entry is made for a group, the todo will be posted in every channel bound to it.")
+			todo_dict = get_todo(ctx.guild.id)
+			for group in todo_dict["groups"]:
+				retry = True
+				while retry:
+					await self.config_channels[ctx.guild.id].send(f"List (like this {self.config_channels[ctx.guild.id].mention})all the channels you want to bind to the {group} group.")
+					respone = await self.bot.wait_for("message", check=self.is_answer)
+
+					#making group's channels
+					chans = []
+					chans_str = ""
+					for chan in response.channel_mentions:
+						chans_str+= f"{chan} "
+						chans.append(chan)
+					await self.config_channels[ctx.guild.id].send(f"You are about to make {chans_str} {group} todo channels. Do you want to confirm? [y/n]")
+					response = await self.bot.wait_for("message", check=self.is_yn_answer)
+					if response.content[0].lower() == "n":
+						await self.config_channels[ctx.guild.id].send(f"Do you want to try to configure {group} again ?")
+						response = await self.bot.wait_for("message", check=self.is_yn_answer)
+						if response.content[0].lower() == "n":retry = False
+						continue
+					todo_dict["groups"][group] = chans
+
+			await self.config_channels[ctx.guild.id].send("You are now done completing the configuration of the todo channels.")
+
+
+
+
+
+
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
+	async def cfg_todo_type(self, ctx):
+		try:
+			retry = True
+			while retry:
+				await self.config_channels[ctx.guild.id].send("You are starting the todo types configuration. Which types do you want to add ? Write it like this: `my_type_name;ffffff` The part after the ")
+
+
+
+		except Exception as e:
+			local_logger.exception(e)
+			raise e
+
+					
 
 
 

@@ -96,7 +96,6 @@ def get_conf(guild_id):
 	'''returns the configuration dict of the provided guild_id'''
 	with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
 		conf = json.load(file)
-	print(conf)
 	return conf
 
 def update_conf(guild_id, conf_dict):
@@ -181,3 +180,24 @@ def update_slaps(guild_id, user_id, slaps):
 		local_logger.exception(e)
 		return False
 
+def get_todo(guild_id):
+	'''returns the todo dict of the specifeid guild_id'''
+	try:
+		with open(os.path.join(TODO_FOLDER, f"{guild_id}.json"), "r") as file:
+			fl = json.load(file)
+			return conf
+	except Exception as e:
+		raise e
+		local_logger.exception(e)
+
+def update_todo(guild_id, todo_dict):
+	'''updates the todo file for the specified guild_id'''
+	try:
+		with open(os.path.join(TODO_FOLDER, f"{guild_id}.json"), "w") as file:
+			json.dump(todo_dict, file)
+			return True
+
+	except Exception as e:
+		raise e
+		local_logger.exception(e)
+		return False
