@@ -4,11 +4,11 @@ import discord
 from utilities import *
 
 #########################################
-#										#
-#										#
-#			Setting up logging			#
-#										#
-#										#
+#                                       #
+#                                       #
+#           Setting up logging          #
+#                                       #
+#                                       #
 #########################################
 local_logger = logging.getLogger(__name__)
 local_logger.setLevel(LOGGING_LEVEL)
@@ -17,60 +17,56 @@ local_logger.info("Innitalized {} logger".format(__name__))
 
 
 #########################################
-#										#
-#										#
-#			Making commands				#
-#										#
-#										#
+#                                       #
+#                                       #
+#           Making commands             #
+#                                       #
+#                                       #
 #########################################
 
 
 
 class Role(commands.Cog):
-	"""role management utility. Requires a Gestion role"""
-	def __init__(self, bot):
-		self.bot = bot
+    """role management utility. Requires a Gestion role"""
+    def __init__(self, bot):
+        self.bot = bot
 
-	@commands.group()
-	@has_auth("admin")
-	async def role(self, ctx):
-		'''role management utility. Requires a Gestion role'''
-		if ctx.invoked_subcommand is None:
-			local_logger.warning("User didn't provide any subcommand")
-			await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+    @commands.group()
+    @has_auth("admin")
+    async def role(self, ctx):
+        '''role management utility. Requires a Gestion role'''
+        if ctx.invoked_subcommand is None:
+            local_logger.warning("User didn't provide any subcommand")
+            await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
 
-		if not has_auth(ctx.guild.id, ctx.author.roles, "manager"):
-			return False
+    @role.command()
+    async def add(self, ctx, member: discord.Member, *roles:discord.Role):
+        '''Gives <member> listed <roles> roles'''
+        if len(roles)==0:
+            local_logger.warning("User didn't provide a role")
+            await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
 
+        else:
+            try:
+                await member.add_roles(*roles)
+            except Exception as e:
+                local_logger.exception("Couldn't add {} to {}".format(roles, member))
+                await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
 
-	@role.command()
-	async def add(self, ctx, member: discord.Member, *roles:discord.Role):
-		'''Gives <member> listed <roles> roles'''
-		if len(roles)==0:
-			local_logger.warning("User didn't provide a role")
-			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
+    @role.command()
+    async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
+        '''Removes <member>'s <roles> roles'''
+        if len(roles)==0:
+            local_logger.warning("User didn't provide a role")
+            await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
 
-		else:
-			try:
-				await member.add_roles(*roles)
-			except Exception as e:
-				local_logger.exception("Couldn't add {} to {}".format(roles, member))
-				await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
-
-	@role.command()
-	async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
-		'''Removes <member>'s <roles> roles'''
-		if len(roles)==0:
-			local_logger.warning("User didn't provide a role")
-			await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
-
-		else:
-			try:
-				await member.remove_roles(*roles)
-			except Exception as e:
-				local_logger.exception("Couldn't remove roles ")
-				await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
+        else:
+            try:
+                await member.remove_roles(*roles)
+            except Exception as e:
+                local_logger.exception("Couldn't remove roles ")
+                await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
 
 
 def setup(bot):
-	bot.add_cog(Role(bot))
+    bot.add_cog(Role(bot))

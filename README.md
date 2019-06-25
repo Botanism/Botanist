@@ -6,31 +6,39 @@
 
 This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using discord.py API which offers full compatibility to the official Discord API.
 
-This bot is a collection of several commands and suite of commands. They are regrouped under several extensions which can be loaded, updated and disabled on the fly, without ever having to take the bot off line. This allows one to stay use only the functions he wishes and keep them updated without any penalties.
+​	This bot is a collection of several commands and suite of commands. They are regrouped under several extensions which can be loaded, updated and disabled on the fly, without ever having to take the bot off line. This allows one to stay use only the functions he wishes and keep them updated without any penalties.
 
 ## Development history
 
 I ([@NotaSmartDev](https://github.com/NotaSmartDev)) started building this bot at the end of April 2019 using discord.py API. This bot was first made with the intent to make my discord server more powerful and alive. I had only created it a few days ago but I had realized that I would need additional tools to be able to fulfill all of the plans I had for this server. I had already started making a [bot](https://github.com/organic-bots/LazyFactorian) which serves as an interface to factorio's resources. I thus started building a bot that would enable me to easily manage a scalable server which would contain all of my future bots and would serve as a platform for all my creations.
 
-After the very first version I got some help of a friend of mine. Together we made the bot evolve so that it could join the ranks of other servers. Indeed I had started to realize that the bot, however simple, may be useful to others.
+​	After the very first version I got some help of a friend of mine. Together we made the bot evolve so that it could join the ranks of other servers. Indeed I had started to realize that the bot, however simple, may be useful to others.
 
 ## Commands
 
 ### Getting started
 
-Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates.
+Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates. Some commands can only be ran in a server (ie: you can't have roles in a DM). They are also all case sensitive.
 
-Those commands are sometimes regrouped under a **group**. This means that a command belonging to a **group** will only be recognized if the **group**'s name is appended before the command. For example the command `ls` of group `ext` needs to be called like this: `ext ls`.
+​	Those commands are sometimes regrouped under a **group**. This means that a command belonging to a **group** will only be recognized if the **group**'s name is appended before the command. For example the command `ls` of group `ext` needs to be called like this: `ext ls`.
 
-To prevent abuse a **clearance** system is included with the bot. This allows servers to limit the use of certain commands to select group of members. One member can possess multiple roles (ie: levels of clearance). The implemented level of clearances are listed & described in the following table in order of magnitude:
+​	To prevent abuse a **clearance** system is included with the bot. This allows servers to limit the use of certain commands to select group of members. One member can possess multiple roles (ie: levels of clearance). The implemented level of clearances are listed & described in the following table in order of magnitude:
 
 | Clearance     | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
-| *             | this represents the wildcard and mean everyone can use the command. No matter their roles |
-| runner        | this role is assigned to only one member: the one with the `RUNNER_ID`. This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
+| *             | this represents the wildcard and means everyone can use the command. No matter their roles |
+| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/e3ed28af546ba69f3f9d5b6303c427b27605a2a1/settings.py#L15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
 | owner         | this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server. |
 | administrator | this role gives access to all server commands except the bot configuration ones |
 | manager       | this role gives access to message management, warnings issues and other server moderation commands |
+
+​	Arguments (aka: parameters) are referenced in `<` & `>` in this reference although using those symbols isn't necessary when using the commands.  Some arguments are optional. If it's the case they are preceded by a `*`. Otherwise the command's list of required arguments is to be  like this: `<arg1>` `<arg2>`.  This can also be blank when the command doesn't require any argument.
+
+ Sometimes commands require a `*` argument. This means that the argument length is unlimited. It can range from 0 to 2000 characters (the maximum allowed by discord).
+
+Finally arguments which are not `*` but comprises spaces need to be put in quotes like this: `"this is one argument only"`. Else each "word" will be considered a different argument. If the argument count doesn't exactly match then the command will fail. Also the arguments order matters.
+
+
 
 
 
@@ -86,10 +94,10 @@ This extension contains some of the most basic managing commands and should almo
 
 Allows moderators to give quick and light warnings to disrespectful members. By slapping a member he gets notified of his misbehavior and knows who did it. Both the administrator and the user can see his/her slap count. The slap count is also cross-server.
 
-| Group | Command  |     Arguments      |                         Description                          | Clearance |
-| ----- | :------: | :----------------: | :----------------------------------------------------------: | --------- |
-|       |  `slap`  |     `<member>`     |        slaps the specified `<member>` member one time        | manager   |
-|       | `pardon` | `<member>` `<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. | manager   |
+| Group | Command  |      Arguments      |                         Description                          | Clearance |
+| ----- | :------: | :-----------------: | :----------------------------------------------------------: | :-------: |
+|       |  `slap`  |     `<member>`      |        slaps the specified `<member>` member one time        |  manager  |
+|       | `pardon` | `<member>` *`<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
 
 
 
@@ -97,10 +105,10 @@ Allows moderators to give quick and light warnings to disrespectful members. By 
 
 Allows moderators to add and remove roles to members.
 
-| Group  | Command |      Arguments       |                         Description                          | Clearance |
-| ------ | :-----: | :------------------: | :----------------------------------------------------------: | --------- |
-| `role` |  `add`  | `<member>` `<roles>` | adds the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | manager   |
-| `role` |  `rm`   | `<member>` `<roles>` | removes the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | manager   |
+| Group  | Command |      Arguments       |                         Description                          |   Clearance   |
+| ------ | :-----: | :------------------: | :----------------------------------------------------------: | :-----------: |
+| `role` |  `add`  | `<member>` `<roles>` | adds the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
+| `role` |  `rm`   | `<member>` `<roles>` | removes the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
 
 
 
