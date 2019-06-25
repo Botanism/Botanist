@@ -112,3 +112,14 @@ Allows the owner of a server to configure the behavior of the bot.
 | ----- | :-----: | :-----------: | :----------------------------------------------------------: | --------- |
 | `cfg` | `init`  |               | starts full configuration of the bot in a new, restricted, channel | owner     |
 | `cfg` |  `chg`  | `<extension>` | starts the configuration of the `<extension>` extension. This is done in a new, restricted, channel | owner     |
+
+
+
+#### Development
+
+Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
+
+| Group | Command  | Arguments |                         Description                          | Clearance |
+| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
+|       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
+|       |  `log`   |           |                  returns the bot's log file                  | owner     |
