@@ -108,9 +108,6 @@ Allows moderators to add and remove roles to members.
 
 Allows the owner of a server to configure the behavior of the bot.
 
-- `init`: starts full configuration of the bot
-- `chg` `<extensions>`: starts the configuration of the `<extension>` extension.
-
 | Group | Command |   Arguments   |                         Description                          | Clearance |
 | ----- | :-----: | :-----------: | :----------------------------------------------------------: | --------- |
 | `cfg` | `init`  |               | starts full configuration of the bot in a new, restricted, channel | owner     |
