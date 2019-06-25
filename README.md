@@ -39,6 +39,7 @@ To prevent abuse a **clearance** system is included with the bot. This allows se
 #### Defaults
 
 A suite of commands always activated which handle extension management. This cannot be unloaded as it is part of the core of the bot and is required for live updates.
+
 | Group | Command  |   Arguments   |                         Description                          | Clearance |
 | ----- | :------: | :-----------: | :----------------------------------------------------------: | --------- |
 | `ext` |  `add`   | `<extension>` | loads the  specified `<extension>` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
@@ -62,7 +63,6 @@ This suite of commands provides automatic poll creation. A poll is an embed mess
 
 This extension allow nay user to send a message as an embed. The color of the embed is defined by the user's role color.
 
-- `embed` `<msg>`: Deletes the message sent and transforms into an embed. The message is `<msg>` parameter which takes unlimited arguments.
 | Group | Command | Arguments |                         Description                          | Clearance |
 | ----- | :-----: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `embed` |     *     | converts all arguments which form the user's message into a new embed one. Markdown is supported, including named links | *         |
