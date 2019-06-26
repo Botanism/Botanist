@@ -2,11 +2,11 @@ import logging
 
 
 #########################################
-#										#
-#										#
-#			Global Variables			#
-#										#
-#										#
+#                                       #
+#                                       #
+#           Global Variables            #
+#                                       #
+#                                       #
 #########################################
 
 
@@ -28,23 +28,23 @@ DEFAULT_UPDATE_MESSAGE = "The bot has been updated. Look at the development serv
 
 #emojis dict. May be possible to change incomprehensible unicode to other strings recognized by discord
 EMOJIS = {
-	"thumbsup": "\U0001f44d",
-	"thumbsdown": "\U0001f44e",
-	"shrug": "\U0001f937",
-	"wastebasket": "\U0001F5D1",
-	"check": "\U00002705",
-	"hourglass": "\U000023F3",
-	"wave": "\U0001F44B",
-	"no_entry_sign": "\U0001F6AB"
+    "thumbsup": "\U0001f44d",
+    "thumbsdown": "\U0001f44e",
+    "shrug": "\U0001f937",
+    "wastebasket": "\U0001F5D1",
+    "check": "\U00002705",
+    "hourglass": "\U000023F3",
+    "wave": "\U0001F44B",
+    "no_entry_sign": "\U0001F6AB"
 }
 
 
 #########################################
-#										#
-#										#
-#				  Files					#
-#										#
-#										#
+#                                       #
+#                                       #
+#                 Files                 #
+#                                       #
+#                                       #
 #########################################
 
 #Files
@@ -58,16 +58,16 @@ ROLES_LEVEL = ["manager", "admin"]
 
 #default JSON files
 DEFAULT_EXTENSIONS_JSON = '''{
-	"Slapping": false,
-	"BotEssentials":true,
-	"Role":false,
-	"Embedding":false,
-	"Config":false,
-	"Poll":false
+    "Slapping": false,
+    "BotEssentials":true,
+    "Role":false,
+    "Embedding":false,
+    "Config":false,
+    "Poll":false
 }'''
 
 DEFAULT_SLAPPED_FILE = '''{
-	"463665420054953995": 0
+    "463665420054953995": 0
 }'''
 
 DEFAULT_SERVER_FILE = '''{
@@ -85,36 +85,35 @@ DEFAULT_SERVER_FILE = '''{
 
 }'''
 
-DEFAULT_TODO_FILE = {
-	"groups": {
-	"level1": []
-	},
-	"types": {
-	"bug": "ffffff"
-	},
-
-}
+DEFAULT_TODO_FILE = '''{
+    "groups": {
+    "default": []
+    },
+    "types": {
+    "default": "000000"
+    }
+}'''
 
 #########################################
-#										#
-#										#
-#				Logging					#
-#										#
-#										#
+#                                       #
+#                                       #
+#               Logging                 #
+#                                       #
+#                                       #
 #########################################
 
 LOG_FILE = "forebot.log"
-LOGGING_HANDLER 	= logging.FileHandler(LOG_FILE, "a")
-LOGGING_FORMATTER	= logging.Formatter("[%(asctime)s]:%(name)s:%(message)s")
-LOGGING_LEVEL		= logging.INFO
+LOGGING_HANDLER     = logging.FileHandler(LOG_FILE, "a")
+LOGGING_FORMATTER   = logging.Formatter("\n[%(asctime)s][%(name)s]:%(message)s")
+LOGGING_LEVEL       = logging.INFO
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 
 #########################################
-#										#
-#										#
-#				 Errors					#
-#										#
-#										#
+#                                       #
+#                                       #
+#                Errors                 #
+#                                       #
+#                                       #
 #########################################
 
 
@@ -122,5 +121,5 @@ ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` f
 ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
 ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"
 ERR_UNSUFFICIENT_PRIVILEGE = "You don't have the permission to do this..."
-ERR_NOT_SETUP = "This server hasn't been configured. If you're the owner of the server you can initialise the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that."
+ERR_NOT_SETUP = "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that."
 ERR_CANT_SAVE = "Couldn't save settings to JSON configuration file."

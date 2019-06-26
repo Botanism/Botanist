@@ -23,39 +23,54 @@ class Todo(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):
-        if reaction.user_id != self.bot.user.id:
-            message = await self.bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
+        if reaction.user_id == self.bot.user.id: return
+        first_message = [await self.bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)]
 
-            with open(TODO_CHANNEL_FILE , "r") as file:
-                channel_id = file.readline()
+        todo = get_todo(reaction.guild_id)
 
-            if reaction.channel_id == int(channel_id): #Check if it's a todo-message (check if it's the good channel)
-                if len(message.embeds) > 0: # Check if it's an embed, I think this will avoid most problems
-                    if reaction.emoji.name == EMOJIS['wastebasket']:
-                        await self.bot.get_channel(reaction.channel_id).delete_messages([message])
+        #checking if channel is todo
+        #for chan in lambda: [chan for group in todo["groups"].values() for chan in group]:
+        #    if reaction.channel_id == chan.id:
 
-                        repost_field_value = None
-                        for field in message.embeds[0].fields:
-                            if field.name == "Public repost":
-                                repost_field_value= field.value
-                        
-                        if repost_field_value!= None:
-                            repost_message = await self.bot.get_channel(int(repost_field_value.split(':')[0][2:-2])).fetch_message(int(repost_field_value.split(':')[1][1:]))
-                            await repost_message.delete()
-                    elif reaction.emoji.name == EMOJIS['check']:
-                        await message.remove_reaction(EMOJIS['hourglass'], self.bot.user)
-                    elif reaction.emoji.name == EMOJIS['hourglass']:
-                        await message.remove_reaction(EMOJIS['check'], self.bot.user)
+        is_todo = False
+        for grp in todo["groups"].values():
+            for chan in grp:
+                if reaction.channel_id == chan:
+                    group = grp
+                    is_todo = True
+                    break
+
+        if is_todo: #check if it's the good channel
+            if len(message.embeds): # Check if it's an embed, I think this will avoid most problems
+                if reaction.emoji.name == EMOJIS['wastebasket']:
+                    for chan in grp:
+                        messages = []
+                        async for message in await self.bot.get_channel(chan).history():
+                            if message.embeds[0].description == first_message[0].embeds[0].description:
+                                messages.append(message)
+
+                        await self.bot.delete_messages(messages)
+
+                elif reaction.emoji.name == EMOJIS['check']:
+                    await message.remove_reaction(EMOJIS['hourglass'], self.bot.user)
+                elif reaction.emoji.name == EMOJIS['hourglass']:
+                    await message.remove_reaction(EMOJIS['check'], self.bot.user)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, reaction):
+        if reaction.user_id == self.bot.user.id: return
+
         message = await self.bot.get_channel(reaction.channel_id).fetch_message(reaction.message_id)
 
-        with open(TODO_CHANNEL_FILE , "r") as file:
-            channel_id = file.readline()
+        #checking if channel is todo
+        todo = get_todo(reaction.guild_id)
+        for chan in lambda: [chan for group in todo["groups"].values() for chan in group]:
+            if reaction.channel_id == chan.id:
+                is_todo = True
+                break
 
-        if reaction.channel_id == int(channel_id): # Check if it's a todo-message (check if it's the good channel)
-            if len(message.embeds) > 0: # Check if it's an embed, I think this will avoid most problems
+        if is_todo: # Check if it's a todo-message (check if it's the good channel)
+            if len(message.embeds): # Check if it's an embed, I think this will avoid most problems
                 if reaction.user_id != self.bot.user.id:
                     if reaction.emoji.name == EMOJIS['check']:
                         await message.add_reaction(EMOJIS['hourglass'])
@@ -67,10 +82,10 @@ class Todo(commands.Cog):
     async def todo(self, ctx):
         '''Commands to manage a todolist.'''
         if ctx.invoked_subcommand is None:
-            await ctx.send('Error: See for ``' + PREFIX + 'help todo``')
+            await ctx.send(ERR_NOT_ENOUGH_ARG)
 
     @todo.command()
-    async def add(self, ctx, todo_type, assignee: Union[bool, discord.Member], repost:Union[bool, discord.TextChannel], *args):
+    async def add(self, ctx, todo_type, assignee: Union[bool, discord.Member], *args): #, repost:Union[bool, discord.TextChannel]
         '''Command to add a todo. Usage : <the thing todo>;<type of todo>;<assigned to / false>;<repost public channel / false>'''
 
         todo_dict = get_todo(ctx.guild.id)
@@ -95,9 +110,9 @@ class Todo(commands.Cog):
         new_embed = discord.Embed(description=crt_todo, color=embed_color)
         new_embed.set_footer(todo_type)
 
-        if repost:
-            public_todo = await repost.send(embed=new_embed)
-            new_embed.add_field(name="Public repost", value=repost.mention+" : "+ str(public_todo.id), inline=True)
+        #if repost:
+        #    public_todo = await repost.send(embed=new_embed)
+        #    new_embed.add_field(name="Public repost", value=repost.mention+" : "+ str(public_todo.id), inline=True)
 
         #sending message and reactions
         msg = await ctx.send(embed=new_embed)
