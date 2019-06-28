@@ -49,6 +49,11 @@ class Role(commands.Cog):
         else:
             try:
                 await member.add_roles(*roles)
+                roles_str = ""
+                for role in roles:
+                    roles_str+= f" {role}"
+
+                await ctx.send(f"You gave {member.name} {roles_str} role(s).")
             except Exception as e:
                 local_logger.exception("Couldn't add {} to {}".format(roles, member))
                 await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))

@@ -64,7 +64,7 @@ class Todo(commands.Cog):
 
         #checking if channel is todo
         todo = get_todo(reaction.guild_id)
-        for chan in lambda: [chan for group in todo["groups"].values() for chan in group]:
+        for chan in [chan for group in todo["groups"].values() for chan in group]:
             if reaction.channel_id == chan.id:
                 is_todo = True
                 break

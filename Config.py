@@ -88,7 +88,7 @@ class Config(commands.Cog):
             await self.cfg_role(ctx)
             await self.cfg_welcome(ctx)
             await self.cfg_goodbye(ctx)
-            await self.cfg_todo(ctx)
+            #await self.cfg_todo(ctx)
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
@@ -198,7 +198,7 @@ class Config(commands.Cog):
     async def cfg_role(self, ctx):
         try:
             #introducing the clearance levels the bot uses
-            await self.config_channels[ctx.guild.id].send("**Starting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
+            await self.config_channels[ctx.guild.id].send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
             new_roles = []
             for role_lvl in ROLES_LEVEL:
@@ -435,12 +435,10 @@ class Config(commands.Cog):
 
                 #if the creation was successfull
                 await self.config_channels[ctx.guild.id].send("Do you want to create another group ? [y/n]")
-                response =  await self.bot.wait_for("message", check=self.is_yn_answer)
+                response = await self.bot.wait_for("message", check=self.is_yn_answer)
                 if response.content[0].lower() == "n":
                     retry = False
                     continue
-
-
 
                 #making the group
                 grps_str = " "
@@ -449,8 +447,10 @@ class Config(commands.Cog):
                     grps_str += f"{grp}, "
                 #removing trailing comma and whitespace
                 grps_str = grps_str[:-2]
+                print(grps_str)
 
             update_todo(ctx.guild.id, todo_dict)
+            print(grps_str)
 
             await self.config_channels[ctx.guild.id].send(f"You created the following groups: {grps_str}")
 
