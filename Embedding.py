@@ -1,7 +1,8 @@
 import logging
 import discord
+import io
 from settings import *
-from checks import *
+from utilities import *
 
 #########################################
 #										#
@@ -30,42 +31,34 @@ class Embedding(commands.Cog):
 	"""A suite of command providing users with embeds manipulation tools."""
 	def __init__(self, bot):
 		self.bot = bot
-		#making poll_allowed channels according to the message's guild
-		self.poll_allowed_chans = {}
-		with open(POLL_ALLOWED_CHANNELS_FILE) as file:
-			for line in file.readlines():
-				self.poll_allowed_chans[line.split(";")[0]] = [chan_id for chan_id in line.split(";")[1:]]
-
+		#maybe think to block sending an embed in a poll channel
 
 	@commands.command()
 	async def embed(self, ctx, *args):
 		"""allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !"""
-		if ctx.channel.name in self.poll_allowed_chans:
+		if ctx.channel.id in get_poll_chans(ctx.guild.id):
 			local_logger.info("Preventing user from making an embed in a poll channel")
 			await ctx.message.delete()
 			return
 
-		msg = ""
-		img_url = None
-		for arg in args:
-			if arg.startswith("https://"):
-				img_url = arg
-			else:
-				msg += " {}".format(arg)
+		#lining attachements
+		files = []
+		for attachment in ctx.message.attachments:
+			content = await attachment.read()
+			io_content = io.BytesIO(content)
+			file = discord.File(io_content, filename=attachment.filename)
+			files.append(file)
 
-		print(msg)
 		embed_msg = discord.Embed(
 				title = None,
-				description = msg,
+				description = ctx.message.content[8:],
 				colour = ctx.author.color,
 				url = None
 				)
-		if img_url:
-			embed_msg.set_image(url=img_url)
-		embed_msg.set_footer(text=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
+		embed_msg.set_author(name=ctx.message.author.name, icon_url=ctx.message.author.avatar_url)
 
 		await ctx.message.delete()
-		await ctx.message.channel.send(embed=embed_msg)
+		await ctx.message.channel.send(embed=embed_msg, files=files)
 
 def setup(bot):
 	bot.add_cog(Embedding(bot))
