@@ -12,10 +12,10 @@ Keep one of the 2 sentences:
 - A new feature
 - Changing a feature
 
-**Describe the solution you'd like**
+**Description of the solution I'd like**
 A clear and concise description of what you want to happen.
 
-**Describe alternatives you've considered**
+**Alternatives I've considered**
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Additional context**
