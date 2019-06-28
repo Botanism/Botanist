@@ -156,6 +156,7 @@ try:
         if extensions[ext]==True:
             bot.load_extension(ext)
 
+
 #if no extension is enabled
 except FileNotFoundError as e:
     main_logger.warning("No extension enabled, none loaded. You probably want to configure the bot or add some extensions")
