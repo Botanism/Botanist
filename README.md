@@ -131,3 +131,18 @@ Allows the developers to update the bot and notify all server owners of the chan
 | ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
 |       |  `log`   |           |                  returns the bot's log file                  | owner     |
+
+
+
+#### Todo *In development* 
+
+Allows moderators to make a to-do list  in one or more channels. It's also possible to make types for the to-do's, to assign a member to a to-do and to make a copy of the to-do in a public or in a other channel. If the to-do is deleted the replica will also be deleted. For all the command where arguments are split with : `;` you must respect those.
+
+| Group  |   Command    |                          Arguments                           |                         Description                          | Clearance |
+| ------ | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :-------: |
+| `todo` |    `add`     | `<to-do_content>` `<to-do_type>;<assigned member/false>` `<repost_channel/false>` | adds the to-do in the selected channel (see `todo channel` command) . A color will be used for the embeds if the to-do type exist. The member can be mention or just wrote normally, he will be mention in both case. The channel can be a mention or can be wrote manually, he will be write as mentioned is both case. |     *     |
+| `todo` | `removetype` |                        `<type_name>`                         |                       removes the type                       |     *     |
+| `todo` | `listtypes`  |                        `<type_name>`                         |                      list created types                      |     *     |
+| `todo` |  `addtype`   |                   `<type_name>` `<color>`                    |                  adds a type for the to-dos                  |     *     |
+| `todo` |  `channel`   |                                                              |          select the channel for the future to-do's           |     *     |
+
