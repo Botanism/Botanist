@@ -169,4 +169,7 @@ except Exception as e:
 
 #running the bot, no matter what
 finally:
-    bot.run(TOKEN)
+    if TOKEN!=None:
+        bot.run(TOKEN)
+    else:
+        main_logger.error('''Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable.''')

@@ -1,5 +1,5 @@
 import logging
-
+import os
 
 #########################################
 #                                       #
@@ -11,7 +11,8 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+#token setup
+TOKEN = os.getenv("DISCORD_TOKEN", default=None)
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
