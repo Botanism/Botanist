@@ -11,7 +11,6 @@ import os
 
 
 PREFIX = "::"
-#token setup
 TOKEN = os.getenv("DISCORD_TOKEN", default=None)
 RUNNER_ID=289426079544901633
 
@@ -58,42 +57,42 @@ TODO_FOLDER = "todo"
 ROLES_LEVEL = ["manager", "admin"]
 
 #default JSON files
-DEFAULT_EXTENSIONS_JSON = '''{
-    "Slapping": false,
-    "BotEssentials":true,
-    "Role":false,
-    "Embedding":false,
-    "Config":false,
-    "Poll":false
-}'''
+DEFAULT_EXTENSIONS_JSON = {
+    "Slapping": False,
+    "BotEssentials":True,
+    "Role":False,
+    "Embedding":False,
+    "Config":False,
+    "Poll":False
+}
 
-DEFAULT_SLAPPED_FILE = '''{
+DEFAULT_SLAPPED_FILE = {
     "463665420054953995": 0
-}'''
+}
 
-DEFAULT_SERVER_FILE = '''{
+DEFAULT_SERVER_FILE = {
     "poll_channels": [],
-    "todo_channel": false,
+    "todo_channel": False,
     "roles": {
         "manager": [],
         "admin": []
     },
     "messages": {
-        "welcome": false,
-        "goodbye": false
+        "welcome": False,
+        "goodbye": False
     },
-    "advertisement": false
+    "advertisement": False
 
-}'''
+}
 
-DEFAULT_TODO_FILE = '''{
+DEFAULT_TODO_FILE = {
     "groups": {
     "default": []
     },
     "types": {
     "default": "000000"
     }
-}'''
+}
 
 #########################################
 #                                       #

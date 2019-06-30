@@ -40,22 +40,27 @@ class Config(commands.Cog):
                                 0:["no", "n"]}
 
 
+    @commands.Cog.listener()
+    async def on_guild_join(guild):
+        await self.make_cfg_chan(guild)
 
     @commands.group()
     @is_server_owner()
     async def cfg(self, ctx):
-        self.ad_msg = "I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"])
+        self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
         if ctx.invoked_subcommand == None:
             await ctx.send(ERR_NO_SUBCOMMAND)
 
 
-    async def make_cfg_chan(self, ctx):
+    async def make_cfg_chan(self, ctx_or_guild):
+        if type(ctx_or_guild)==discord.Guild: g = ctx_or_guild
+        else: g = ctx.guild
         overwrite = {
-        ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-        ctx.guild.owner : discord.PermissionOverwrite(read_messages=True)
+        g.default_role: discord.PermissionOverwrite(read_messages=False),
+        g.owner : discord.PermissionOverwrite(read_messages=True)
         }
-        self.config_channels[ctx.guild.id] = await ctx.guild.create_text_channel("cli-bot-config", overwrites=overwrite)
-        return self.config_channels[ctx.guild.id]
+        self.config_channels[g.id] = await g.create_text_channel("cli-bot-config", overwrites=overwrite)
+        return self.config_channels[g.id]
 
 
     @cfg.command()
@@ -67,13 +72,13 @@ class Config(commands.Cog):
         if not was_init(ctx):
             #making config file
             with open(os.path.join(CONFIG_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                file.write(DEFAULT_SERVER_FILE)
+                json.dump(DEFAULT_SERVER_FILE, file)
             #making slapping file
             with open(os.path.join(SLAPPING_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                file.write(DEFAULT_SLAPPED_FILE)
+                json.dump(DEFAULT_SLAPPED_FILE, file)
             #making todo file
             with open(os.path.join(TODO_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                file.write(DEFAULT_TODO_FILE)
+                json.dump(DEFAULT_TODO_FILE, file)
 
         #starting all configurations
         await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities''')
@@ -84,11 +89,11 @@ class Config(commands.Cog):
 
         try:
             await self.cfg_poll(ctx)
-            await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherise no one will be able to use administration commands.")
-            await self.cfg_role(ctx)
+            await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
+            await self.cfg_clearance(ctx)
             await self.cfg_welcome(ctx)
             await self.cfg_goodbye(ctx)
-            #await self.cfg_todo(ctx)
+            await self.cfg_todo(ctx)
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
@@ -108,14 +113,14 @@ class Config(commands.Cog):
             await asyncio.sleep(10)
             await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
 
-    @cfg.command()
+    #@cfg.command()
     @is_init()
     async def chg(self, ctx, setting):
         '''doesn't work yet'''
         try:
             print(f"Starting config of extension {setting}")
             await self.make_cfg_chan(ctx)
-            eval("await self.cfg_"+setting)
+            exec("await self.cfg_"+setting)
 
         except Exception as e:
             local_logger.exception(e)
@@ -195,7 +200,7 @@ class Config(commands.Cog):
             raise e
 
 
-    async def cfg_role(self, ctx):
+    async def cfg_clearance(self, ctx):
         try:
             #introducing the clearance levels the bot uses
             await self.config_channels[ctx.guild.id].send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
@@ -438,21 +443,20 @@ class Config(commands.Cog):
                 response = await self.bot.wait_for("message", check=self.is_yn_answer)
                 if response.content[0].lower() == "n":
                     retry = False
-                    continue
+                else: continue
 
                 #making the group
-                grps_str = " "
+                self.grps_str = " "
+                if len(groups): todo_dict["groups"] = {}
                 for grp in groups:
                     todo_dict["groups"][grp] = []
-                    grps_str += f"{grp}, "
+                    self.grps_str += f"{grp}, "
                 #removing trailing comma and whitespace
-                grps_str = grps_str[:-2]
-                print(grps_str)
+                self.grps_str = self.grps_str[:-2]
 
             update_todo(ctx.guild.id, todo_dict)
-            print(grps_str)
 
-            await self.config_channels[ctx.guild.id].send(f"You created the following groups: {grps_str}")
+            await self.config_channels[ctx.guild.id].send(f"You created the following groups: {self.grps_str}")
 
         except Exception as e:
             local_logger.exception(e)
