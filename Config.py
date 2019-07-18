@@ -68,18 +68,6 @@ class Config(commands.Cog):
         #creating new hidden channel only the owner can see
         await self.make_cfg_chan(ctx)
 
-        #making conf file if it doesn't exist
-        if not was_init(ctx):
-            #making config file
-            with open(os.path.join(CONFIG_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                json.dump(DEFAULT_SERVER_FILE, file)
-            #making slapping file
-            with open(os.path.join(SLAPPING_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                json.dump(DEFAULT_SLAPPED_FILE, file)
-            #making todo file
-            with open(os.path.join(TODO_FOLDER, f"{ctx.guild.id}.json"), "w") as file:
-                json.dump(DEFAULT_TODO_FILE, file)
-
         #starting all configurations
         await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities''')
         await self.config_channels[ctx.guild.id].send("This will overwrite all of your existing configurations. Do you want to continue ? [y/n]")
@@ -182,15 +170,10 @@ class Config(commands.Cog):
             for chan in poll_channels:
                 poll_channels_ids.append(chan.id)
 
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["poll_channels"] = poll_channels_ids
 
-            old_conf = get_conf(ctx.guild.id)
-            old_conf["poll_channels"] = poll_channels_ids
-
-            if update_conf(ctx.guild.id, old_conf) == False:
-                await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
-
-            else:
-                await self.config_channels[ctx.guild.id].send("Poll configuration is done.")
+            await self.config_channels[ctx.guild.id].send("Poll configuration is done.")
 
 
             local_logger.info(f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed.")
@@ -249,18 +232,11 @@ class Config(commands.Cog):
             for m_role in new_roles[1]:
                 new_roles[0].append(m_role)
 
-            old_conf = get_conf(ctx.guild.id)
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["roles"]["manager"] = new_roles[0]
+                conf["roles"]["admin"] = new_roles[1]    
 
-            #updating the values
-            old_conf["roles"]["manager"] = new_roles[0]
-            old_conf["roles"]["admin"] = new_roles[1]
-
-            if update_conf(ctx.guild.id, old_conf) == False:
-                await self.config_channels[ctx.guild.id].send(ERR_UNEXCPECTED)
-
-            else:
-                await self.config_channels[ctx.guild.id].send("Successfully updated role configuration")
-
+            await self.config_channels[ctx.guild.id].send("Successfully updated role configuration")
 
         except Exception as e:
             local_logger.exception(e)
@@ -303,13 +279,9 @@ class Config(commands.Cog):
 
                 else: retry = False
 
-            if message != False:
-                old_conf = get_conf(ctx.guild.id)
-                old_conf["messages"]["welcome"]= message.content
-
-                if update_conf(ctx.guild.id, old_conf) == False:
-                    await self.config_channels[ctx.guild.id].send(ERR_CANT_SAVE)
-
+            if message == False: return
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["messages"]["welcome"]= message.content
 
         except Exception as e:
             local_logger.exception(e)
@@ -351,14 +323,9 @@ class Config(commands.Cog):
                     continue
                 else: retry = False
 
-            if message != False:
-                old_conf = get_conf(ctx.guild.id)
-                old_conf["messages"]["goodbye"]= message.content
-
-                if update_conf(ctx.guild.id, old_conf) == False:
-                    await self.config_channels[ctx.guild.id].send(ERR_CANT_SAVE)
-
-
+            if message == False: return
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["messages"]["welcome"]= message.content
 
         except Exception as e:
             local_logger.exception(e)
@@ -373,16 +340,11 @@ class Config(commands.Cog):
             await self.config_channels[ctx.guild.id].send("Thank you very much ! In which channel do you want me to post this message ?")
             response = await self.bot.wait_for("message", check=self.is_answer)
 
-            old_conf = get_conf(ctx.guild.id)
-            old_conf["advertisement"] = response.channel_mentions[0].id
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["advertisement"] = response.channel_mentions[0].id
+                chan = discord.utils.find(lambda c: c.id==old_conf["advertisement"], ctx.guild.channels)
 
-            chan = discord.utils.find(lambda c: c.id==old_conf["advertisement"], ctx.guild.channels)
             await chan.send(self.ad_msg)
-
-            #updating conf
-            update_conf(ctx.guild.id, old_conf)
-
-
 
         except Exception as e:
             local_logger.exception(e)
@@ -428,7 +390,6 @@ class Config(commands.Cog):
                 response = await self.bot.wait_for("message", check=self.is_answer)
 
                 #building group string
-                todo_dict = get_todo(ctx.guild.id)
                 grp_str=f"`{response.content}`"
                 groups.append(response.content)
 
@@ -446,15 +407,14 @@ class Config(commands.Cog):
                 else: continue
 
                 #making the group
-                self.grps_str = " "
-                if len(groups): todo_dict["groups"] = {}
-                for grp in groups:
-                    todo_dict["groups"][grp] = []
-                    self.grps_str += f"{grp}, "
-                #removing trailing comma and whitespace
-                self.grps_str = self.grps_str[:-2]
-
-            update_todo(ctx.guild.id, todo_dict)
+                with ConfigFile(ctx.guild.id) as todo_dict:
+                    self.grps_str = " "
+                    if len(groups): todo_dict["groups"] = {}
+                    for grp in groups:
+                        todo_dict["groups"][grp] = []
+                        self.grps_str += f"{grp}, "
+                    #removing trailing comma and whitespace
+                    self.grps_str = self.grps_str[:-2]
 
             await self.config_channels[ctx.guild.id].send(f"You created the following groups: {self.grps_str}")
 
@@ -467,36 +427,33 @@ class Config(commands.Cog):
     async def cfg_todo_chan(self, ctx):
         try:
             await self.config_channels[ctx.guild.id].send("Each group you've set earlier can be attached to several channels. Each time a new entry is made for a group, the todo will be posted in every channel bound to it.")
-            todo_dict = get_todo(ctx.guild.id)
-            print(todo_dict)
-            for group in todo_dict["groups"]:
-                retry = True
-                while retry:
-                    await self.config_channels[ctx.guild.id].send(f"List (like this {self.config_channels[ctx.guild.id].mention})all the channels you want to bind to the {group} group.")
-                    response = await self.bot.wait_for("message", check=self.is_answer)
+            with ConfigFile(ctx.guild.id) as todo_dict:
+                for group in todo_dict["groups"]:
+                    retry = True
+                    while retry:
+                        await self.config_channels[ctx.guild.id].send(f"List (like this {self.config_channels[ctx.guild.id].mention})all the channels you want to bind to the {group} group.")
+                        response = await self.bot.wait_for("message", check=self.is_answer)
 
-                    #making group's channels
-                    chans = []
-                    chans_str = ""
-                    for chan in response.channel_mentions:
-                        print(chan, type(chan))
-                        chans_str+= f"{chan.mention} "
-                        chans.append(chan.id)
-                    
-                    #confirming
-                    await self.config_channels[ctx.guild.id].send(f"You are about to make {chans_str} {group}'s todo channels. Do you want to confirm? [y/n]")
-                    response = await self.bot.wait_for("message", check=self.is_yn_answer)
-                    if response.content[0].lower() == "n":
-                        await self.config_channels[ctx.guild.id].send(f"Do you want to try to configure {group} again ?")
+                        #making group's channels
+                        chans = []
+                        chans_str = ""
+                        for chan in response.channel_mentions:
+                            chans_str+= f"{chan.mention} "
+                            chans.append(chan.id)
+                        
+                        #confirming
+                        await self.config_channels[ctx.guild.id].send(f"You are about to make {chans_str} {group}'s todo channels. Do you want to confirm? [y/n]")
                         response = await self.bot.wait_for("message", check=self.is_yn_answer)
-                        if response.content[0].lower() == "n":retry = False
-                        continue
+                        if response.content[0].lower() == "n":
+                            await self.config_channels[ctx.guild.id].send(f"Do you want to try to configure {group} again ?")
+                            response = await self.bot.wait_for("message", check=self.is_yn_answer)
+                            if response.content[0].lower() == "n":retry = False
+                            continue
 
-                    else:
-                        retry = False
+                        else:
+                            retry = False
 
-                    todo_dict["groups"][group] = chans
-                    update_todo(ctx.guild.id, todo_dict)
+                        todo_dict["groups"][group] = chans
 
             await self.config_channels[ctx.guild.id].send("You are now done completing the configuration of the todo channels.")
 

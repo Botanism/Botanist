@@ -45,7 +45,8 @@ class BotEssentials(commands.Cog):
 			
 	@commands.Cog.listener()
 	async def on_ready(self):
-		print('We have logged in as {0.user}'.format(self.bot))
+		print('Logged in as {0.user}'.format(self.bot))
+		local_logger.info('Logged in as {0.user}'.format(self.bot))
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):

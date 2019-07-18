@@ -38,29 +38,24 @@ class Slapping(commands.Cog):
 	async def slap(self, ctx, member:discord.Member):
 		'''Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server'''
 		#slapping
-		slaps = get_slaps(ctx.guild.id, member.id)
-		slaps += 1
-		update_slaps(ctx.guild.id, member.id, slaps)
-
-		#warning
-		await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slaps))		
+		with ConfigFile(ctx.guild.id)[member.id] as slaps:
+			slaps +=1
+			#warning
+			await ctx.send("{} you've been slapped by {} because of your behavior! This is the {} time. Be careful, if you get slapped too much there *will* be consequences !".format(member.mention, ctx.message.author.mention, slaps))
 
 	@commands.command()
 	@is_init()
 	@has_auth("manager")
 	async def pardon(self, ctx, member:discord.Member, nbr=0):
 		'''Pardonning a member resets his slaps count.'''
-		slaps = get_slaps(ctx.guild.id, member.id)
 
-		if nbr==0 or slaps<nbr:
-			slaps=0
+		with ConfigFile(ctx.guild.id)[member.id] as slaps:
+			if nbr==0 or slaps<nbr:
+				slaps=0
+			else:
+				slaps -=nbr
 
-		else:
-			slaps -=nbr
-
-		update_slaps(ctx.guild.id, member.id, slaps)
-
-		await ctx.send("{} you've been pardonned by {}.\t ({} slaps left)".format(member.mention, ctx.author.mention, slaps))
+			await ctx.send("{} you've been pardonned by {}.\t ({} slaps left)".format(member.mention, ctx.author.mention, slaps))
 
 def setup(bot):
 	bot.add_cog(Slapping(bot))

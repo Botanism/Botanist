@@ -169,7 +169,9 @@ except Exception as e:
 
 #running the bot, no matter what
 finally:
-    if TOKEN!=None:
+    if TOKEN!=None and assert_struct():
         bot.run(TOKEN)
-    else:
+    elif TOKEN==None:
         main_logger.error('''Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable.''')
+    else:
+        main_logger.error('''Directory structure isn't valid.''')
