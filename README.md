@@ -18,7 +18,7 @@ I ([@s0lst1ce](https://github.com/s0lst1ce)) started building this bot at the en
 
 ### Getting started
 
-Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates. Some commands can only be ran in a server (ie: you can't have roles in a DM). They are also all case sensitive.
+Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates. Some commands can only be ran in a server (ie: you can't have roles in a DM). They are also all case sensitive. To make you message a command it must start with the set `PREFIX`. By default this is set to `::`. This means that if you want to call the command `slaps`, you have to enter `::slaps`. The prefix is not mentioned in the following reference.
 
 ​	Those commands are sometimes regrouped under a **group**. This means that a command belonging to a **group** will only be recognized if the **group**'s name is appended before the command. For example the command `ls` of group `ext` needs to be called like this: `ext ls`.
 
