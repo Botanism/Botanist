@@ -35,7 +35,10 @@ EMOJIS = {
     "check": "\U00002705",
     "hourglass": "\U000023F3",
     "wave": "\U0001F44B",
-    "no_entry_sign": "\U0001F6AB"
+    "no_entry_sign": "\U0001F6AB",
+    "red_circle": "\U0001F534",
+    "white_circle": "\U000026AA",
+    "large_blue_circle": "\U0001F535",
 }
 
 
@@ -48,7 +51,7 @@ EMOJIS = {
 #########################################
 
 #Files
-ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
+EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"

@@ -74,18 +74,18 @@ async def add(ctx, extension:str):
 
     #if the extension was correctly loaded, adding it to the enabled file
     try:
-        with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+        with open(EXTENSIONS_FILE, "r") as file:
             enabled_exts = json.load(file)
         
         enabled_exts[extension] = True
 
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        with open(EXTENSIONS_FILE, "w") as file:
             json.dump(enabled_exts, file)
 
     except FileNotFoundError as e:
         #if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
-        main_logger.warning("{} doesn't exist.".format(ENABLED_EXTENSIONS_FILE))
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        main_logger.warning("{} doesn't exist.".format(EXTENSIONS_FILE))
+        with open(EXTENSIONS_FILE, "w") as file:
             file.write(DEFAULT_EXTENSIONS_JSON)
 
     except Exception as e:
@@ -108,12 +108,12 @@ async def rm(ctx, extension:str):
 
     #if the extension was correctly unloaded, removing it from the enblaed extension file
     try:
-        with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+        with open(EXTENSIONS_FILE, "r") as file:
             enabled_exts = json.load(file)
         
         enabled_exts[extension] = False
 
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        with open(EXTENSIONS_FILE, "w") as file:
             json.dump(enabled_exts, file)
 
     except Exception as e:
@@ -124,18 +124,6 @@ async def rm(ctx, extension:str):
     await ctx.send("Successfully removed and unloaded {}".format(extension))
     local_logger.info(f"Disabled and removed {extension}")
 
-
-@ext.command()
-async def ls(ctx):
-    try:
-        ext_list = ""
-        for e in bot.extensions.keys():
-            ext_list+=f"**{e}**, "
-        ext_list = ext_list[:-2]
-        await ctx.send(f"The loaded extenions are: {ext_list}")
-
-    except Exception as e:
-        main_logger.exception(e)
 
 
 #########################################
@@ -150,7 +138,7 @@ async def ls(ctx):
 
 #trying to load all enabled extensions
 try:
-    with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+    with open(EXTENSIONS_FILE, "r") as file:
         extensions = json.load(file)
     for ext in extensions:
         if extensions[ext]==True:
