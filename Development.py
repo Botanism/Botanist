@@ -66,6 +66,7 @@ class Development(commands.Cog):
         await ctx.send(file=log)
 
     @ext.command()
+    @is_runner()
     async def ls(ctx):
         try:
             enabled= []

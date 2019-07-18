@@ -53,7 +53,6 @@ A suite of commands always activated which handle extension management. This can
 | `ext` |  `add`   | `<extension>` | loads the  specified `<extension>` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
 | `ext` |   `rm`   | `<extension>` | removes the  specified `<extension>` bot extension. If the command fails the bot will continue to run with the extension. | runner    |
 | `ext` | `reload` | `<extension>` | reloads the  specified `<extension>` bot extension. If the command fails the extension will stay unloaded | runner    |
-| `ext` |   `ls`   |               | lists all *active* extensions. Enabled extensions which are not running anymore (ie: if they crashed unexpectedly) are not listed. | runner    |
 
 
 
@@ -131,6 +130,7 @@ Allows the developers to update the bot and notify all server owners of the chan
 | ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
 |       |  `log`   |           |                  returns the bot's log file                  | owner     |
+| `ext` |   `ls`   |           |  returns an embed with all the extensions and their status   | runner    |
 
 
 
