@@ -124,7 +124,56 @@ async def rm(ctx, extension:str):
     await ctx.send("Successfully removed and unloaded {}".format(extension))
     local_logger.info(f"Disabled and removed {extension}")
 
+@ext.command()
+@is_runner()
+async def ls(ctx):
+    try:
+        enabled= []
+        running = []
+        disabled = []
+        #fetching list of enbaled and disabled extensions
+        with ConfigFile(EXTENSIONS_FILE[:-5], folder=".") as exts:
+            for e in exts:
+                if exts[e]==True:
+                    enabled.append(e)
+                else:
+                    disabled.append(e)
 
+        #checking whether all enabled extensions are running
+        for e in bot.extensions.keys():
+            running.append(e)
+
+        #building strings
+        disabled_str=""
+        for e in disabled:
+            disabled_str+=f'''{EMOJIS["white_circle"]} {e}\n'''
+
+        enbaled_str=""
+        for e in enabled:
+            if e in running:
+                enbaled_str+=f'''{EMOJIS["large_blue_circle"]} {e}\n'''
+            else:
+                enbaled_str+=f'''{EMOJIS["red_circle"]} {e}\n'''
+
+
+        #building embed
+        ext_embed = discord.Embed(
+            title = "Extensions",
+            description = "The list of all extensions and their status",
+            colour = 7506394,
+            url=None)
+
+        #ext_embed.set_thumbnail(url=bot.avatar_url)
+        ext_embed.add_field(name="Enabled", value=enbaled_str, inline=False)
+        if len(disabled_str)!=0:
+            ext_embed.add_field(name="Disabled", value=disabled_str, inline=False)
+
+        await ctx.send(embed=ext_embed)
+
+
+    except Exception as e:
+        raise e
+        local_logger.exception(e)
 
 #########################################
 #                                       #

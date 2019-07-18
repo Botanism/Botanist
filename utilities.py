@@ -125,6 +125,7 @@ class ConfigFile(UserDict):
 
             def __enter__(self):
                 self.make_file()
+                print(os.path.join(self.folder, self.file))
                 self.read()
                 return self
 
