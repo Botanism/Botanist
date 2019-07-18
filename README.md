@@ -53,6 +53,7 @@ A suite of commands always activated which handle extension management. This can
 | `ext` |  `add`   | `<extension>` | loads the  specified `<extension>` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
 | `ext` |   `rm`   | `<extension>` | removes the  specified `<extension>` bot extension. If the command fails the bot will continue to run with the extension. | runner    |
 | `ext` | `reload` | `<extension>` | reloads the  specified `<extension>` bot extension. If the command fails the extension will stay unloaded | runner    |
+| `ext` |   `ls`   |               |  returns an embed with all the extensions and their status   | runner    |
 
 
 
@@ -97,6 +98,7 @@ Allows moderators to give quick and light warnings to disrespectful members. By 
 | ----- | :------: | :-----------------: | :----------------------------------------------------------: | :-------: |
 |       |  `slap`  |     `<member>`      |        slaps the specified `<member>` member one time        |  manager  |
 |       | `pardon` | `<member>` *`<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
+|       | `slaps`  |                     | returns an embed with a list of all slapped members and their slap count |  manager  |
 
 
 
@@ -127,10 +129,19 @@ Allows the owner of a server to configure the behavior of the bot.
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 
 | Group | Command  | Arguments |                         Description                          | Clearance |
-| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
+| :---: | :------: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
 |       |  `log`   |           |                  returns the bot's log file                  | owner     |
-| `ext` |   `ls`   |           |  returns an embed with all the extensions and their status   | runner    |
+
+
+
+#### Time
+
+Gives several time-related commands to ease organization. For now this only includes a remind function but an event planner is in the works.
+
+| Group | Command  | Arguments |                         Description                          | Clearance |
+| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
+|       | `remind` |     *     | returns the specified message after the specified amount of time. To precise the delay before sending the message use the following format: `1d 15h 6m 01s` where `d` stands for days, `h` for hours, `m` for minutes and `s` for seconds. The numbers preceding them must be integers and represent the number of units to wait for (be it days, hours, minutes or seconds). All other words given as argument will form the message's content and will be sent in PM to the user after the specified delay has elapsed. | *         |
 
 
 
