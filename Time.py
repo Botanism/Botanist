@@ -52,8 +52,13 @@ class Reminder(commands.Cog):
             if not done:
                 #parsing the time
                 if a[-1] in self.tf.keys():
-                    delay+=int(a[:-1])*self.tf[a[-1]]
-                    if a[-1]=="s": done=True
+                    try:
+                        delay+=int(a[:-1])*self.tf[a[-1]]
+                        if a[-1]=="s": done=True
+                    
+                    except ValueError as e:
+                        #if seconds isn't precised but that the timestamp is done
+                        done=True
             else:
                 #making the text
                 text+=f" {a}"
