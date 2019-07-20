@@ -54,13 +54,15 @@ def was_init(ctx):
 def has_auth(clearance, *args):
     '''checks whether the user invoking the command has the specified clearance level of clearance for the server the command is being ran on'''
     def predicate(ctx):
-        allowed_roles = get_roles(ctx.guild.id, clearance)
-        for role in ctx.author.roles:
-            if role.id in allowed_roles:
-                return True
-        local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
-        local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
-        return False
+        with ConfigFile(ctx.guild.id, folder=CONFIG_FOLDER) as c:
+            allowed_roles = c["roles"][clearance]
+            print(allowed_roles)
+            for role in ctx.author.roles:
+                if role.id in allowed_roles:
+                    return True
+            local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
+            local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            return False
 
     return commands.check(predicate)
 
@@ -125,7 +127,6 @@ class ConfigFile(UserDict):
 
             def __enter__(self):
                 self.make_file()
-                print(os.path.join(self.folder, self.file))
                 self.read()
                 return self
 
