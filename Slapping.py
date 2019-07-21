@@ -37,58 +37,95 @@ class Slapping(commands.Cog):
 	@has_auth("manager")
 	async def slap(self, ctx, member:discord.Member, *reason):
 		'''Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server'''
-		#slapping
 		if len(reason):
 			reason_str=""
 			for w in reason:
 				reason_str+=f" {w}"
 		else:
-			reason_str= "your behavior"
+			reason_str= "of your behavior"
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
-			if str(member.id) in slaps: slaps[str(member.id)]+=1
-			else: slaps[str(member.id)] =1
+			#building audit log entry
+			audit = f"{ctx.channel.id}/{ctx.message.id}"
+			
+			#updating dict
+			if str(member.id) in slaps:
+				slaps[str(member.id)].append(audit)			
+			else:
+				slaps[str(member.id)] = [audit]
+
 			#warning
-			await ctx.send(f"{member.mention} you've been slapped for the {slaps[str(member.id)]} because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!")
+			await ctx.send(f"{member.mention} you've been slapped for the {len(slaps[str(member.id)])} time because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!")
 
 	@commands.command()
 	@is_init()
 	@has_auth("manager")
 	async def pardon(self, ctx, member:discord.Member, nbr=0):
-		'''Pardonning a member resets his slaps count.'''
+		'''Pardonning a member to reduce his slap count'''
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
-			s = slaps[member.id]
-			if nbr==0 or s<nbr:
-				slaps.pop(member.id)
+			s = slaps[str(member.id)]
+			if nbr==0 or len(s)<nbr:
+				slaps.pop(str(member.id))
 			else:
-				s-=nbr
+				for i in range(nbr):
+					slaps[str(member.id)].pop()
 
-			await ctx.send("{} you've been pardonned by {}.\t ({} slaps left)".format(member.mention, ctx.author.mention, s))
+			await ctx.send(f"{ctx.message.author.name} has pardonned you for some of your mistakes {member.mention}.")
 
 	@commands.command()
 	@is_init()
 	@has_auth("manager")
 	async def slaps(self, ctx, *members:discord.Member):
-		'''returns an embed representing the number of slaps of each member'''
-		slaps_str = ""
+		'''returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided.'''
+		fields = []
+		#a single string if there's no member argument
+		if not len(members):fields = ""
+
+		m_ids = [str(m.id) for m in members]
+		
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
 			for m in slaps:
+				#checking member
 				member = ctx.guild.get_member(int(m))
 				if member==None: continue
-				slaps_str+=f"**{member.name}**: {slaps[m]}\n"
+
+				#building string for embed fields
+				if len(members)==0:
+					fields+=f"**{member.name}**: {len(slaps[m])}\n"
+
+				elif m in m_ids:
+					crt_str=""
+					for s in slaps[m]:
+						message = await self.bot.get_channel(int(s.split("/")[0])).fetch_message(int(s.split("/")[1]))
+						#building reason
+						reason = message.content.split(">", 1)[1][1:]
+						if not reason: reason="*for no provided reason*"
+						else: reason = f"because of {reason}"
+
+						#building string
+						crt_str+=f"[Toude](https://discordapp.com/channels/{ctx.guild.id}/{s}) {reason}\n"
+					fields.append({"name":member.name, "value":crt_str, "inline":False})
 
 		#checking if a member has been slapped
-		if not slaps_str:
+		if not fields:
 			await ctx.send("Congratulations! Your server is so full of respect that not a single member has been slapped."+EMOJIS["tada"])
 			return
 
 		#if a user has been slapped
 		embed = discord.Embed(
-			title="Slaps #"+EMOJIS["hammer"],
-			description="The slapped users and the number of their infraction",
+			title="Slaps "+EMOJIS["hammer"],
+			description="The slapped users and their infraction(s)",
 			colour=7506394)
-		embed.add_field(name="Members List", value=slaps_str)
+		
+		#adding fields
+		if not len(members):
+			embed.add_field(name="Members List", value=fields)
+
+		else:
+			for field in fields:
+				embed.add_field(**field)
+
 		await ctx.send(embed=embed)
 
 

@@ -68,9 +68,7 @@ class Reminder(commands.Cog):
             return
 
         await asyncio.sleep(delay)
-        await ctx.author.send(text)
-
-
+        await ctx.author.send(text)        
 
 def setup(bot):
     bot.add_cog(Reminder(bot))
