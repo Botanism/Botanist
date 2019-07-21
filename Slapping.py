@@ -97,11 +97,15 @@ class Slapping(commands.Cog):
 				elif m in m_ids:
 					crt_str=""
 					for s in slaps[m]:
-						message = await self.bot.get_channel(int(s.split("/")[0])).fetch_message(int(s.split("/")[1]))
-						#building reason
-						reason = message.content.split(">", 1)[1][1:]
-						if not reason: reason="*for no provided reason*"
-						else: reason = f"because of {reason}"
+						try:
+							message = await self.bot.get_channel(int(s.split("/")[0])).fetch_message(int(s.split("/")[1]))
+							#building reason
+							reason = message.content.split(">", 1)[1][1:]
+							if not reason: reason="**for no provided reason**"
+							else: reason = f"because of {reason}"
+						except discord.NotFound as e:
+							reason = "**Message deleted**"
+
 
 						#building string
 						crt_str+=f"[Toude](https://discordapp.com/channels/{ctx.guild.id}/{s}) {reason}\n"
@@ -109,7 +113,7 @@ class Slapping(commands.Cog):
 
 		#checking if a member has been slapped
 		if not fields:
-			await ctx.send("Congratulations! Your server is so full of respect that not a single member has been slapped."+EMOJIS["tada"])
+			await ctx.send("Congratulations! Your server is so full of respect that not a single member is slapped"+EMOJIS["tada"])
 			return
 
 		#if a user has been slapped

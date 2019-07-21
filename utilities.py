@@ -56,7 +56,6 @@ def has_auth(clearance, *args):
     def predicate(ctx):
         with ConfigFile(ctx.guild.id, folder=CONFIG_FOLDER) as c:
             allowed_roles = c["roles"][clearance]
-            print(allowed_roles)
             for role in ctx.author.roles:
                 if role.id in allowed_roles:
                     return True

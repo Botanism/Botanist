@@ -54,7 +54,7 @@ class Config(commands.Cog):
 
     async def make_cfg_chan(self, ctx_or_guild):
         if type(ctx_or_guild)==discord.Guild: g = ctx_or_guild
-        else: g = ctx.guild
+        else: g = ctx_or_guild.guild
         overwrite = {
         g.default_role: discord.PermissionOverwrite(read_messages=False),
         g.owner : discord.PermissionOverwrite(read_messages=True)
