@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="512" height="512" src="https://raw.githubusercontent.com/NotaSmartDev/assets/master/Balance-2-512.png">
+  <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/Balance-2-512.png">
 </p>
 
 # Forebot
@@ -59,7 +59,7 @@ A suite of commands always activated which handle extension management. This can
 
 #### Poll
 
-This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed.
+This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed. Polls can also be deleted when reacting with the `:x:` emoji.
 
 | Group  | Command | Arguments  |                         Description                          | Clearance |
 | ------ | :-----: | :--------: | :----------------------------------------------------------: | --------- |
@@ -96,9 +96,9 @@ Allows moderators to give quick and light warnings to disrespectful members. By 
 
 | Group | Command  |      Arguments      |                         Description                          | Clearance |
 | ----- | :------: | :-----------------: | :----------------------------------------------------------: | :-------: |
-|       |  `slap`  |     `<member>`      |        slaps the specified `<member>` member one time        |  manager  |
+|       |  `slap`  |    `<member>`, *    | slaps the specified `<member>` member one time. The other arguments will form the optional reason for the slap. |  manager  |
 |       | `pardon` | `<member>` *`<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
-|       | `slaps`  |                     | returns an embed with a list of all slapped members and their slap count |  manager  |
+|       | `slaps`  |          *          | returns an embed with a list of all slapped members and their slap count. If arguments are given they must represent members or their ids/name. If so detailed info will be returned only of those members. It gives access to the slapping log. |  manager  |
 
 
 
@@ -124,7 +124,13 @@ Allows the owner of a server to configure the behavior of the bot.
 
 
 
-#### Development
+#### DevelopmentClearance	Description
+
+*	this represents the wildcard and means everyone can use the command. No matter their roles
+	runner	this role is assigned to only one member: the one with the RUNNER_ID. This is defined in the settings.py file and should represent the ID of the user responsible for the bot. It is also the only cross-server role.
+	owner	this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server.
+	administrator	this role gives access to all server commands except the bot configuration ones
+	manager	this role gives access to message management, warnings issues and other server moderation commands
 
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 

@@ -43,14 +43,14 @@ class Poll(commands.Cog):
 
         #getting poll_allowed_chans
         #@is_init
-        poll_allowed_chans = get_poll_chans(payload.guild_id)
+        poll_allowed_chans = ConfigFile(payload.guild_id)
 
 
         #checking that user isn't the bot
         if (payload.user_id != self.bot.user.id) and (payload.channel_id in poll_allowed_chans):
 
             #checking wether the reaction should delete the poll
-            if payload.emoji.name == EMOJIS["no_entry_sign"]:
+            if payload.emoji.name == EMOJIS["x"]:
                 if payload.user.name == message.embeds[0].title:
                     return message.delete()
                 else:
@@ -90,7 +90,7 @@ class Poll(commands.Cog):
     async def on_raw_reaction_remove(self, payload):
 
         #getting poll_allowed_chans
-        poll_allowed_chans = get_poll_chans(payload.guild_id)
+        poll_allowed_chans = ConfigFile(payload.guild_id)
 
         #fetching concerned message and the user who added the reaction
         message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
@@ -129,7 +129,7 @@ class Poll(commands.Cog):
             return
 
         #getting poll_allowed_chans
-        poll_allowed_chans = get_poll_chans(message.guild.id)
+        poll_allowed_chans = ConfigFile(message.guild.id)
 
         if message.channel.id in poll_allowed_chans and message.content.startswith(PREFIX)!=True:
 

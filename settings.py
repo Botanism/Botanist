@@ -40,7 +40,8 @@ EMOJIS = {
     "white_circle": "\U000026AA",
     "large_blue_circle": "\U0001F535",
     "tada": "\U0001F389",
-    "hammer": "\U0001F528"
+    "hammer": "\U0001F528",
+    "x": "\U0000274C"
 }
 
 
