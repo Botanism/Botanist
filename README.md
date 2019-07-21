@@ -83,10 +83,11 @@ This extension contains some of the most basic managing commands and should almo
 
 
 | Group |  Command   | Arguments |                         Description                          | Clearance |
-| ----- | :--------: | :-------: | :----------------------------------------------------------: | --------- |
-|       |   `ping`   |           |   replies with the rounded latency of the message transfer   | *         |
-|       | `shutdown` |           |                 shuts down the bot properly                  | runner    |
-|       |  `clear`   |  `<nbr>`  | deletes the specified `<nbr>` number of messages in the current channel; chronologically | manager   |
+| :---: | :--------: | :-------: | :----------------------------------------------------------: | :-------: |
+|       |   `ping`   |           |   replies with the rounded latency of the message transfer   |     *     |
+|       | `shutdown` |           |                 shuts down the bot properly                  |  runner   |
+|       |  `clear`   |  `<nbr>`  | deletes the specified `<nbr>` number of messages in the current channel; chronologically |  manager  |
+|       |  `status`  |           | returns some statistics and info about the server and its members |     *     |
 
 
 
@@ -124,13 +125,7 @@ Allows the owner of a server to configure the behavior of the bot.
 
 
 
-#### DevelopmentClearance	Description
-
-*	this represents the wildcard and means everyone can use the command. No matter their roles
-	runner	this role is assigned to only one member: the one with the RUNNER_ID. This is defined in the settings.py file and should represent the ID of the user responsible for the bot. It is also the only cross-server role.
-	owner	this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server.
-	administrator	this role gives access to all server commands except the bot configuration ones
-	manager	this role gives access to message management, warnings issues and other server moderation commands
+#### Development
 
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 

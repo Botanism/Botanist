@@ -99,6 +99,7 @@ class BotEssentials(commands.Cog):
 
 	@commands.command()
 	async def status(self, ctx):
+		'''returns some statistics about the server and their members'''
 		stats = discord.Embed(name="Server Info", description=f"{ctx.guild.name} was created on {str(ctx.guild.created_at)[:10]} and belongs to {ctx.guild.owner.name}. Since then {ctx.guild.member_count-1} users have joined it.", color=7506394)
 		stats.set_thumbnail(url=ctx.guild.icon_url)
 		
@@ -117,13 +118,9 @@ class BotEssentials(commands.Cog):
 		rs_str = ""
 		for r in rs:
 			rs_str+=f"{r.name}\n"
-		struct_str = f"This server uses the {len(rs)} following roles:\n{rs_str}"
+		struct_str = f"**This server uses the {len(rs)} following roles:**\n{rs_str}"
 		stats.add_field(name="Server structure", value=struct_str, inline=False)
 		await ctx.send(embed=stats)
-
-
-
-
 
 
 def setup(bot):

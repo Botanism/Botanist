@@ -211,4 +211,4 @@ finally:
     elif TOKEN==None:
         main_logger.error('''Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable.''')
     else:
-        main_logger.error('''Directory structure isn't valid.''')
+        main_logger.error('''Directory structure is invalid.''')
