@@ -97,6 +97,33 @@ class BotEssentials(commands.Cog):
 			local_logger.exception("Couldn't delete at least on of{}".format(to_del))
 			raise e
 
+	@commands.command()
+	async def status(self, ctx):
+		stats = discord.Embed(name="Server Info", description=f"{ctx.guild.name} was created on {str(ctx.guild.created_at)[:10]} and belongs to {ctx.guild.owner.name}. Since then {ctx.guild.member_count-1} users have joined it.", color=7506394)
+		stats.set_thumbnail(url=ctx.guild.icon_url)
+		
+		#member stats
+		mstatus = {"online":0, "idle":0, "dnd":0, "offline":0}
+		for member in ctx.guild.members:
+			mstatus[str(member.status)]+=1
+		#-> change to make use of custom emojis
+		status_str = '{online} online\n{idle} idling\n{dnd} not to disturb\n{offline} offline'.format(**mstatus)
+		stats.add_field(name=f"Member statistics", value=status_str, inline=False)
+
+		#structure info
+		rs = ctx.guild.roles
+		rs.reverse()
+		print(rs, type(rs))
+		rs_str = ""
+		for r in rs:
+			rs_str+=f"{r.name}\n"
+		struct_str = f"This server uses the {len(rs)} following roles:\n{rs_str}"
+		stats.add_field(name="Server structure", value=struct_str, inline=False)
+		await ctx.send(embed=stats)
+
+
+
+
 
 
 def setup(bot):
