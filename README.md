@@ -27,7 +27,7 @@ Here is an exhaustive list of all extensions and the commands they provide. This
 | Clearance     | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
 | *             | this represents the wildcard and means everyone can use the command. No matter their roles |
-| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/e3ed28af546ba69f3f9d5b6303c427b27605a2a1/settings.py#L15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
+| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/master/settings.py#15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
 | owner         | this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server. |
 | administrator | this role gives access to all server commands except the bot configuration ones |
 | manager       | this role gives access to message management, warnings issues and other server moderation commands |
@@ -69,7 +69,7 @@ This suite of commands provides automatic poll creation. A poll is an embed mess
 
 #### Embedding
 
-This extension allow nay user to send a message as an embed. The color of the embed is defined by the user's role color.
+This extension allows any user to send a message as an embed. The color of the embed is defined by the user's role color.
 
 | Group | Command | Arguments |                         Description                          | Clearance |
 | ----- | :-----: | :-------: | :----------------------------------------------------------: | --------- |
