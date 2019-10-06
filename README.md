@@ -14,6 +14,12 @@ I ([@s0lst1ce](https://github.com/s0lst1ce)) started building this bot at the en
 
 ​	After the very first version I got some help of a friend of mine. Together we made the bot evolve so that it could join the ranks of other servers. Indeed I had started to realize that the bot, however simple, may be useful to others.
 
+## Contributing
+
+If you want to contribute that would be awesome ! We would love that :smile: !
+
+So to help you out, there is some rules and explanations there: [CONTRIBUTING.md](https://github.com/s0lst1ce/ForeBot/blob/master/CONTRIBUTING.md).
+
 ## Commands
 
 ### Getting started
