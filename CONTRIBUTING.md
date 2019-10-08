@@ -25,7 +25,7 @@ You will need python >= 3.7 and the library [discord.py](https://github.com/Rapp
 
 Fork the repository from the [GitHub page](https://github.com/s0lst1ce/ForeBot). This will make a copy of the repo on your account.
 
-Now you need to clone the repository, you can do it using your favourite client (e.g. GitHub Desktop, GitKraken...) or you can do it using your terminal whith this command:
+Now you need to clone the repository, you can do it using your favourite client (e.g. GitHub Desktop, GitKraken...) or you can do it using your terminal with this command:
 
 `git clone https://github.com/s0lst1ce/ForeBot.git`
 
