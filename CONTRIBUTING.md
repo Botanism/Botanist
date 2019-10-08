@@ -19,13 +19,13 @@ This is a *guideline* which means that some exceptions may be made. However it i
 
 ### Requirements
 
-You will need python >= 3.7 and the library `discord.py`.
+You will need python >= 3.7 and the library [discord.py](https://github.com/Rapptz/discord.py).
 
 ### The serious stuff
 
 Fork the repository from the [GitHub page](https://github.com/s0lst1ce/ForeBot). This will make a copy of the repo on your account.
 
-Now you need to clone the repository, you can do it using your favourite client (e.g. GitHub Desktop, GitKraken...) or you can do it using your terminal whit this command:
+Now you need to clone the repository, you can do it using your favourite client (e.g. GitHub Desktop, GitKraken...) or you can do it using your terminal whith this command:
 
 `git clone https://github.com/s0lst1ce/ForeBot.git`
 
@@ -35,7 +35,7 @@ Then:
 
 And there you go! This is a fast [explanation](https://discordapp.com/developers/docs/intro#bots-and-apps) about how to "create" a bot form the official discord's doc. You have to make an "app" and then you'll have a token in the "Bot" section of your App you will be able to see/copy your token.
 
-You'll have to copy this token to put it in the file `settings.py`. **Warning! Untill the next update make sure to don't commit your token! Remove it before.** If you accidentally commit it you can regenerate it.
+You'll have to copy this token to put it in the file `settings.py`. **Warning! Until the next update make sure to don't commit your token! Remove it before.** If you accidentally commit it you can regenerate it.
 
 You'll also have to invite the bot on your developing server.
 
@@ -55,4 +55,4 @@ You have to commit what you've done to your forked repository (on **your** GitHu
 
 After that you have to make a PR, for that you can use a client (e.g. GitKraken) or do it directly from the GitHub website. Go on the forked repo (e.g. https://github.com/YOUR_NAME/ForeBot) and then go to the "Pull Requests" tab (between Code and Projects). Now click on "New Pull Request", select `s0lst1ce/ForeBot` for the "base repository" and your repo for the "head repository". *For both ones, select the right branch.*
 
-Then you can submit your PR, after that we will review your PR to avoid conflicts. It may take few days, please be patient, even we'll always seriously consider any submission :wink:
+Then you can submit your PR, after that we will review your PR to avoid conflicts. It may take few days, please be patient, we'll always seriously consider any submission :wink:
