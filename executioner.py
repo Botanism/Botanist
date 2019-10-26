@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 
 import discord
 from settings import *
@@ -122,7 +122,7 @@ async def rm(ctx, extension:str):
         raise e
 
     await ctx.send("Successfully removed and unloaded {}".format(extension))
-    local_logger.info(f"Disabled and removed {extension}")
+    LOCAL_LOGGER.info(f"Disabled and removed {extension}")
 
 @ext.command()
 @is_runner()
@@ -173,7 +173,7 @@ async def ls(ctx):
 
     except Exception as e:
         raise e
-        local_logger.exception(e)
+        LOCAL_LOGGER.exception(e)
 
 #########################################
 #                                       #
