@@ -12,10 +12,10 @@ from collections import UserDict
 #                                       #
 #                                       #
 #########################################
-local_logger = logging.getLogger(__name__)
-local_logger.setLevel(LOGGING_LEVEL)
-local_logger.addHandler(LOGGING_HANDLER)
-local_logger.info(f"Innitalized {__name__} logger")
+LOCAL_LOGGER = logging.getLogger(__name__)
+LOCAL_LOGGER.setLevel(LOGGING_LEVEL)
+LOCAL_LOGGER.addHandler(LOGGING_HANDLER)
+LOCAL_LOGGER.info(f"Innitalized {__name__} logger")
 
 
 #########################################
@@ -59,8 +59,8 @@ def has_auth(clearance, *args):
             for role in ctx.author.roles:
                 if role.id in allowed_roles:
                     return True
-            local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
-            local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            LOCAL_LOGGER.send(ERR_UNSUFFICIENT_PRIVILEGE)
+            LOCAL_LOGGER.warning(ERR_UNSUFFICIENT_PRIVILEGE)
             return False
 
     return commands.check(predicate)
@@ -94,9 +94,19 @@ def assert_struct():
         return True
 
     except Exception as e:
-        local_logger.exception(e)
+        LOCAL_LOGGER.exception(e)
         raise e
         return False
+
+
+class Singleton(type):
+    """a metaclass that makes your class a a singleton"""
+    _instances = {} #dict so that different classes can inherit from the metaclass
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 
 class ConfigFile(UserDict):
             """A class representing a json config file. Used to handle configuration information.
@@ -116,7 +126,7 @@ class ConfigFile(UserDict):
                 self.force = force
 
                 #currently only supports "json" files
-                assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
+                assert fext=="json", LOCAL_LOGGER.error(f'''Can't load file with extension: {fext}''')
                 #if the extension is correct -> appending the extension name to the filename
                 self.file+= "." + self.fext
                 #making path
@@ -148,7 +158,7 @@ class ConfigFile(UserDict):
                         json.dump(self.data, file)
 
                 except Exception as e:
-                    local_logger.exception(e)
+                    LOCAL_LOGGER.exception(e)
                     raise e
 
             def read(self):
@@ -162,5 +172,78 @@ class ConfigFile(UserDict):
                     return self.data
 
                 except Exception as e:
-                    local_logger.exception(e)
+                    LOCAL_LOGGER.exception(e)
                     raise e
+
+
+class ConfigEntry():
+    """A generic configuration class that must subclasses to be used correctly in each extension."""
+    def __init__(self, bot, cfg_chan_id):
+        self.bot = bot
+        #only a single config channel because the class can have several instances, each for a different server
+        self.config_channel = cfg_chan_id
+        self.allowed_answers = {
+        1: ["yes", "y"],
+        0: ["no", "n"]
+        }
+
+
+    def is_answer(self, ctx):
+        if ctx.channel == self.config_channels[ctx.guild.id]: return True
+        return False
+
+    def is_yn_answer(self, ctx):
+        correct_answers = []
+        for i in self.allowed_answers:
+            for ans in i:
+                correct_answers.append(ans)
+
+        if self.is_answer(ctx) and (ctx.content.lower() in correct_answers): return True
+        return False
+
+    async def get_yn(self, ctx, question):
+        ctx.send(question+" [y/n]")
+        responde = await self.bot.wait_for("message", check=self.is_yn_answer)
+
+        if response.lower() in self.allowed_answers[0]:
+            return False
+        else:
+            return True
+
+    async def get_answer(self, ctx, question, filters=None):
+        ctx.send(question)
+        answered = False
+        while not answered:
+            response = await self.bot.wait_for("message", check=self.is_answer)
+
+            if filters:
+                cat = self.filter_msg(response)
+                complete = True
+                for filt in filters:
+                    if not cat[filt]:
+                        complete = False
+
+                if complete:
+                    return cat
+
+
+            else:
+                return response
+
+            ctx.send(question)
+
+
+    def filter_msg(self, msg):
+        assert filters != None, TypeError("You must set filters to filter a message.")
+
+        results = {
+        "roles": msg.role_mentions,
+        "mentions": msg.mentions,
+        "channels": msg.channel_mentions,
+        }
+
+        return results
+
+    def run(self, ctx):
+        """this functions serves as placeholder for the instances which should override it"""
+        pass
