@@ -18,7 +18,7 @@ I ([@s0lst1ce](https://github.com/s0lst1ce)) started building this bot at the en
 
 If you want to contribute that would be awesome ! We would love that :smile: !
 
-So to help you out, there are some rules and explanations there: [CONTRIBUTING.md](https://github.com/s0lst1ce/ForeBot/blob/master/CONTRIBUTING.md).
+So to help you out, here are some tips to get you going: [CONTRIBUTING.md](https://github.com/s0lst1ce/ForeBot/blob/master/CONTRIBUTING.md).
 
 ## Commands
 
