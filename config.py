@@ -81,7 +81,7 @@ class ClearanceConfigEntry(ConfigEntry, metaclass=Singleton):
         await self.config_channel.send("Successfully updated role configuration")
 
 
-class Config(ConfigEntry, commands.Cog):
+class Config(commands.Cog, ConfigEntry):
     """a suite of commands meant ot give server admins/owners and easy way to setup the bot's
     preferences directly from discord."""
     def __init__(self, bot):

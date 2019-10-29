@@ -6,6 +6,7 @@ import time
 import random
 import logging
 import json
+import os
 
 from settings import *
 from utilities import *
@@ -56,7 +57,7 @@ async def ext(ctx):
 @ext.command()
 async def reload(ctx, extension:str):
     try:
-        bot.reload_extension(extension)
+        bot.reload_extension(os.path.join(EXT_FOLDER, extension))
         await ctx.send("Successfully reloaded {}".format(extension))
     except Exception as e:
         await ctx.send("Couldn't reload extension {} because:```python\n{}```".format(extension, e))
@@ -67,7 +68,7 @@ async def add(ctx, extension:str):
 
     #trying to load the extension. Should only fail if the extension is not installed
     try:
-        bot.load_extension(extension)
+        bot.load_extension(str(EXT_FOLDER+ "." + extension))
 
     except Exception as e:
         main_logger.exception(e)
@@ -101,7 +102,7 @@ async def add(ctx, extension:str):
 @ext.command()
 async def rm(ctx, extension:str):
     try:
-        bot.unload_extension(extension)
+        bot.unload_extension(str(EXT_FOLDER+ "." + extension))
 
     except Exception as e:
         main_logger.exception(e)
@@ -133,8 +134,9 @@ async def ls(ctx):
         enabled= []
         running = []
         disabled = []
-        #fetching list of enbaled and disabled extensions
+        #fetching list of enbaled and disabled extensions -> should be soft coded
         with ConfigFile(EXTENSIONS_FILE[:-5], folder=".") as exts:
+            print(exts)
             for e in exts:
                 if exts[e]==True:
                     enabled.append(e)
@@ -145,17 +147,18 @@ async def ls(ctx):
         for e in bot.extensions.keys():
             running.append(e)
 
+        print(enabled, running, disabled)
         #building strings
         disabled_str=""
         for e in disabled:
             disabled_str+=f'''{EMOJIS["white_circle"]} {e}\n'''
 
-        enbaled_str=""
+        enabled_str=""
         for e in enabled:
-            if e in running:
-                enbaled_str+=f'''{EMOJIS["large_blue_circle"]} {e}\n'''
+            if EXT_FOLDER+"."+e in running:
+                enabled_str+=f'''{EMOJIS["large_blue_circle"]} {e}\n'''
             else:
-                enbaled_str+=f'''{EMOJIS["red_circle"]} {e}\n'''
+                enabled_str+=f'''{EMOJIS["red_circle"]} {e}\n'''
 
 
         #building embed
@@ -166,7 +169,7 @@ async def ls(ctx):
             url=None)
 
         #ext_embed.set_thumbnail(url=bot.avatar_url)
-        ext_embed.add_field(name="Enabled", value=enbaled_str, inline=False)
+        ext_embed.add_field(name="Enabled", value=enabled_str, inline=False)
         if len(disabled_str)!=0:
             ext_embed.add_field(name="Disabled", value=disabled_str, inline=False)
 
@@ -189,13 +192,13 @@ async def ls(ctx):
 
 #trying to load all enabled extensions
 try:
+    bot.add_cog(cfg.Config(bot))
     with open(EXTENSIONS_FILE, "r") as file:
         extensions = json.load(file)
+
     for ext in extensions:
         if extensions[ext]==True:
-            bot.load_extension(ext)
-
-    bot.add_cog(cfg.Config)
+            bot.load_extension(str(EXT_FOLDER+ "." + ext))
 
 
 #if no extension is enabled
@@ -211,6 +214,7 @@ except Exception as e:
 #running the bot, no matter what
 finally:
     if TOKEN!=None and assert_struct():
+        print("Running bot")
         bot.run(TOKEN)
     elif TOKEN==None:
         main_logger.error('''Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable.''')

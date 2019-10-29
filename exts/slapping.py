@@ -120,7 +120,7 @@ class Slapping(commands.Cog):
 		embed = discord.Embed(
 			title="Slaps "+EMOJIS["hammer"],
 			description="The slapped users and their infraction(s)",
-			colour=7506394)
+			colour=16753920) #used to be blurpple 7506394
 		
 		#adding fields
 		if not len(members):

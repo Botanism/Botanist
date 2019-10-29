@@ -54,6 +54,7 @@ EMOJIS = {
 #########################################
 
 #Files
+EXT_FOLDER = "exts"
 EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"

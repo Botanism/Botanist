@@ -29,7 +29,7 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 '''This cog contains all the basemost functions that all bots should contain.
-See https://github.com/organic-bots/ForeBot for more information'''
+See https://github.com/s0lst1ce/Botanist for more information'''
 
 class EssentialsConfigEntry(ConfigEntry, metaclass=Singleton):
     """docstring for EssentialsConfigEntry"""
@@ -37,7 +37,7 @@ class EssentialsConfigEntry(ConfigEntry, metaclass=Singleton):
         super(EssentialsConfigEntry).__init__(bot, cfg_chan_id)
         self.msgs = {
         "welcome": ["Do you want to have a welcome message sent when a new user joins the server?",
-                    "Enter the message you'd like to be sent to the new users. If you want to mention them use `{0}`"]
+                    "Enter the message you'd like to be sent to the new users. If you want to mention them use `{0}`"],
         "goodbye": ["Do you want to have a goodbye message sent when an user leaves the server?",
                     "Enter the message you'd like to be sent when an user leaves. If you want to mention them use `{0}`"]
         }
