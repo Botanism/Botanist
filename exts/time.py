@@ -64,7 +64,7 @@ class Reminder(commands.Cog):
                 text+=f" {a}"
 
         if delay==0:
-            ctx.send(ERR_NOT_ENOUGH_ARG)
+            ctx.send(embed=get_embed_err(ERR_NOT_ENOUGH_ARG))
             return
 
         await asyncio.sleep(delay)

@@ -96,7 +96,7 @@ class Config(commands.Cog, ConfigEntry):
     @is_server_owner()
     async def cfg(self, ctx):
         if ctx.invoked_subcommand == None:
-            await ctx.send(ERR_NO_SUBCOMMAND)
+            await ctx.send(embed=get_embed_err(ERR_NO_SUBCOMMAND))
 
 
     async def make_cfg_chan(self, ctx_or_guild):
@@ -137,7 +137,7 @@ class Config(commands.Cog, ConfigEntry):
             local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
 
         except Exception as e:
-            await ctx.send(ERR_UNEXCPECTED.format(str(e)))
+            await ctx.send(embed=get_embed_err(ERR_UNEXCPECTED.format(str(e))))
             await ctx.send("Dropping configuration and rolling back unconfirmed changes.")
             local_logger.exception(e)
 

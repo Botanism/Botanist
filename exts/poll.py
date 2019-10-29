@@ -164,7 +164,7 @@ class Poll(commands.Cog):
         if message.author==self.bot.user: return
 
         if not was_init(message):
-            await message.channel.send(ERR_NOT_SETUP)
+            await message.channel.send(embed=get_embed_err(ERR_NOT_SETUP))
             return
 
         #getting poll_allowed_chans

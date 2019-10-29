@@ -84,6 +84,15 @@ def is_server_owner():
 #                                       #
 #########################################
 
+async def get_embed_err(error):
+    err_embed = discord.Embed(
+        title = f"{EMOJIS["warning"]} **Command Error:** " + error[0],
+        description = error[1],
+        color = 16729127)
+    return err_embed
+
+
+
 def assert_struct():
     try:
         files = os.listdir()

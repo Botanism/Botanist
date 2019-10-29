@@ -41,7 +41,8 @@ EMOJIS = {
     "large_blue_circle": "\U0001F535",
     "tada": "\U0001F389",
     "hammer": "\U0001F528",
-    "x": "\U0000274C"
+    "x": "\U0000274C",
+    "warning": "\U000026a0",
 }
 
 
@@ -124,9 +125,9 @@ LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 #########################################
 
 
-ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` for more info on command usage."
-ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
-ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"
-ERR_UNSUFFICIENT_PRIVILEGE = "You don't have the permission to do this..."
-ERR_NOT_SETUP = "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that."
-ERR_CANT_SAVE = "Couldn't save settings to JSON configuration file."
+ERR_NO_SUBCOMMAND = ("No subcommand", "You didn't provide any subcommand. See `::help <command>` for more info on command usage.")
+ERR_UNEXCPECTED = ("Unexcpected error", "An unexcpected error occured. Please report a bug in {} or contact an admin of your server.")
+ERR_NOT_ENOUGH_ARG = ("Not enough arguments", "This command requires additional arguments. See `::help <command>` to get more information on the command's usage")
+ERR_UNSUFFICIENT_PRIVILEGE = ("Unsufficient privileges", "You don't have the permissions to do this...")
+ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that.")
+ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.")
