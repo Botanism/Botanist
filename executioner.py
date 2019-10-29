@@ -136,7 +136,6 @@ async def ls(ctx):
         disabled = []
         #fetching list of enbaled and disabled extensions -> should be soft coded
         with ConfigFile(EXTENSIONS_FILE[:-5], folder=".") as exts:
-            print(exts)
             for e in exts:
                 if exts[e]==True:
                     enabled.append(e)
@@ -147,7 +146,6 @@ async def ls(ctx):
         for e in bot.extensions.keys():
             running.append(e)
 
-        print(enabled, running, disabled)
         #building strings
         disabled_str=""
         for e in disabled:

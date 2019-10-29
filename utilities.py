@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+import discord
 from settings import *
 from discord.ext import commands
 from collections import UserDict
@@ -84,9 +85,9 @@ def is_server_owner():
 #                                       #
 #########################################
 
-async def get_embed_err(error):
+def get_embed_err(error):
     err_embed = discord.Embed(
-        title = f"{EMOJIS["warning"]} **Command Error:** " + error[0],
+        title = f"""{EMOJIS["warning"]} **Command Error:** """ + error[0],
         description = error[1],
         color = 16729127)
     return err_embed
