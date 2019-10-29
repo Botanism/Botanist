@@ -81,16 +81,11 @@ class ClearanceConfigEntry(ConfigEntry, metaclass=Singleton):
         await self.config_channel.send("Successfully updated role configuration")
 
 
-class Config(commands.Cog):
+class Config(ConfigEntry, commands.Cog):
     """a suite of commands meant ot give server admins/owners and easy way to setup the bot's
     preferences directly from discord."""
     def __init__(self, bot):
-        self.bot = bot
-        #change to make it cross-server
         self.config_channels={}
-        #other values can't be added as of now
-        self.allowed_answers = {1:["yes", "y"],
-                                0:["no", "n"]}
 
 
     @commands.Cog.listener()
@@ -100,7 +95,6 @@ class Config(commands.Cog):
     @commands.group()
     @is_server_owner()
     async def cfg(self, ctx):
-        self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
         if ctx.invoked_subcommand == None:
             await ctx.send(ERR_NO_SUBCOMMAND)
 
@@ -123,17 +117,17 @@ class Config(commands.Cog):
 
         #starting all configurations
         await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities''')
-        await self.config_channels[ctx.guild.id].send("This will overwrite all of your existing configurations. Do you want to continue ? [y/n]")
-        response = await self.bot.wait_for("message", check=self.is_yn_answer)
-        if response.content[0].lower() == "n":return False
+        pursue = await self.get_yn(ctx, "This will overwrite all of your existing configurations. Do you want to continue ?")
+        if not pursue: return False
+
         await self.config_channels[ctx.guild.id].send("**Starting full bot configuration...**")
 
         try:
-            await self.cfg_poll(ctx)
             await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
-            await self.cfg_clearance(ctx)
-            await self.cfg_welcome(ctx)
-            await self.cfg_goodbye(ctx)
+            ClearanceConfigEntry().run()
+
+            for cog in self.bot.cogs:
+                cog.config_entry().run()
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
@@ -143,15 +137,31 @@ class Config(commands.Cog):
             local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
 
         except Exception as e:
-            await ctx.send(ERR_UNEXCPECTED.format(None))
+            await ctx.send(ERR_UNEXCPECTED.format(str(e)))
             await ctx.send("Dropping configuration and rolling back unconfirmed changes.")
-            #await self.config_channels[ctx.guild.id].delete(reason="Failed to interactively configure the bot")
             local_logger.exception(e)
 
         finally:
             await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
             await asyncio.sleep(10)
             await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
+
+    async def allow_ad(self, ctx):
+        self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
+        try:
+            allowed = await self.get_yn(ctx, "Do you allow me to send a message in a channel of your choice? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it.")
+            if not allowed: return False
+
+            chan = await self.get_answer(ctx, "Thank you very much ! In which channel do you want me to post this message?", filters="channels")
+
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["advertisement"] = chan[0].id
+
+            await chan.send(embed=self.ad_msg)
+
+        except Exception as e:
+            local_logger.exception(e)
+            raise e
 
     #@cfg.command()
     @is_init()

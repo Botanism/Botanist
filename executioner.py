@@ -1,13 +1,15 @@
 #!/usr/bin/env python3.7
 
 import discord
-from settings import *
-from utilities import *
 import math
 import time
 import random
 import logging
 import json
+
+from settings import *
+from utilities import *
+import config as cfg
 
 
 #INITS THE BOT
@@ -192,6 +194,8 @@ try:
     for ext in extensions:
         if extensions[ext]==True:
             bot.load_extension(ext)
+
+    bot.add_cog(cfg.Config)
 
 
 #if no extension is enabled
