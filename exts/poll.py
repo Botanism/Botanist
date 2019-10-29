@@ -27,11 +27,50 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+class PollConfigEntry(ConfigEntry, metaclass=Singleton):
+    """docstring for PollConfigEntry"""
+    def __init__(self, bot, cfg_chan_id):
+        super(PollConfigEntry).__init__(bot, cfg_chan_id)
+
+    async def run(self, ctx):
+        self.config_channel.send("**Starting poll configuration**")
+        pursue = await self.get_yn(ctx, "Do you want to activate polls on this server?")
+        if not pursue: return False
+        retry =  True
+
+        while retry:
+            #getting the list of channels to be marked as polls
+            poll_channels = await self.get_answer(ctx, f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channel.mention}", filters="channels")
+            if self.config_channel in poll_channels:
+                await self.config_channel.send("You cannot set this channel as a poll channel. Please try again...")
+                continue
+
+            confirmed = await self.get_yn(ctx, f"You are about to make {poll_channels_str} poll channels. Do you want to continue?")
+            if not confirmed:
+                #making sure the user really wants to quit
+                drop = await self.get_yn(ctx, "Aborting addition of poll channels. Do you want to leave the poll configuration interface ?")
+                if drop:
+                    local_logger.info(f"Poll configuration has been cancelled for server {ctx.guild.name}")
+                    retry = False
+            else:
+                retry =  False
+
+        poll_channels_ids = []
+        for chan in poll_channels:
+            poll_channels_ids.append(chan.id)
+
+        with ConfigFile(ctx.guild.id) as conf:
+            conf["poll_channels"] = poll_channels_ids
+
+        await self.config_channel.send("Poll configuration is done.")
+        local_logger.info(f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed.")
+
 
 class Poll(commands.Cog):
     """TODO: A suite of commands providing users with tools to more easilly get the community's opinion on an idea"""
     def __init__(self, bot):
         self.bot = bot
+        self.config_entry = PollConfigEntry
         
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

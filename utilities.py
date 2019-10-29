@@ -244,6 +244,6 @@ class ConfigEntry():
 
         return results
 
-    def run(self, ctx):
+    async def run(self, ctx):
         """this functions serves as placeholder for the instances which should override it"""
         pass

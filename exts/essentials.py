@@ -31,11 +31,57 @@ local_logger.info("Innitalized {} logger".format(__name__))
 '''This cog contains all the basemost functions that all bots should contain.
 See https://github.com/organic-bots/ForeBot for more information'''
 
+class EssentialsConfigEntry(ConfigEntry, metaclass=Singleton):
+    """docstring for EssentialsConfigEntry"""
+    def __init__(self, bot, cfg_chan_id):
+        super(EssentialsConfigEntry).__init__(bot, cfg_chan_id)
+        self.msgs = {
+        "welcome": ["Do you want to have a welcome message sent when a new user joins the server?",
+                    "Enter the message you'd like to be sent to the new users. If you want to mention them use `{0}`"]
+        "goodbye": ["Do you want to have a goodbye message sent when an user leaves the server?",
+                    "Enter the message you'd like to be sent when an user leaves. If you want to mention them use `{0}`"]
+        }
+
+
+    async def run(self, ctx):
+        #welcome & goodbye messages
+        try:
+            for wg in self.msgs:
+                await self.config_channel.send(f"**Starting {wg} message configuration**")
+                retry = await self.get_yn(ctx, self.msgs[wg][0])
+                message = False
+
+                while retry:
+
+                    message = await self.get_answer(ctx, self.msgs[wg][1])
+
+                    await self.config_channel.send("To make sure the message is as you'd like I'm sending it to you.\n**-- Beginning of message --**")
+                    await self.config_channel.send(message.content.format(ctx.guild.owner.mention))
+                    response = await self.get_yn(ctx, f"**--End of message --**\nIs this the message you want to set as the {wg} message?")
+                    #the user has made a mistake
+                    if response == False:
+                        response = await self.get_yn(ctx, "Do you want to retry?")
+                        if response == False:
+                            message = False
+                            retry = False
+                        #otherwise retry
+                        continue
+
+                    else: retry = False
+
+                if message == False: return
+                with ConfigFile(ctx.guild.id) as conf:
+                    conf["messages"][wg]= message.content
+
+        except Exception as e:
+            local_logger.exception(e)
+            raise e
 
 class BotEssentials(commands.Cog):
     """All of the essential methods all of our bots should have"""
     def __init__(self, bot):
         self.bot = bot
+        self.config_entry = EssentialsConfigEntry
 
 
     @commands.Cog.listener()
@@ -54,7 +100,7 @@ class BotEssentials(commands.Cog):
     async def on_member_join(self, member):
         local_logger.info("User {0.name}[{0.id}] joined {1.name}[{1.id}]".format(member, member.guild))
         with ConfigFile(member.guild.id) as conf:
-            goodbye_msg = conf["messages"]["welcome"]
+            welcome_msg = conf["messages"]["welcome"]
         if welcome_msg != False:
             await member.guild.system_channel.send(welcome_msg.format(member.mention))
 
