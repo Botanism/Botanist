@@ -2,7 +2,7 @@
   <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
 </p>
 
-# Forebot
+# Botanist
 
 This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using discord.py API which offers full compatibility to the official Discord API.
 
