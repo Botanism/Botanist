@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="512" height="512" src="https://raw.githubusercontent.com/NotaSmartDev/assets/master/Balance-2-512.png">
+  <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
 </p>
 
 # Forebot
