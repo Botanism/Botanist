@@ -1,5 +1,6 @@
 import logging
 import os
+import discord.ext.commands.errors as ce
 
 #########################################
 #                                       #
@@ -42,6 +43,7 @@ EMOJIS = {
     "tada": "\U0001F389",
     "hammer": "\U0001F528",
     "x": "\U0000274C",
+    "X": "\U00002716",
     "warning": "\U000026a0",
 }
 
@@ -131,3 +133,13 @@ ERR_NOT_ENOUGH_ARG = ("Not enough arguments", "This command requires additional 
 ERR_UNSUFFICIENT_PRIVILEGE = ("Unsufficient privileges", "You don't have the permissions to do this...")
 ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that.")
 ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.")
+ERR_MISFORMED = ("Misformed command", "The command was malformed. See `::help <command>` to get more information on the command's usage")
+ERR_TOO_MANY_ARGS = ("Too many arguments", "This command requires less arguments. See `::help <command>` to get more information on the command's usage.")
+
+
+ERRS_MAPPING = {
+    ce.MissingRequiredArgument: ERR_NOT_ENOUGH_ARG,
+    ce.ArgumentParsingError: ERR_MISFORMED,
+    ce.TooManyArguments: ERR_TOO_MANY_ARGS,
+
+}

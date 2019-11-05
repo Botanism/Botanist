@@ -1,0 +1,3 @@
+{
+	"remind": "the date format is as such: \nd => days\nh => hours\nm => minutes\ns => seconds\nAlso the order is important. The time parser will stop once it's reached seconds."
+}

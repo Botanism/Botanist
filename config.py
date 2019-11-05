@@ -92,13 +92,6 @@ class Config(commands.Cog, ConfigEntry):
     async def on_guild_join(guild):
         await self.make_cfg_chan(guild)
 
-    @commands.group()
-    @is_server_owner()
-    async def cfg(self, ctx):
-        if ctx.invoked_subcommand == None:
-            await ctx.send(embed=get_embed_err(ERR_NO_SUBCOMMAND))
-
-
     async def make_cfg_chan(self, ctx_or_guild):
         if type(ctx_or_guild)==discord.Guild: g = ctx_or_guild
         else: g = ctx_or_guild.guild
@@ -110,7 +103,7 @@ class Config(commands.Cog, ConfigEntry):
         return self.config_channels[g.id]
 
 
-    @cfg.command()
+    @commands.command()
     async def init(self, ctx):
         #creating new hidden channel only the owner can see
         await self.make_cfg_chan(ctx)
@@ -162,23 +155,6 @@ class Config(commands.Cog, ConfigEntry):
         except Exception as e:
             local_logger.exception(e)
             raise e
-
-    #@cfg.command()
-    @is_init()
-    async def chg(self, ctx, setting):
-        '''doesn't work yet'''
-        try:
-            print(f"Starting config of extension {setting}")
-            await self.make_cfg_chan(ctx)
-            exec("await self.cfg_"+setting)
-
-        except Exception as e:
-            local_logger.exception(e)
-
-        finally:
-            await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
-            await asyncio.sleep(10)
-            await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
 
 def setup(bot):
     bot.add_cog(Config(bot))

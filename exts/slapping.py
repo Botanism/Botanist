@@ -42,7 +42,7 @@ class Slapping(commands.Cog):
 			for w in reason:
 				reason_str+=f" {w}"
 		else:
-			reason_str= "of your behavior"
+			reason_str= "your behavior"
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
 			#building audit log entry
@@ -55,12 +55,17 @@ class Slapping(commands.Cog):
 				slaps[str(member.id)] = [audit]
 
 			#warning
-			await ctx.send(f"{member.mention} you've been slapped for the {len(slaps[str(member.id)])} time because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!")
+			warning = discord.Embed(
+				title = f"Slap {len(slaps[str(member.id)])}",
+				description = f"{member.mention} you've been slapped for the {len(slaps[str(member.id)])} time because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!",
+				color = 16741632)
+			warning.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+			await ctx.send(embed=warning)
 
 	@commands.command()
 	@is_init()
 	@has_auth("manager")
-	async def pardon(self, ctx, member:discord.Member, nbr=0):
+	async def forgive(self, ctx, member:discord.Member, nbr=0):
 		'''Pardonning a member to reduce his slap count'''
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
@@ -71,7 +76,14 @@ class Slapping(commands.Cog):
 				for i in range(nbr):
 					slaps[str(member.id)].pop()
 
-			await ctx.send(f"{ctx.message.author.name} has pardonned you for some of your mistakes {member.mention}.")
+			#pardon
+			slp_nbr = nbr or "all"
+			pardon = discord.Embed(
+				title = f"You were forgiven {slp_nbr} mistake(s).",
+				description = f"{ctx.message.author.name} has pardonned you for some of your mistakes {member.mention}.",
+				color = 6281471)
+			pardon.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+			await ctx.send(embed=pardon)
 
 	@commands.command()
 	@is_init()
@@ -100,16 +112,20 @@ class Slapping(commands.Cog):
 						try:
 							message = await self.bot.get_channel(int(s.split("/")[0])).fetch_message(int(s.split("/")[1]))
 							#building reason
-							reason = message.content.split(">", 1)[1][1:]
-							if not reason: reason="**for no provided reason**"
-							else: reason = f"because of {reason}"
+							reason = message.content.split(" ", 2)
+							if len(reason)==2:
+								reason="**for no provided reason**"
+							else:
+								reason = f"because of **{reason[2]}**"
+							author = message.author.name
 						except discord.NotFound as e:
 							reason = "**Message deleted**"
+							author = None
 
 
 						#building string
-						crt_str+=f"[Toude](https://discordapp.com/channels/{ctx.guild.id}/{s}) {reason}\n"
-					fields.append({"name":member.name, "value":crt_str, "inline":False})
+						crt_str+=f"[{author}](https://discordapp.com/channels/{ctx.guild.id}/{s}) slapped {member.name} {reason}\n"
+					fields.append({"name":f"{member.name} has been slapped {len(slaps[m])} time(s)", "value":crt_str, "inline":False})
 
 		#checking if a member has been slapped
 		if not fields:
@@ -120,7 +136,7 @@ class Slapping(commands.Cog):
 		embed = discord.Embed(
 			title="Slaps "+EMOJIS["hammer"],
 			description="The slapped users and their infraction(s)",
-			colour=16753920) #used to be blurpple 7506394
+			colour=16741632) #used to be blurpple 7506394
 		
 		#adding fields
 		if not len(members):

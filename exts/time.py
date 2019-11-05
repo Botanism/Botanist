@@ -26,7 +26,7 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-class Reminder(commands.Cog):
+class Time(commands.Cog):
     """A cog which handles reminder events and commands"""
     def __init__(self, bot):
         self.bot = bot
@@ -64,11 +64,11 @@ class Reminder(commands.Cog):
                 text+=f" {a}"
 
         if delay==0:
-            ctx.send(embed=get_embed_err(ERR_NOT_ENOUGH_ARG))
+            await ctx.send(embed=get_embed_err(ERR_NOT_ENOUGH_ARG))
             return
 
         await asyncio.sleep(delay)
         await ctx.author.send(text)        
 
 def setup(bot):
-    bot.add_cog(Reminder(bot))
+    bot.add_cog(Time(bot))

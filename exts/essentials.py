@@ -77,12 +77,23 @@ class EssentialsConfigEntry(ConfigEntry, metaclass=Singleton):
             local_logger.exception(e)
             raise e
 
-class BotEssentials(commands.Cog):
+
+class Essentials(commands.Cog):
     """All of the essential methods all of our bots should have"""
     def __init__(self, bot):
         self.bot = bot
         self.config_entry = EssentialsConfigEntry
 
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        """handles command errors"""
+        if type(error) in ERRS_MAPPING.keys():
+            await ctx.send(embed=get_embed_err(ERRS_MAPPING[type(error)]))
+        else:
+            await ctx.send(embed=get_embed_err(ERR_UNEXCPECTED))
+
+        raise error
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -174,4 +185,4 @@ class BotEssentials(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(BotEssentials(bot))
+    bot.add_cog(Essentials(bot))

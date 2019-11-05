@@ -1,0 +1,6 @@
+{
+	"role": ["role management utility. Requires a Gestion role", {
+		"add": "Gives <member> listed <roles> roles",
+		"rm": "Removes <member>'s <roles> roles"
+	}]
+}

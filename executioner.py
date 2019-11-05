@@ -10,11 +10,12 @@ import os
 
 from settings import *
 from utilities import *
+from help import Help
 import config as cfg
 
 
 #INITS THE BOT
-bot = commands.Bot(command_prefix=PREFIX)
+bot = commands.Bot(command_prefix=PREFIX, help_command=Help("en"))
 
 #########################################
 #                                       #
@@ -149,14 +150,14 @@ async def ls(ctx):
         #building strings
         disabled_str=""
         for e in disabled:
-            disabled_str+=f'''{EMOJIS["white_circle"]} {e}\n'''
+            disabled_str+=f'''{EMOJIS["X"]} {e}\n'''
 
         enabled_str=""
         for e in enabled:
             if EXT_FOLDER+"."+e in running:
-                enabled_str+=f'''{EMOJIS["large_blue_circle"]} {e}\n'''
+                enabled_str+=f'''{EMOJIS["check"]} {e}\n'''
             else:
-                enabled_str+=f'''{EMOJIS["red_circle"]} {e}\n'''
+                enabled_str+=f'''{EMOJIS["x"]} {e}\n'''
 
 
         #building embed
