@@ -79,7 +79,7 @@ class Slapping(commands.Cog):
 			#pardon
 			slp_nbr = nbr or "all"
 			pardon = discord.Embed(
-				title = f"You were forgiven {slp_nbr} mistake(s).",
+				title = f"You were forgiven {slp_nbr} of your mistake(s).",
 				description = f"{ctx.message.author.name} has pardonned you for some of your mistakes {member.mention}.",
 				color = 6281471)
 			pardon.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)

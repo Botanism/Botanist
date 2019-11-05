@@ -44,51 +44,29 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		return help_dict
 
 	async def send_bot_help(self, mapping):
-		print(mapping)
-		try:
-			self.paginator.add_line(line="My test line")
-			for page in self.paginator.pages:
-				await self.get_destination().send(page)
-			full_help = {}
-			for cog in mapping:
-				if isinstance(cog, discord.ext.commands.Cog):
-					full_help[cog.qualified_name] = {}
-					for cmd_grp in mapping[cog]:
-						#maybe change this in the future to define complete help, sub-groups & subcommands alike
-						if isinstance(self.hstr[cog.qualified_name.lower()][cmd_grp.qualified_name], list):
-							full_help[cog.qualified_name][cmd_grp.qualified_name] = self.hstr[cog.qualified_name.lower()][cmd_grp.qualified_name][0]
-						else:
-							full_help[cog.qualified_name][cmd_grp.qualified_name] = self.hstr[cog.qualified_name.lower()][cmd_grp.qualified_name]
-				else:
-					print(f"\n\n{cog} is not a cog!!\n\n")
-					for i in mapping[cog]: print(i)
-					print("\n")
-					await self.context.send(embed=get_embed_err(ERR_UNEXCPECTED))
+		print(self.command_attrs)
 
-			print("Full help:\n", full_help)
-			pages = []
-			for cog in full_help:
-				page = self.make_page(dict(cog, full_help[cog]), "all")
-				pages.append(page)
+	async def send_cog_help(self, cog):
+		print(self.cog, cog)
 
-			explanation = "This is the homepage of the `help` command. You can navigate through it using the reactions. Or you can query more specific commands/cogs/groups."
-			embed = discord.Embed(title = "Help's help ;)",
-				description = explanation,
-				color = 7506394)
+	async def send_group_help(self, group):
+		print(group)
 
-			await self.get_destination().send(embed=embed)
+	async def send_command_help(self, command):
+		#print(command.help, command.qualified_name)
+		print(command.cog, command.parents)
+		title = f"**{command.name.title()}**"
 
-		except:
-			raise
+		if command.cog:
+			title += f" from extension **{command.cog.qualified_name}**"
 
-	def make_page(self, ctx, level):
-		return "hey!"
-		if level == "all":
-			return self.help_all()
-		elif level == "cog":
-			return self.help_cog(ctx)
-		elif level == "group":
-			return self.help_group(ctx)
-		elif level == "command":
-			return self.help_command(ctx)
+		description, usage = self.load_help()[command.cog.qualified_name.lower()][command.name]
+		usage = "`" + command.name + " " + usage
 
+		embed_help = discord.Embed(
+			title = title,
+			description = description,
+			color = 7506394)
+
+		embed_help.add_field(name="Usage", value=usage)
+		await self.get_destination().send(embed=embed_help)

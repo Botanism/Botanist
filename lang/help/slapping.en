@@ -1,5 +1,5 @@
 {
-	"slap": "Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are logged throughout history.",
+	"slap": ["Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are logged throughout history.", "<member> [reason...]` slaps *member* with *reason*"],
 	"forgive": "Pardonning a member to reduce his slap count",
 	"slaps": "returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided."
 }
