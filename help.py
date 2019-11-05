@@ -50,7 +50,33 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		print(self.cog, cog)
 
 	async def send_group_help(self, group):
-		print(group)
+		print(group, group.parents)
+		title = f"**{group.name.title()}**"
+
+		if group.cog:
+			title += f" from extension **{group.cog.qualified_name}**"
+
+		if not group.parents:
+			description, cmds = self.load_help()[group.cog.qualified_name.lower()][group.name]
+
+		else:
+			path = self.load_help()[group.cog.qualified_name.lower()] #what if it's None for external ones?
+			for parent in group.parents:
+				path = path[parent.qualified_name]
+			description, cmds = path[1][group.name]
+
+		cmds_str = "" #what if it ends up being >2k chars?
+		for cmd in cmds:
+			cmds_str += f"`{HELP_TAB}{cmd}` " + cmds[cmd][0].lower() + "\n"
+			#add a list of commands and their description/usage
+
+		embed_help = discord.Embed(
+			title = title,
+			description = description,
+			color = 7506394)
+
+		embed_help.add_field(name="Commands", value=cmds_str)
+		await self.get_destination().send(embed=embed_help)
 
 	async def send_command_help(self, command):
 		#print(command.help, command.qualified_name)
