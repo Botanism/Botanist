@@ -44,7 +44,7 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		return help_dict
 
 	async def send_bot_help(self, mapping):
-		print(self.paginator)
+		print(mapping)
 		try:
 			self.paginator.add_line(line="My test line")
 			for page in self.paginator.pages:
@@ -59,14 +59,16 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 							full_help[cog.qualified_name][cmd_grp.qualified_name] = self.hstr[cog.qualified_name.lower()][cmd_grp.qualified_name][0]
 						else:
 							full_help[cog.qualified_name][cmd_grp.qualified_name] = self.hstr[cog.qualified_name.lower()][cmd_grp.qualified_name]
-
 				else:
+					print(f"\n\n{cog} is not a cog!!\n\n")
+					for i in mapping[cog]: print(i)
+					print("\n")
 					await self.context.send(embed=get_embed_err(ERR_UNEXCPECTED))
 
 			print("Full help:\n", full_help)
 			pages = []
 			for cog in full_help:
-				page = self.make_page(dict(cog, full_help[cog]), lvl=0)
+				page = self.make_page(dict(cog, full_help[cog]), "all")
 				pages.append(page)
 
 			explanation = "This is the homepage of the `help` command. You can navigate through it using the reactions. Or you can query more specific commands/cogs/groups."
@@ -79,8 +81,14 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		except:
 			raise
 
-	def make_page(self, commands, lvl=None):
-		assert lvl!=None, TypeError("lvl needs to be defined")
-		page = ""
-		page.join("**")
+	def make_page(self, ctx, level):
+		return "hey!"
+		if level == "all":
+			return self.help_all()
+		elif level == "cog":
+			return self.help_cog(ctx)
+		elif level == "group":
+			return self.help_group(ctx)
+		elif level == "command":
+			return self.help_command(ctx)
 
