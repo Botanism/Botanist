@@ -60,7 +60,15 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		if command.cog:
 			title += f" from extension **{command.cog.qualified_name}**"
 
-		description, usage = self.load_help()[command.cog.qualified_name.lower()][command.name]
+		if not command.parents:
+			description, usage = self.load_help()[command.cog.qualified_name.lower()][command.name]
+		else:
+			path = self.load_help()[command.cog.qualified_name.lower()]
+			for parent in command.parents:
+				path = path[parent.qualified_name]
+			description, usage = path[1][command.name]
+
+
 		usage = "`" + command.name + " " + usage
 
 		embed_help = discord.Embed(
