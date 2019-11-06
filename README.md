@@ -1,8 +1,8 @@
 <p align="center">
-  <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/Balance-2-512.png">
+  <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
 </p>
 
-# Forebot
+# Botanist
 
 This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using discord.py API which offers full compatibility to the official Discord API.
 
@@ -13,6 +13,12 @@ This program is a Discord bot which is basically a mod to the real time messagin
 I ([@s0lst1ce](https://github.com/s0lst1ce)) started building this bot at the end of April 2019 using discord.py API. This bot was first made with the intent to make my discord server more powerful and alive. I had only created it a few days ago but I had realized that I would need additional tools to be able to fulfill all of the plans I had for this server. I had already started making a [bot](https://github.com/organic-bots/LazyFactorian) which serves as an interface to factorio's resources. I thus started building a bot that would enable me to easily manage a scalable server which would contain all of my future bots and would serve as a platform for all my creations.
 
 ​	After the very first version I got some help of a friend of mine. Together we made the bot evolve so that it could join the ranks of other servers. Indeed I had started to realize that the bot, however simple, may be useful to others.
+
+## Contributing
+
+If you want to contribute that would be awesome ! We would love that :smile: !
+
+So to help you out, here are some tips to get you going: [CONTRIBUTING.md](https://github.com/s0lst1ce/ForeBot/blob/master/CONTRIBUTING.md).
 
 ## Commands
 
@@ -27,7 +33,7 @@ Here is an exhaustive list of all extensions and the commands they provide. This
 | Clearance     | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
 | *             | this represents the wildcard and means everyone can use the command. No matter their roles |
-| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/e3ed28af546ba69f3f9d5b6303c427b27605a2a1/settings.py#L15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
+| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/master/settings.py#15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
 | owner         | this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server. |
 | administrator | this role gives access to all server commands except the bot configuration ones |
 | manager       | this role gives access to message management, warnings issues and other server moderation commands |
@@ -69,7 +75,7 @@ This suite of commands provides automatic poll creation. A poll is an embed mess
 
 #### Embedding
 
-This extension allow nay user to send a message as an embed. The color of the embed is defined by the user's role color.
+This extension allows any user to send a message as an embed. The color of the embed is defined by the user's role color.
 
 | Group | Command | Arguments |                         Description                          | Clearance |
 | ----- | :-----: | :-------: | :----------------------------------------------------------: | --------- |
