@@ -1,9 +1,10 @@
 import logging
 import os
 import json
+import discord
 from settings import *
 from discord.ext import commands
-
+from collections import UserDict
 
 #########################################
 #                                       #
@@ -12,10 +13,10 @@ from discord.ext import commands
 #                                       #
 #                                       #
 #########################################
-local_logger = logging.getLogger(__name__)
-local_logger.setLevel(LOGGING_LEVEL)
-local_logger.addHandler(LOGGING_HANDLER)
-local_logger.info(f"Innitalized {__name__} logger")
+LOCAL_LOGGER = logging.getLogger(__name__)
+LOCAL_LOGGER.setLevel(LOGGING_LEVEL)
+LOCAL_LOGGER.addHandler(LOGGING_HANDLER)
+LOCAL_LOGGER.info(f"Innitalized {__name__} logger")
 
 
 #########################################
@@ -54,13 +55,14 @@ def was_init(ctx):
 def has_auth(clearance, *args):
     '''checks whether the user invoking the command has the specified clearance level of clearance for the server the command is being ran on'''
     def predicate(ctx):
-        allowed_roles = get_roles(ctx.guild.id, clearance)
-        for role in ctx.author.roles:
-            if role.id in allowed_roles:
-                return True
-        local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
-        local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
-        return False
+        with ConfigFile(ctx.guild.id, folder=CONFIG_FOLDER) as c:
+            allowed_roles = c["roles"][clearance]
+            for role in ctx.author.roles:
+                if role.id in allowed_roles:
+                    return True
+            LOCAL_LOGGER.send(ERR_UNSUFFICIENT_PRIVILEGE)
+            LOCAL_LOGGER.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            return False
 
     return commands.check(predicate)
 
@@ -78,125 +80,180 @@ def is_server_owner():
 #########################################
 #                                       #
 #                                       #
-#           Utility functions           #
+#           Utilities                   #
 #                                       #
 #                                       #
 #########################################
 
-def get_m_time(file):
-    return os.getmtime(file+".json")
+def get_embed_err(error):
+    err_embed = discord.Embed(
+        title = f"""{EMOJIS["warning"]} **Command Error:** """ + error[0],
+        description = error[1],
+        color = 16729127)
+    return err_embed
 
-def has_changed(server, last_time):
-    last_update = get_m_time(file)
-    if last_update != last_time:
-        return True
-    return False
 
-def get_conf(guild_id):
-    '''returns the configuration dict of the provided guild_id'''
-    with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
-        conf = json.load(file)
-    return conf
 
-def update_conf(guild_id, conf_dict):
-    '''writes the conf_dict to the provided guild_id configuration file'''
+def assert_struct():
     try:
-        with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "w") as file:
-            json.dump(conf_dict, file)
+        files = os.listdir()
+        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER]
+        for folder in to_make:
+            if folder not in files:
+                os.mkdir(folder)
         return True
 
     except Exception as e:
-        local_logger.exception(e)
-        return False
-
-def del_conf(guild_id):
-    '''deletes the configuration entry for the provided guild_id'''
-    try:
-        os.remove(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"))
-        return True
-
-    except Exception as e:
-        local_logger.exception(e)
-        return False
-
-def get_roles(guild_id, lvl):
-    '''returns the roles with the provided lvl of clearance for the specified guild_id'''
-    try:
-        with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
-            return json.load(file)["roles"][lvl]
-
-    except Exception as e:
-        local_logger.exception(e)
+        LOCAL_LOGGER.exception(e)
         raise e
+        return False
 
-def get_poll_chans(guild_id):
-    '''returns a list of channel ids marked as poll channels for the specified guild_id'''
-    try:
-        with open(os.path.join(CONFIG_FOLDER,f"{guild_id}.json"), "r") as file:
-            fl = json.load(file)
+
+class Singleton(type):
+    """a metaclass that makes your class a a singleton"""
+    _instances = {} #dict so that different classes can inherit from the metaclass
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class ConfigFile(UserDict):
+            """A class representing a json config file. Used to handle configuration information.
             
-        chans = fl["poll_channels"]
-        if len(chans)==0:
-            #isn't None to prevent Poll listener from crashing
-            return []
+            file:   the file name without the extension. This is usually the ID of the guild it represents
+            folder: the folder to read the file from. This represents the kind of data handled
+            fext:   the file extension. Only supports "json" for now
+            force:  creates the file if not found
+            """
+            def __init__(self, file, folder=CONFIG_FOLDER, fext="json", force=True):
+                super(ConfigFile, self).__init__()
+                #since the ID is an int -> making sure it is considered as a string
+                self.file = str(file)
 
-        return chans
+                self.folder = folder
+                self.fext = fext
+                self.force = force
 
-    except Exception as e:
-        raise e
-        local_logger.exception(e)
-
-def get_slaps(guild_id, user_id):
-    '''returns an int of the number of slaps of the user_id in the provided guild_id'''
-    with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "r") as file:
-        fl = json.load(file)
-
-    try:
-        slaps = fl[f"{user_id}"]
-    except KeyError:
-        slaps = 0
-
-    except Exception as e:
-        raise e
-        local_logger.exception(e)
-
-    return slaps
+                #currently only supports "json" files
+                assert fext=="json", LOCAL_LOGGER.error(f'''Can't load file with extension: {fext}''')
+                #if the extension is correct -> appending the extension name to the filename
+                self.file+= "." + self.fext
+                #making path
+                self.path = os.path.join(self.folder, self.file)
+                #self.last_m_time = os.path.getmtime(self.path)
 
 
-def update_slaps(guild_id, user_id, slaps):
-    '''changed the number of time the user has been slapped'''
-    with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "r") as file:
-        fl = json.load(file)
+            def __enter__(self):
+                self.make_file()
+                self.read()
+                return self
 
-    try:
-        fl[f"{user_id}"] = slaps
+            def __exit__(self, *args):
+                self.save()
 
-        with open(os.path.join(SLAPPING_FOLDER, f"{guild_id}.json"), "w") as file:
-            json.dump(fl, file)
+            def make_file(self):
+                files = os.listdir(self.folder)
+                #print(self.file not in files)
+                if self.file not in files:
+                    if not self.force: return False
+                    with open(os.path.join(self.folder,self.file), "w") as file:
+                        pass #creating empty file
+                return True
 
-        return True
-    except Exception as e:
-        raise e
-        local_logger.exception(e)
+            def save(self):
+                '''makes the file from the dict'''
+                try:
+                    with open(self.path, "w") as file:
+                        json.dump(self.data, file)
+
+                except Exception as e:
+                    LOCAL_LOGGER.exception(e)
+                    raise e
+
+            def read(self):
+                '''builds the dict from the file '''
+                try:
+                    if not self.make_file: return self.data
+                
+                    with open(os.path.join(self.folder, self.file), "r") as file:
+                        self.data = json.load(file)
+                
+                    return self.data
+
+                except Exception as e:
+                    LOCAL_LOGGER.exception(e)
+                    raise e
+
+
+class ConfigEntry():
+    """A generic configuration class that must subclasses to be used correctly in each extension."""
+    def __init__(self, bot, cfg_chan_id):
+        self.bot = bot
+        #only a single config channel because the class can have several instances, each for a different server
+        self.config_channel = cfg_chan_id
+        self.allowed_answers = {
+        1: ["yes", "y"],
+        0: ["no", "n"]
+        }
+
+
+    def is_answer(self, ctx):
+        if ctx.channel == self.config_channels[ctx.guild.id]: return True
         return False
 
-def get_todo(guild_id):
-    '''returns the todo dict of the specifeid guild_id'''
-    try:
-        with open(os.path.join(TODO_FOLDER, f"{guild_id}.json"), "r") as file:
-            return json.load(file)
-    except Exception as e:
-        raise e
-        local_logger.exception(e)
+    def is_yn_answer(self, ctx):
+        correct_answers = []
+        for i in self.allowed_answers:
+            for ans in i:
+                correct_answers.append(ans)
 
-def update_todo(guild_id, todo_dict):
-    '''updates the todo file for the specified guild_id'''
-    try:
-        with open(os.path.join(TODO_FOLDER, f"{guild_id}.json"), "w") as file:
-            json.dump(todo_dict, file)
+        if self.is_answer(ctx) and (ctx.content.lower() in correct_answers): return True
+        return False
+
+    async def get_yn(self, ctx, question):
+        ctx.send(question+" [y/n]")
+        responde = await self.bot.wait_for("message", check=self.is_yn_answer)
+
+        if response.lower() in self.allowed_answers[0]:
+            return False
+        else:
             return True
 
-    except Exception as e:
-        raise e
-        local_logger.exception(e)
-        return False
+    async def get_answer(self, ctx, question, filters=None):
+        ctx.send(question)
+        answered = False
+        while not answered:
+            response = await self.bot.wait_for("message", check=self.is_answer)
+
+            if filters:
+                cat = self.filter_msg(response)
+                complete = True
+                for filt in filters:
+                    if not cat[filt]:
+                        complete = False
+
+                if complete:
+                    return cat
+
+
+            else:
+                return response
+
+            ctx.send(question)
+
+
+    def filter_msg(self, msg):
+        assert filters != None, TypeError("You must set filters to filter a message.")
+
+        results = {
+        "roles": msg.role_mentions,
+        "mentions": msg.mentions,
+        "channels": msg.channel_mentions,
+        }
+
+        return results
+
+    async def run(self, ctx):
+        """this functions serves as placeholder for the instances which should override it"""
+        pass

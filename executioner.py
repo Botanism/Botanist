@@ -1,17 +1,21 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 
 import discord
-from settings import *
-from utilities import *
 import math
 import time
 import random
 import logging
 import json
+import os
+
+from settings import *
+from utilities import *
+from help import Help
+import config as cfg
 
 
 #INITS THE BOT
-bot = commands.Bot(command_prefix=PREFIX)
+bot = commands.Bot(command_prefix=PREFIX, help_command=Help("en"))
 
 #########################################
 #                                       #
@@ -54,7 +58,7 @@ async def ext(ctx):
 @ext.command()
 async def reload(ctx, extension:str):
     try:
-        bot.reload_extension(extension)
+        bot.reload_extension(os.path.join(EXT_FOLDER, extension))
         await ctx.send("Successfully reloaded {}".format(extension))
     except Exception as e:
         await ctx.send("Couldn't reload extension {} because:```python\n{}```".format(extension, e))
@@ -65,7 +69,7 @@ async def add(ctx, extension:str):
 
     #trying to load the extension. Should only fail if the extension is not installed
     try:
-        bot.load_extension(extension)
+        bot.load_extension(str(EXT_FOLDER+ "." + extension))
 
     except Exception as e:
         main_logger.exception(e)
@@ -74,18 +78,18 @@ async def add(ctx, extension:str):
 
     #if the extension was correctly loaded, adding it to the enabled file
     try:
-        with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+        with open(EXTENSIONS_FILE, "r") as file:
             enabled_exts = json.load(file)
         
         enabled_exts[extension] = True
 
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        with open(EXTENSIONS_FILE, "w") as file:
             json.dump(enabled_exts, file)
 
     except FileNotFoundError as e:
         #if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
-        main_logger.warning("{} doesn't exist.".format(ENABLED_EXTENSIONS_FILE))
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        main_logger.warning("{} doesn't exist.".format(EXTENSIONS_FILE))
+        with open(EXTENSIONS_FILE, "w") as file:
             file.write(DEFAULT_EXTENSIONS_JSON)
 
     except Exception as e:
@@ -99,7 +103,7 @@ async def add(ctx, extension:str):
 @ext.command()
 async def rm(ctx, extension:str):
     try:
-        bot.unload_extension(extension)
+        bot.unload_extension(str(EXT_FOLDER+ "." + extension))
 
     except Exception as e:
         main_logger.exception(e)
@@ -108,12 +112,12 @@ async def rm(ctx, extension:str):
 
     #if the extension was correctly unloaded, removing it from the enblaed extension file
     try:
-        with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+        with open(EXTENSIONS_FILE, "r") as file:
             enabled_exts = json.load(file)
         
         enabled_exts[extension] = False
 
-        with open(ENABLED_EXTENSIONS_FILE, "w") as file:
+        with open(EXTENSIONS_FILE, "w") as file:
             json.dump(enabled_exts, file)
 
     except Exception as e:
@@ -122,21 +126,58 @@ async def rm(ctx, extension:str):
         raise e
 
     await ctx.send("Successfully removed and unloaded {}".format(extension))
-    local_logger.info(f"Disabled and removed {extension}")
-
+    LOCAL_LOGGER.info(f"Disabled and removed {extension}")
 
 @ext.command()
+@is_runner()
 async def ls(ctx):
     try:
-        ext_list = ""
+        enabled= []
+        running = []
+        disabled = []
+        #fetching list of enbaled and disabled extensions -> should be soft coded
+        with ConfigFile(EXTENSIONS_FILE[:-5], folder=".") as exts:
+            for e in exts:
+                if exts[e]==True:
+                    enabled.append(e)
+                else:
+                    disabled.append(e)
+
+        #checking whether all enabled extensions are running
         for e in bot.extensions.keys():
-            ext_list+=f"**{e}**, "
-        ext_list = ext_list[:-2]
-        await ctx.send(f"The loaded extenions are: {ext_list}")
+            running.append(e)
+
+        #building strings
+        disabled_str=""
+        for e in disabled:
+            disabled_str+=f'''{EMOJIS["X"]} {e}\n'''
+
+        enabled_str=""
+        for e in enabled:
+            if EXT_FOLDER+"."+e in running:
+                enabled_str+=f'''{EMOJIS["check"]} {e}\n'''
+            else:
+                enabled_str+=f'''{EMOJIS["x"]} {e}\n'''
+
+
+        #building embed
+        ext_embed = discord.Embed(
+            title = "Extensions",
+            description = "The list of all extensions and their status",
+            colour = 7506394,
+            url=None)
+
+        #ext_embed.set_thumbnail(url=bot.avatar_url)
+        ext_embed.add_field(name="Enabled", value=enabled_str, inline=False)
+        if len(disabled_str)!=0:
+            ext_embed.add_field(name="Disabled", value=disabled_str, inline=False)
+
+        await ctx.send(embed=ext_embed)
+
 
     except Exception as e:
-        main_logger.exception(e)
-
+        raise e
+        LOCAL_LOGGER.exception(e)
 
 #########################################
 #                                       #
@@ -150,11 +191,13 @@ async def ls(ctx):
 
 #trying to load all enabled extensions
 try:
-    with open(ENABLED_EXTENSIONS_FILE, "r") as file:
+    bot.add_cog(cfg.Config(bot))
+    with open(EXTENSIONS_FILE, "r") as file:
         extensions = json.load(file)
+
     for ext in extensions:
         if extensions[ext]==True:
-            bot.load_extension(ext)
+            bot.load_extension(str(EXT_FOLDER+ "." + ext))
 
 
 #if no extension is enabled
@@ -169,4 +212,10 @@ except Exception as e:
 
 #running the bot, no matter what
 finally:
-    bot.run(TOKEN)
+    if TOKEN!=None and assert_struct():
+        print("Running bot")
+        bot.run(TOKEN)
+    elif TOKEN==None:
+        main_logger.error('''Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable.''')
+    else:
+        main_logger.error('''Directory structure is invalid.''')

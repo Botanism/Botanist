@@ -1,0 +1,4 @@
+{
+	"update": "Lets the owner of the bot update the bot from github's repositery. It also sends a notification to all server owners who use the bot. The message sent in the notification is the description of the release on github.",
+	"log": "returns the bot's log as an attachement"
+}

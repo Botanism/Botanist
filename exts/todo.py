@@ -85,7 +85,7 @@ class Todo(commands.Cog):
             await ctx.send(ERR_NOT_ENOUGH_ARG)
 
     @todo.command()
-    async def add(self, ctx, todo_type, assignee: Union[bool, discord.Member], *args): #, repost:Union[bool, discord.TextChannel]
+    async def add(self, ctx, todo_type, assignee: Union[bool, discord.Member], groups, *args): #, repost:Union[bool, discord.TextChannel]
         '''Command to add a todo. Usage : <the thing todo>;<type of todo>;<assigned to / false>;<repost public channel / false>'''
 
         todo_dict = get_todo(ctx.guild.id)
@@ -169,13 +169,18 @@ class Todo(commands.Cog):
     @todo.command()
     async def listtypes(self, ctx):
         '''Lists all available types'''
-        conf = get_conf(ctx.guild.id)
-        text = ""
-        for t in conf["todo_types"]:
-            text += f'''\n**{t}** - \t*#{conf["todo_types"][t]}*'''
+        try:
+            todo_dict = get_todo(ctx.guild.id)
+            text = ""
+            for t in todo_dict["types"]:
+                text += f'''\n**{t}** - \t*#{todo_dict["types"][t]}*'''
 
-        new_embed = discord.Embed(title="**Type** - *Color*", description=text, color=0x28a745)
-        await ctx.send(embed=new_embed)
+            new_embed = discord.Embed(title="**Type** - *Color*", description=text, color=0x28a745)
+            await ctx.send(embed=new_embed)
+        except Exception as e:
+            raise e
+            local_logger.exception(e)
+
 
 def setup(bot):
     bot.add_cog(Todo(bot))

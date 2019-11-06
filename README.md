@@ -24,7 +24,7 @@ So to help you out, here are some tips to get you going: [CONTRIBUTING.md](https
 
 ### Getting started
 
-Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates. Some commands can only be ran in a server (ie: you can't have roles in a DM). They are also all case sensitive.
+Here is an exhaustive list of all extensions and the commands they provide. This list is kept up to date with the latest updates. Some commands can only be ran in a server (ie: you can't have roles in a DM). They are also all case sensitive. To make you message a command it must start with the set `PREFIX`. By default this is set to `::`. This means that if you want to call the command `slaps`, you have to enter `::slaps`. The prefix is not mentioned in the following reference.
 
 ​	Those commands are sometimes regrouped under a **group**. This means that a command belonging to a **group** will only be recognized if the **group**'s name is appended before the command. For example the command `ls` of group `ext` needs to be called like this: `ext ls`.
 
@@ -59,13 +59,13 @@ A suite of commands always activated which handle extension management. This can
 | `ext` |  `add`   | `<extension>` | loads the  specified `<extension>` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
 | `ext` |   `rm`   | `<extension>` | removes the  specified `<extension>` bot extension. If the command fails the bot will continue to run with the extension. | runner    |
 | `ext` | `reload` | `<extension>` | reloads the  specified `<extension>` bot extension. If the command fails the extension will stay unloaded | runner    |
-| `ext` |   `ls`   |               | lists all *active* extensions. Enabled extensions which are not running anymore (ie: if they crashed unexpectedly) are not listed. | runner    |
+| `ext` |   `ls`   |               |  returns an embed with all the extensions and their status   | runner    |
 
 
 
 #### Poll
 
-This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed.
+This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed. Polls can also be deleted when reacting with the `:x:` emoji.
 
 | Group  | Command | Arguments  |                         Description                          | Clearance |
 | ------ | :-----: | :--------: | :----------------------------------------------------------: | --------- |
@@ -89,10 +89,11 @@ This extension contains some of the most basic managing commands and should almo
 
 
 | Group |  Command   | Arguments |                         Description                          | Clearance |
-| ----- | :--------: | :-------: | :----------------------------------------------------------: | --------- |
-|       |   `ping`   |           |   replies with the rounded latency of the message transfer   | *         |
-|       | `shutdown` |           |                 shuts down the bot properly                  | runner    |
-|       |  `clear`   |  `<nbr>`  | deletes the specified `<nbr>` number of messages in the current channel; chronologically | manager   |
+| :---: | :--------: | :-------: | :----------------------------------------------------------: | :-------: |
+|       |   `ping`   |           |   replies with the rounded latency of the message transfer   |     *     |
+|       | `shutdown` |           |                 shuts down the bot properly                  |  runner   |
+|       |  `clear`   |  `<nbr>`  | deletes the specified `<nbr>` number of messages in the current channel; chronologically |  manager  |
+|       |  `status`  |           | returns some statistics and info about the server and its members |     *     |
 
 
 
@@ -102,8 +103,9 @@ Allows moderators to give quick and light warnings to disrespectful members. By 
 
 | Group | Command  |      Arguments      |                         Description                          | Clearance |
 | ----- | :------: | :-----------------: | :----------------------------------------------------------: | :-------: |
-|       |  `slap`  |     `<member>`      |        slaps the specified `<member>` member one time        |  manager  |
+|       |  `slap`  |    `<member>`, *    | slaps the specified `<member>` member one time. The other arguments will form the optional reason for the slap. |  manager  |
 |       | `pardon` | `<member>` *`<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
+|       | `slaps`  |          *          | returns an embed with a list of all slapped members and their slap count. If arguments are given they must represent members or their ids/name. If so detailed info will be returned only of those members. It gives access to the slapping log. |  manager  |
 
 
 
@@ -134,9 +136,19 @@ Allows the owner of a server to configure the behavior of the bot.
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 
 | Group | Command  | Arguments |                         Description                          | Clearance |
-| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
+| :---: | :------: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
 |       |  `log`   |           |                  returns the bot's log file                  | owner     |
+
+
+
+#### Time
+
+Gives several time-related commands to ease organization. For now this only includes a remind function but an event planner is in the works.
+
+| Group | Command  | Arguments |                         Description                          | Clearance |
+| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
+|       | `remind` |     *     | returns the specified message after the specified amount of time. To precise the delay before sending the message use the following format: `1d 15h 6m 01s` where `d` stands for days, `h` for hours, `m` for minutes and `s` for seconds. The numbers preceding them must be integers and represent the number of units to wait for (be it days, hours, minutes or seconds). All other words given as argument will form the message's content and will be sent in PM to the user after the specified delay has elapsed. | *         |
 
 
 

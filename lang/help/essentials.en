@@ -1,0 +1,6 @@
+{
+	"ping": "pongs back with current latency!",
+	"shutdown": "shutdown the bot",
+	"clear": "deletes specified <nbr> number of messages in the current channel",
+	"status": "returns statistics about the server and their members"
+}

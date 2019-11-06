@@ -1,5 +1,6 @@
 import logging
-
+import os
+import discord.ext.commands.errors as ce
 
 #########################################
 #                                       #
@@ -11,7 +12,7 @@ import logging
 
 
 PREFIX = "::"
-TOKEN = "your_token"
+TOKEN = os.getenv("DISCORD_TOKEN", default=None)
 RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
@@ -35,8 +36,18 @@ EMOJIS = {
     "check": "\U00002705",
     "hourglass": "\U000023F3",
     "wave": "\U0001F44B",
-    "no_entry_sign": "\U0001F6AB"
+    "no_entry_sign": "\U0001F6AB",
+    "red_circle": "\U0001F534",
+    "white_circle": "\U000026AA",
+    "large_blue_circle": "\U0001F535",
+    "tada": "\U0001F389",
+    "hammer": "\U0001F528",
+    "x": "\U0000274C",
+    "X": "\U00002716",
+    "warning": "\U000026a0",
 }
+
+HELP_TAB = "  "
 
 
 #########################################
@@ -48,7 +59,8 @@ EMOJIS = {
 #########################################
 
 #Files
-ENABLED_EXTENSIONS_FILE = "enabled_exts.json"
+EXT_FOLDER = "exts"
+EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
@@ -57,42 +69,42 @@ TODO_FOLDER = "todo"
 ROLES_LEVEL = ["manager", "admin"]
 
 #default JSON files
-DEFAULT_EXTENSIONS_JSON = '''{
-    "Slapping": false,
-    "BotEssentials":true,
-    "Role":false,
-    "Embedding":false,
-    "Config":false,
-    "Poll":false
-}'''
+DEFAULT_EXTENSIONS_JSON = {
+    "Slapping": False,
+    "BotEssentials":True,
+    "Role":False,
+    "Embedding":False,
+    "Config":False,
+    "Poll":False
+}
 
-DEFAULT_SLAPPED_FILE = '''{
+DEFAULT_SLAPPED_FILE = {
     "463665420054953995": 0
-}'''
+}
 
-DEFAULT_SERVER_FILE = '''{
+DEFAULT_SERVER_FILE = {
     "poll_channels": [],
-    "todo_channel": false,
+    "todo_channel": False,
     "roles": {
         "manager": [],
         "admin": []
     },
     "messages": {
-        "welcome": false,
-        "goodbye": false
+        "welcome": False,
+        "goodbye": False
     },
-    "advertisement": false
+    "advertisement": False
 
-}'''
+}
 
-DEFAULT_TODO_FILE = '''{
+DEFAULT_TODO_FILE = {
     "groups": {
     "default": []
     },
     "types": {
     "default": "000000"
     }
-}'''
+}
 
 #########################################
 #                                       #
@@ -117,9 +129,19 @@ LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 #########################################
 
 
-ERR_NO_SUBCOMMAND = "You didn't provide any subcommand. See `::help <command>` for more info on command usage."
-ERR_UNEXCPECTED = "An unexcpected error occured. Please report a bug in {} or contact an admin of your server."
-ERR_NOT_ENOUGH_ARG = "This command requires additional arguments. See `::help <command>` to get more information on the command's usage"
-ERR_UNSUFFICIENT_PRIVILEGE = "You don't have the permission to do this..."
-ERR_NOT_SETUP = "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that."
-ERR_CANT_SAVE = "Couldn't save settings to JSON configuration file."
+ERR_NO_SUBCOMMAND = ("No subcommand", "You didn't provide any subcommand. See `::help <command>` for more info on command usage.")
+ERR_UNEXCPECTED = ("Unexcpected error", "An unexcpected error occured. Please report a bug in {} or contact an admin of your server.")
+ERR_NOT_ENOUGH_ARG = ("Not enough arguments", "This command requires additional arguments. See `::help <command>` to get more information on the command's usage")
+ERR_UNSUFFICIENT_PRIVILEGE = ("Unsufficient privileges", "You don't have the permissions to do this...")
+ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::cfg init` in any channel. You won't be able to use the bot before that.")
+ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.")
+ERR_MISFORMED = ("Misformed command", "The command was malformed. See `::help <command>` to get more information on the command's usage")
+ERR_TOO_MANY_ARGS = ("Too many arguments", "This command requires less arguments. See `::help <command>` to get more information on the command's usage.")
+
+
+ERRS_MAPPING = {
+    ce.MissingRequiredArgument: ERR_NOT_ENOUGH_ARG,
+    ce.ArgumentParsingError: ERR_MISFORMED,
+    ce.TooManyArguments: ERR_TOO_MANY_ARGS,
+
+}
