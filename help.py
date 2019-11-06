@@ -44,13 +44,40 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		return help_dict
 
 	async def send_bot_help(self, mapping):
-		print(self.command_attrs)
+		strings = self.load_help()["help"]
+		explanation = discord.Embed(
+			title = "Help Interface",
+			description = strings["description"],
+			color = 7506394)
+		explanation.add_field(name="Usage", value=strings["usage"], inline=False)
+		await self.get_destination().send(embed=explanation)
 
 	async def send_cog_help(self, cog):
-		print(self.cog, cog)
+		if isinstance(cog, discord.ext.commands.Cog):
+			name = cog.qualified_name
+		else:
+			name = "Defaults"
+
+		title = f"**{name.title()}**"
+
+		with open(os.path.join("lang", "help", f"cogs.{self.lang}"), "r") as file:
+			description = json.load(file)[name.lower()]
+
+		cmds = self.load_help()[name.lower()]
+
+		cmds_str = "" #what if it ends up being >2k chars?
+		for cmd in cmds:
+			cmds_str += f"`{HELP_TAB}{cmd}` " + cmds[cmd][0].lower() + "\n\n"
+			#add a list of commands and their description/usage
+		embed_help = discord.Embed(
+			title = title,
+			description = description,
+			color = 7506394)
+
+		embed_help.add_field(name="Commands", value=cmds_str)
+		await self.get_destination().send(embed=embed_help)
 
 	async def send_group_help(self, group):
-		print(group, group.parents)
 		title = f"**{group.name.title()}**"
 
 		if group.cog:
@@ -79,8 +106,6 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 		await self.get_destination().send(embed=embed_help)
 
 	async def send_command_help(self, command):
-		#print(command.help, command.qualified_name)
-		print(command.cog, command.parents)
 		title = f"**{command.name.title()}**"
 
 		if command.cog:
