@@ -65,6 +65,10 @@ class Development(commands.Cog):
         #sending the log
         await ctx.send(file=log)
 
+    @commands.command()
+    async def dev(self, ctx):
+        """sends the developement server URL to the author of the message"""
+        await ctx.author.send("I'm full of joy seeing how interested you seem to be about me! Hopefully it's not for a bug report... In any case, here's the server where I'm developed: " + DEV_SRV_URL)
 
 
 
