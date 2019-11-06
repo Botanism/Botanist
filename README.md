@@ -139,6 +139,7 @@ Allows the developers to update the bot and notify all server owners of the chan
 | :---: | :------: | :-------: | :----------------------------------------------------------: | --------- |
 |       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
 |       |  `log`   |           |                  returns the bot's log file                  | owner     |
+|       |  `dev`   |           | sends the development server URL to the author of the message |           |
 
 
 
