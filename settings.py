@@ -19,7 +19,7 @@ RUNNER_ID=289426079544901633
 DEV_SRV = 564213369834307600
 
 #github website URL
-WEBSITE = "https://github.com/organic-bots/ForeBot"
+WEBSITE = "https://github.com/s0lst1ce/Botanist"
 
 #invite to dev server URL
 DEV_SRV_URL = "https://discord.gg/mpGM5cg"

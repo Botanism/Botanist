@@ -205,17 +205,17 @@ class ConfigEntry():
     def is_yn_answer(self, ctx):
         correct_answers = []
         for i in self.allowed_answers:
-            for ans in i:
+            for ans in self.allowed_answers[i]:
                 correct_answers.append(ans)
 
         if self.is_answer(ctx) and (ctx.content.lower() in correct_answers): return True
         return False
 
     async def get_yn(self, ctx, question):
-        ctx.send(question+" [y/n]")
-        responde = await self.bot.wait_for("message", check=self.is_yn_answer)
+        await ctx.send(question+" [y/n]")
+        response = await self.bot.wait_for("message", check=self.is_yn_answer)
 
-        if response.lower() in self.allowed_answers[0]:
+        if response.content.lower() in self.allowed_answers[0]:
             return False
         else:
             return True

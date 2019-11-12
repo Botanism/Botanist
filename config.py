@@ -29,7 +29,8 @@ local_logger.info("Innitalized {} logger".format(__name__))
 class ClearanceConfigEntry(ConfigEntry, metaclass=Singleton):
     """docstring for ClearanceConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
-        super(ClearanceConfigEntry, self).__init__()
+        print("ClearanceConfigEntry")
+        super(ClearanceConfigEntry).__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
         self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
@@ -86,7 +87,11 @@ class Config(commands.Cog, ConfigEntry):
     preferences directly from discord."""
     def __init__(self, bot):
         self.config_channels={}
-
+        self.bot = bot
+        self.allowed_answers = {
+        1: ["yes", "y"],
+        0: ["no", "n"]
+        }
 
     @commands.Cog.listener()
     async def on_guild_join(guild):
@@ -105,8 +110,10 @@ class Config(commands.Cog, ConfigEntry):
 
     @commands.command()
     async def init(self, ctx):
-        #creating new hidden channel only the owner can see
         await self.make_cfg_chan(ctx)
+        self.config_channel = self.config_channels[ctx.guild.id]
+        #creating new hidden channel only the owner can see
+        ctx.channel = self.config_channel
 
         #starting all configurations
         await self.config_channels[ctx.guild.id].send(f'''You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities''')
@@ -118,6 +125,7 @@ class Config(commands.Cog, ConfigEntry):
         try:
             await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
             ClearanceConfigEntry().run()
+            print("OKOK")
 
             for cog in self.bot.cogs:
                 cog.config_entry().run()
@@ -130,9 +138,13 @@ class Config(commands.Cog, ConfigEntry):
             local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
 
         except Exception as e:
+            raise e
             await ctx.send(embed=get_embed_err(ERR_UNEXCPECTED.format(str(e))))
             await ctx.send("Dropping configuration and rolling back unconfirmed changes.")
             local_logger.exception(e)
+
+        except:
+            raise
 
         finally:
             await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
@@ -140,6 +152,7 @@ class Config(commands.Cog, ConfigEntry):
             await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
 
     async def allow_ad(self, ctx):
+        self.config_channel = ctx.guild.id
         self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
         try:
             allowed = await self.get_yn(ctx, "Do you allow me to send a message in a channel of your choice? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it.")
