@@ -26,61 +26,66 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-class ClearanceConfigEntry(ConfigEntry, metaclass=Singleton):
+class ClearanceConfigEntry(ConfigEntry):
     """docstring for ClearanceConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
         print("ClearanceConfigEntry")
-        super(ClearanceConfigEntry).__init__(bot, cfg_chan_id)
+        super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
-        self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
+        try:
+            print("Running")
+            await self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
-        new_roles = []
-        for role_lvl in ROLES_LEVEL:
-            retry = True
-            while retry:
-                new_role = []
-                #asking the owner which roles he wants to give clearance to
-                roles = await self.get_answer(ctx, f"List all the roles you want to be given the **{role_lvl}** level of clearance.", filters="roles")
-                
-                #making sure at least a role was selected
-                if len(roles)==0:
-                    await self.config_channel.send(f"You need to set at least one role for the {role_lvl} clearance.")
-                    continue
+            new_roles = []
+            for role_lvl in ROLES_LEVEL:
+                retry = True
+                while retry:
+                    new_role = []
+                    #asking the owner which roles he wants to give clearance to
+                    roles = await self.get_answer(ctx, f"List all the roles you want to be given the **{role_lvl}** level of clearance.", filters=["roles"])
+                    print(roles)
 
-                #building role string
-                roles_str = ""
-                for role in roles:
-                    roles_str += f" {role.mention}"
+                    #making sure at least a role was selected
+                    if len(roles)==0:
+                        await self.config_channel.send(f"You need to set at least one role for the {role_lvl} clearance.")
+                        continue
 
-                #asking for confirmation
-                confirmed = await self.get_yn(ctx, f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ?")
-                if not confirmed:
-                    again = await self.get_yn(ctx, f"Aborting configuration of {role_lvl}. Do you want to retry?")
-                    if not again:
-                        local_logger.info(f"The configuration for the {role_lvl} clearance has been cancelled for server {ctx.guild.name}")
+                    #building role string
+                    roles_str = ""
+                    for role in roles:
+                        roles_str += f" {role.mention}"
+
+                    #asking for confirmation
+                    confirmed = await self.get_yn(ctx, f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ?")
+                    if not confirmed:
+                        again = await self.get_yn(ctx, f"Aborting configuration of {role_lvl}. Do you want to retry?")
+                        if not again:
+                            local_logger.info(f"The configuration for the {role_lvl} clearance has been cancelled for server {ctx.guild.name}")
+                            retry = False
+
+                    else:
                         retry = False
 
-                else:
-                    retry = False
+                local_logger.info(f"Server {ctx.guild.name} configured its {role_lvl} roles")
+                for role in roles:
+                    new_role.append(role.id)
 
-            local_logger.info(f"Server {ctx.guild.name} configured its {role_lvl} roles")
-            for role in roles:
-                new_role.append(role.id)
+                #adding to master role list
+                new_roles.append(new_role)
 
-            #adding to master role list
-            new_roles.append(new_role)
+            #giving admin roles the manager clearance
+            for m_role in new_roles[1]:
+                new_roles[0].append(m_role)
 
-        #giving admin roles the manager clearance
-        for m_role in new_roles[1]:
-            new_roles[0].append(m_role)
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["roles"]["manager"] = new_roles[0]
+                conf["roles"]["admin"] = new_roles[1]    
 
-        with ConfigFile(ctx.guild.id) as conf:
-            conf["roles"]["manager"] = new_roles[0]
-            conf["roles"]["admin"] = new_roles[1]    
+            await self.config_channel.send("Successfully updated role configuration")
 
-        await self.config_channel.send("Successfully updated role configuration")
-
+        except Exception as e:
+            raise e
 
 class Config(commands.Cog, ConfigEntry):
     """a suite of commands meant ot give server admins/owners and easy way to setup the bot's
@@ -112,7 +117,7 @@ class Config(commands.Cog, ConfigEntry):
     async def init(self, ctx):
         await self.make_cfg_chan(ctx)
         self.config_channel = self.config_channels[ctx.guild.id]
-        #creating new hidden channel only the owner can see
+        #creating new hidden channel only the owner/admins can see
         ctx.channel = self.config_channel
 
         #starting all configurations
@@ -124,11 +129,12 @@ class Config(commands.Cog, ConfigEntry):
 
         try:
             await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
-            ClearanceConfigEntry().run()
+            await ClearanceConfigEntry(self.bot, self.config_channel).run(ctx)
             print("OKOK")
 
+            print(self.bot.cogs)
             for cog in self.bot.cogs:
-                cog.config_entry().run()
+                self.bot.cogs[cog].config_entry(self.bot, self.config_channel).run(ctx)
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")

@@ -88,12 +88,11 @@ class Essentials(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """handles command errors"""
+        raise error
         if type(error) in ERRS_MAPPING.keys():
             await ctx.send(embed=get_embed_err(ERRS_MAPPING[type(error)]))
         else:
             await ctx.send(embed=get_embed_err(ERR_UNEXCPECTED))
-
-        raise error
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):

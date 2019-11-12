@@ -199,7 +199,7 @@ class ConfigEntry():
 
 
     def is_answer(self, ctx):
-        if ctx.channel == self.config_channels[ctx.guild.id]: return True
+        if ctx.channel == self.config_channel: return True
         return False
 
     def is_yn_answer(self, ctx):
@@ -220,8 +220,8 @@ class ConfigEntry():
         else:
             return True
 
-    async def get_answer(self, ctx, question, filters=None):
-        ctx.send(question)
+    async def get_answer(self, ctx, question, filters=[]):
+        await ctx.send(question)
         answered = False
         while not answered:
             response = await self.bot.wait_for("message", check=self.is_answer)
@@ -231,20 +231,24 @@ class ConfigEntry():
                 complete = True
                 for filt in filters:
                     if not cat[filt]:
-                        complete = False
+                        cat.pop(filt)
+                        complete = False # -> remove bc sometimes you need to accept no mention?
 
                 if complete:
-                    return cat
+                    if len(filters)==1:
+                        return cat[filters[0]]
+                    else:
+                        return cat
 
 
             else:
                 return response
 
-            ctx.send(question)
+            await ctx.send(question)
 
 
     def filter_msg(self, msg):
-        assert filters != None, TypeError("You must set filters to filter a message.")
+        #assert filters != None, TypeError("You must set filters to filter a message.")
 
         results = {
         "roles": msg.role_mentions,
