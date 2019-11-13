@@ -136,7 +136,16 @@ class Config(commands.Cog, ConfigEntry):
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
-            await self.allow_ad(ctx)
+            allowed = await self.get_yn(ctx, "Do you allow me to send a message in a channel of your choice? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it.")
+            ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
+            if not allowed: return False
+
+            chan = await self.get_answer(ctx, "Thank you very much ! In which channel do you want me to post this message?", filters=["channels"])
+
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["advertisement"] = chan[0].id
+
+            await chan[0].send(embed=ad_msg)
 
 
             local_logger.info(f"Setup for server {ctx.guild.name}({ctx.guild.id}) is done")
@@ -154,23 +163,6 @@ class Config(commands.Cog, ConfigEntry):
             await self.config_channels[ctx.guild.id].send("Thank you for inviting our bot and taking the patience to configure it.\nThis channel will be deleted in 10 seconds...")
             await asyncio.sleep(10)
             await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
-
-    async def allow_ad(self, ctx):
-        self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
-        try:
-            allowed = await self.get_yn(ctx, "Do you allow me to send a message in a channel of your choice? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it.")
-            if not allowed: return False
-
-            chan = await self.get_answer(ctx, "Thank you very much ! In which channel do you want me to post this message?", filters=["channels"])
-
-            with ConfigFile(ctx.guild.id) as conf:
-                conf["advertisement"] = chan[0].id
-
-            await chan.send(embed=self.ad_msg)
-
-        except Exception as e:
-            local_logger.exception(e)
-            raise e
 
 def setup(bot):
     bot.add_cog(Config(bot))
