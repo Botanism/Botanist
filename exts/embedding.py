@@ -31,6 +31,7 @@ class Embedding(commands.Cog):
 	"""A suite of command providing users with embeds manipulation tools."""
 	def __init__(self, bot):
 		self.bot = bot
+		self.config_entry = None
 		#maybe think to block sending an embed in a poll channel
 
 	@commands.command()

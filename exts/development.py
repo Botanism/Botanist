@@ -32,6 +32,7 @@ class Development(commands.Cog):
     It's also meant to let server owners know when there's an update requiring their attention."""
     def __init__(self, bot):
         self.bot = bot
+        self.config_entry = None
 
 
     @commands.command()

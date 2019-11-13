@@ -34,7 +34,7 @@ See https://github.com/s0lst1ce/Botanist for more information'''
 class EssentialsConfigEntry(ConfigEntry, metaclass=Singleton):
     """docstring for EssentialsConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
-        super(EssentialsConfigEntry).__init__(bot, cfg_chan_id)
+        super().__init__(bot, cfg_chan_id)
         self.msgs = {
         "welcome": ["Do you want to have a welcome message sent when a new user joins the server?",
                     "Enter the message you'd like to be sent to the new users. If you want to mention them use `{0}`"],

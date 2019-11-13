@@ -30,6 +30,7 @@ class Role(commands.Cog):
     """role management utility. Requires a Gestion role"""
     def __init__(self, bot):
         self.bot = bot
+        self.config_entry = None
 
     @commands.group()
     @has_auth("admin")

@@ -20,6 +20,7 @@ class Todo(commands.Cog):
     """A suite of command to make a nice todo list."""
     def __init__(self, bot):
         self.bot = bot
+        self.config_entry = None
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, reaction):

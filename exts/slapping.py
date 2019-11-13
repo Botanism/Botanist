@@ -31,6 +31,7 @@ class Slapping(commands.Cog):
 	"""a suite of commands meant to help moderators handle the server"""
 	def __init__(self, bot):
 		self.bot = bot
+		self.config_entry = None
 
 	@commands.command()
 	@is_init()

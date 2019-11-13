@@ -29,6 +29,7 @@ local_logger.info("Innitalized {} logger".format(__name__))
 class Time(commands.Cog):
     """A cog which handles reminder events and commands"""
     def __init__(self, bot):
+        self.config_entry = None
         self.bot = bot
         self.tf = {
         "d": 86400,

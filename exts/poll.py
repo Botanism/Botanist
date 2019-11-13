@@ -30,20 +30,25 @@ local_logger.info("Innitalized {} logger".format(__name__))
 class PollConfigEntry(ConfigEntry, metaclass=Singleton):
     """docstring for PollConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
-        super(PollConfigEntry).__init__(bot, cfg_chan_id)
+        super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
-        self.config_channel.send("**Starting poll configuration**")
+        await self.config_channel.send("**Starting poll configuration**")
         pursue = await self.get_yn(ctx, "Do you want to activate polls on this server?")
         if not pursue: return False
         retry =  True
 
         while retry:
             #getting the list of channels to be marked as polls
-            poll_channels = await self.get_answer(ctx, f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channel.mention}", filters="channels")
+            poll_channels = await self.get_answer(ctx, f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channel.mention}", filters=["channels"])
             if self.config_channel in poll_channels:
                 await self.config_channel.send("You cannot set this channel as a poll channel. Please try again...")
                 continue
+
+            poll_channels_str = ""
+            for chan in poll_channels:
+                poll_channels_str += f"{chan.mention},"
+            poll_channels_str = poll_channels_str[:-1]
 
             confirmed = await self.get_yn(ctx, f"You are about to make {poll_channels_str} poll channels. Do you want to continue?")
             if not confirmed:

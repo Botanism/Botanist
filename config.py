@@ -29,12 +29,10 @@ local_logger.info("Innitalized {} logger".format(__name__))
 class ClearanceConfigEntry(ConfigEntry):
     """docstring for ClearanceConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
-        print("ClearanceConfigEntry")
         super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
         try:
-            print("Running")
             await self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
             new_roles = []
@@ -91,6 +89,7 @@ class Config(commands.Cog, ConfigEntry):
     """a suite of commands meant ot give server admins/owners and easy way to setup the bot's
     preferences directly from discord."""
     def __init__(self, bot):
+        self.config_entry = ClearanceConfigEntry
         self.config_channels={}
         self.bot = bot
         self.allowed_answers = {
@@ -129,12 +128,11 @@ class Config(commands.Cog, ConfigEntry):
 
         try:
             await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
-            await ClearanceConfigEntry(self.bot, self.config_channel).run(ctx)
-            print("OKOK")
+            #await ClearanceConfigEntry(self.bot, self.config_channel).run(ctx)
 
-            print(self.bot.cogs)
             for cog in self.bot.cogs:
-                self.bot.cogs[cog].config_entry(self.bot, self.config_channel).run(ctx)
+                if self.bot.cogs[cog].config_entry:
+                    await self.bot.cogs[cog].config_entry(self.bot, self.config_channel).run(ctx)
 
             #asking for permisison to advertise
             await self.config_channels[ctx.guild.id].send("You're almost done ! Just one more thing...")
@@ -158,13 +156,12 @@ class Config(commands.Cog, ConfigEntry):
             await self.config_channels[ctx.guild.id].delete(reason="Configuration completed")
 
     async def allow_ad(self, ctx):
-        self.config_channel = ctx.guild.id
         self.ad_msg = discord.Embed(description="I ({}) have recently been added to this server! I hope I'll be useful to you. Hopefully you won't find me too many bugs. However if you do I would appreciate it if you could report them to the [server]({}) where my developers are ~~partying~~ working hard to make me better. This is also the place to share your thoughts on how to improve me. Have a nice day and hopefully, see you there {}".format(ctx.me.mention, DEV_SRV_URL, EMOJIS["wave"]))
         try:
             allowed = await self.get_yn(ctx, "Do you allow me to send a message in a channel of your choice? This message would give out a link to my development server. It would allow me to get more feedback. This would really help me pursue the development of the bot. If you like it please think about it.")
             if not allowed: return False
 
-            chan = await self.get_answer(ctx, "Thank you very much ! In which channel do you want me to post this message?", filters="channels")
+            chan = await self.get_answer(ctx, "Thank you very much ! In which channel do you want me to post this message?", filters=["channels"])
 
             with ConfigFile(ctx.guild.id) as conf:
                 conf["advertisement"] = chan[0].id
