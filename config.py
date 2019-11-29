@@ -26,13 +26,41 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-class ClearanceConfigEntry(ConfigEntry):
+
+class LanguageConfigEntry(ConfigEntry):
+    """docstring for LanguageConfigEntry"""
+    def __init__(self, bot, cfg_chan_id):
+        super().__init__()
+        self.bot = bot
+        self.cfg_chan_id = cfg_chan_id
+
+    async def run(self, ctx):
+        try:
+
+        except Exception as e:
+            raise e
+
+
+class MendatoryConfigEntries(ConfigEntry):
     """docstring for ClearanceConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
         super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
         try:
+            #LANGUAGE CONFIG
+            good = False
+            while not good:
+                lang = await self.get_answer(ctx, f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with?")
+                if not self.is_valid(lang):
+                    continue
+                good = True
+            await ctx.send(f"You have selected {lang}. Glad you could find a language that suits you! If you think the translation is incomplete or could be improved, feel free to improve it. The translations are open to everyone on our {WEBSITE}.")
+
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["lang"] = lang
+
+            #ROLE CONFIG
             await self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
             new_roles = []
@@ -42,7 +70,6 @@ class ClearanceConfigEntry(ConfigEntry):
                     new_role = []
                     #asking the owner which roles he wants to give clearance to
                     roles = await self.get_answer(ctx, f"List all the roles you want to be given the **{role_lvl}** level of clearance.", filters=["roles"])
-                    print(roles)
 
                     #making sure at least a role was selected
                     if len(roles)==0:
@@ -89,7 +116,7 @@ class Config(commands.Cog, ConfigEntry):
     """a suite of commands meant ot give server admins/owners and easy way to setup the bot's
     preferences directly from discord."""
     def __init__(self, bot):
-        self.config_entry = ClearanceConfigEntry
+        self.config_entry = MendatoryConfigEntries
         self.config_channels={}
         self.bot = bot
         self.allowed_answers = {

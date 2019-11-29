@@ -136,7 +136,7 @@ class ConfigFile(UserDict):
                 self.force = force
 
                 #currently only supports "json" files
-                assert fext=="json", LOCAL_LOGGER.error(f'''Can't load file with extension: {fext}''')
+                #assert fext=="json", LOCAL_LOGGER.error(f'''Can't load file with extension: {fext}''')
                 #if the extension is correct -> appending the extension name to the filename
                 self.file+= "." + self.fext
                 #making path
@@ -184,6 +184,36 @@ class ConfigFile(UserDict):
                 except Exception as e:
                     LOCAL_LOGGER.exception(e)
                     raise e
+
+
+class Translator(object):
+    """docstring for Translator
+    lang can either be a 2-chars long string or a Context object"""
+    def __init__(self, ext, lang, help_type=False):
+        self.ext = ext
+        self.lang = self.get_lang(lang)
+
+        if help_type:
+            name = "help"
+        else:
+            name = "strings"
+
+        self.file = os.path.join("lang", ext, name+self.lang)
+
+    def load_strings(self):
+        with open(self.file, "r") as translation:
+            return json.load(translation)
+
+    def get_lang(self, lang):
+        if isinstance(lang, str):
+            return lang
+
+        elif isinstance(lang, discord.ext.commands.Context):
+            with ConfigFile(lang.guild.id, force=False) as conf:
+                return conf["lang"]
+
+        else:
+            raise TypeError("lang must be <str> or <discord.ext.commands.Context> not {}".format(type(lang)))
 
 
 class ConfigEntry():
