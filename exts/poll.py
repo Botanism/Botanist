@@ -168,10 +168,19 @@ class Poll(commands.Cog):
                 file = discord.File(io_content, filename=attachment.filename)
                 files.append(file)          
 
+            mentions = message.mentions
+            roles = message.role_mentions
+            final = message.content
+            for men in mentions:
+                final = final.replace("<@"+str(men.id)+">", men.name)
+
+            for role in roles:
+                final = final.replace("<@"+str(role.id)+">", role.name)
+
             #making embed
             embed_poll = discord.Embed(
                 title = message.author.name,
-                description = discord.utils.escape_mentions(message.content),
+                description = final,
                 colour = discord.Color(16776960),
                 url = None
                 )
