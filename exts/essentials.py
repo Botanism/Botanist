@@ -1,5 +1,6 @@
 """Essential features all bot built with this template should have.
 Do note that disabling it will cause issues to the config extension."""
+import datetime
 import logging
 import discord
 from settings import *
@@ -147,12 +148,20 @@ class Essentials(commands.Cog):
     async def clear(self, ctx, nbr: int):
         '''deletes specified <nbr> number of messages in the current channel'''
         to_del = []
+        now = datetime.datetime.now()
         async for msg in ctx.channel.history(limit=nbr+1):
             local_logger.info("Deleting {}".format(msg))
-            to_del.append(msg)
+            if (msg.created_at - now).days <= -14:
+                await msg.delete()
+            else:
+                to_del.append(msg)
 
         try:
             await ctx.channel.delete_messages(to_del)
+
+        except discord.HTTPException as e:
+            raise e
+
         except Exception as e:
             local_logger.exception("Couldn't delete at least on of{}".format(to_del))
             raise e

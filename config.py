@@ -26,41 +26,35 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-
-class LanguageConfigEntry(ConfigEntry):
-    """docstring for LanguageConfigEntry"""
-    def __init__(self, bot, cfg_chan_id):
-        super().__init__()
-        self.bot = bot
-        self.cfg_chan_id = cfg_chan_id
-
-    async def run(self, ctx):
-        try:
-
-        except Exception as e:
-            raise e
-
-
 class MendatoryConfigEntries(ConfigEntry):
     """docstring for ClearanceConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
         super().__init__(bot, cfg_chan_id)
 
+    def is_valid(self, lang):
+        if lang in ALLOWED_LANGS:
+            return True
+        else:
+            return False
+
+
     async def run(self, ctx):
         try:
             #LANGUAGE CONFIG
+            print("conf")
             good = False
             while not good:
                 lang = await self.get_answer(ctx, f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with?")
-                if not self.is_valid(lang):
+                if not self.is_valid(lang.content):
                     continue
                 good = True
-            await ctx.send(f"You have selected {lang}. Glad you could find a language that suits you! If you think the translation is incomplete or could be improved, feel free to improve it. The translations are open to everyone on our {WEBSITE}.")
+            await ctx.send(f"You have selected {lang.content}. Glad you could find a language that suits you! If you think the translation is incomplete or could be improved, feel free to improve it. The translations are open to everyone on our {WEBSITE}.")
 
             with ConfigFile(ctx.guild.id) as conf:
-                conf["lang"] = lang
+                conf["lang"] = lang.content
 
             #ROLE CONFIG
+            await self.config_channel.send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
             await self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
             new_roles = []
@@ -154,9 +148,6 @@ class Config(commands.Cog, ConfigEntry):
         await self.config_channels[ctx.guild.id].send("**Starting full bot configuration...**")
 
         try:
-            await self.config_channels[ctx.guild.id].send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
-            #await ClearanceConfigEntry(self.bot, self.config_channel).run(ctx)
-
             for cog in self.bot.cogs:
                 if self.bot.cogs[cog].config_entry:
                     await self.bot.cogs[cog].config_entry(self.bot, self.config_channel).run(ctx)
