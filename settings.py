@@ -84,7 +84,7 @@ DEFAULT_SLAPPED_FILE = {
 }
 
 DEFAULT_SERVER_FILE = {
-    "lang": "en"
+    "lang": "en",
     "poll_channels": [],
     "todo_channel": False,
     "roles": {
