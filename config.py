@@ -41,10 +41,9 @@ class MendatoryConfigEntries(ConfigEntry):
     async def run(self, ctx):
         try:
             #LANGUAGE CONFIG
-            print("conf")
             good = False
             while not good:
-                lang = await self.get_answer(ctx, f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with?")
+                lang = await self.get_answer(ctx, f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with? Languages are expressed in their 2 letter code.")
                 if not self.is_valid(lang.content):
                     continue
                 good = True
@@ -54,7 +53,7 @@ class MendatoryConfigEntries(ConfigEntry):
                 conf["lang"] = lang.content
 
             #ROLE CONFIG
-            await self.config_channel.send("Role setup is **mendatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
+            await self.config_channel.send("Role setup is **mandatory** for the bot to work correctly. Otherwise no one will be able to use administration commands.")
             await self.config_channel.send("**\nStarting role configuration**\nThis bot uses two level of clearance for its commands.\nThe first one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe second level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.")
 
             new_roles = []
@@ -63,7 +62,15 @@ class MendatoryConfigEntries(ConfigEntry):
                 while retry:
                     new_role = []
                     #asking the owner which roles he wants to give clearance to
-                    roles = await self.get_answer(ctx, f"List all the roles you want to be given the **{role_lvl}** level of clearance.", filters=["roles"])
+                    pre_roles = await self.get_answer(ctx, f"List all the roles you want to be given the **{role_lvl}** level of clearance.")
+
+                    #converting to Role obj
+                    roles = []
+                    for role in pre_roles.content.split(" "):
+                        try:
+                            roles.append(await discord.ext.commands.RoleConverter().convert(ctx, role))
+                        except:
+                            continue
 
                     #making sure at least a role was selected
                     if len(roles)==0:
@@ -73,7 +80,7 @@ class MendatoryConfigEntries(ConfigEntry):
                     #building role string
                     roles_str = ""
                     for role in roles:
-                        roles_str += f" {role.mention}"
+                        roles_str += f" {role.name}"
 
                     #asking for confirmation
                     confirmed = await self.get_yn(ctx, f"You are about to give{roles_str} roles the **{role_lvl}** level of clearance. Do you confirm this ?")
@@ -132,6 +139,9 @@ class Config(commands.Cog, ConfigEntry):
         self.config_channels[g.id] = await g.create_text_channel("cli-bot-config", overwrites=overwrite)
         with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
             json.dump(DEFAULT_SERVER_FILE, file)
+
+        with open(os.path.join(SLAPPING_FOLDER, str(g.id)+".json"), "w") as file:
+            json.dump(DEFAULT_SLAPPED_FILE, file)
 
         return self.config_channels[g.id]
 

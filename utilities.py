@@ -48,9 +48,7 @@ def is_init():
 
 def was_init(ctx):
     '''same as the previous function except this one isn't a decorator. Mainly used for listenners'''
-    if f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER):
-        return True
-    return False
+    return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
 
 def has_auth(clearance, *args):
     '''checks whether the user invoking the command has the specified clearance level of clearance for the server the command is being ran on'''
