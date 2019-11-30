@@ -130,8 +130,8 @@ class Config(commands.Cog, ConfigEntry):
         g.owner : discord.PermissionOverwrite(read_messages=True)
         }
         self.config_channels[g.id] = await g.create_text_channel("cli-bot-config", overwrites=overwrite)
-        with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as conf:
-            conf = DEFAULT_SERVER_FILE
+        with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
+            json.dump(DEFAULT_SERVER_FILE, file)
 
         return self.config_channels[g.id]
 
