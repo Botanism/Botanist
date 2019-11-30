@@ -1,3 +1,3 @@
 {
-	"embed": "allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !"
+	"embed": ["allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !", "[message...]` embeds *message*"]
 }

@@ -1,6 +1,6 @@
 {
 	"poll": ["a suite of commands that lets one have more control over polls", {
-		"rm": "allows one to delete one of their poll by issuing its id",
-		"status" : "returns stats about your running polls. This is also called when one of you poll gets deleted."
+		"rm": ["allows one to delete one of their poll by issuing its id", "<id>` deletes poll with *id*"],
+		"status" : ["returns stats about your running polls. This is also called when one of you poll gets deleted.", "` returns nothing"]
 	}]
 }

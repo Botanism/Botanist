@@ -1,6 +1,6 @@
 {
-	"ping": "pongs back with current latency!",
-	"shutdown": "shutdown the bot",
-	"clear": "deletes specified <nbr> number of messages in the current channel",
-	"status": "returns statistics about the server and their members"
+	"ping": ["pongs back with current latency!", "` tells you the latency"],
+	"shutdown": ["shutdown the bot", "` shuts the bot down"],
+	"clear": ["deletes specified <nbr> number of messages in the current channel", "<nbr>` deletes *nbr* message(s) in the currenct channel."],
+	"status": ["returns statistics about the server and their members", "` embed stats about the server."]
 }
