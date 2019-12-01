@@ -19,29 +19,29 @@ This is a *guideline* which means that some exceptions may be made. However it i
 
 ### Requirements
 
-You will need python >= 3.7 and the library [discord.py](https://github.com/Rapptz/discord.py).
+You will need python >= 3.7 and the library [discord.py](https://github.com/Rapptz/discord.py) >=1.2.5.
 
 ### The serious stuff
 
-Fork the repository from the [GitHub page](https://github.com/s0lst1ce/ForeBot). This will make a copy of the repo on your account.
+Fork the repository from the [GitHub page](https://github.com/s0lst1ce/Botanist). This will make a copy of the repo on your account.
 
 Now you need to clone the repository, you can do it using your favourite client (e.g. GitHub Desktop, GitKraken...) or you can do it using your terminal with this command:
 
-`git clone https://github.com/s0lst1ce/ForeBot.git`
+`git clone https://github.com/s0lst1ce/Botanist.git`
 
 Then:
 
-`cd ForeBot` 
+`cd Botanist` 
 
 And there you go! This is a fast [explanation](https://discordapp.com/developers/docs/intro#bots-and-apps) about how to "create" a bot form the official discord's doc. You have to make an "app" and then you'll have a token in the "Bot" section of your App you will be able to see/copy your token.
 
-You'll have to copy this token to put it in the file `settings.py`. **Warning! Until the next update make sure to don't commit your token! Remove it before.** If you accidentally commit it you can regenerate it.
+**Tokens are precious as they give full access to your bot so be careful with them!** To run the bot you first need to set the environment variable `DISCORD_TOKEN` to the value of your bot's token. Otherwise the bot won't start.
 
 You'll also have to invite the bot on your developing server.
 
 To run the bot you just have to execute this command in your shell: 
 
-`python executioner.py` (depending on your installation you may have to use the command `python3`)
+`python main.py` (depending on your installation you may have to use the command `python3`)
 
 You're now able to edit the Bot! :tada: :confetti_ball:
 
@@ -53,6 +53,6 @@ Please respect the [Rules](#Rules) and then your improvement will be quickly acc
 
 You have to commit what you've done to your forked repository (on **your** GitHub account), and  then when it's done to push them.
 
-After that you have to make a PR, for that you can use a client (e.g. GitKraken) or do it directly from the GitHub website. Go on the forked repo (e.g. https://github.com/YOUR_NAME/ForeBot) and then go to the "Pull Requests" tab (between Code and Projects). Now click on "New Pull Request", select `s0lst1ce/ForeBot` for the "base repository" and your repo for the "head repository". *For both ones, select the right branch.*
+After that you have to make a PR, for that you can use a client (e.g. GitKraken) or do it directly from the GitHub website. Go on the forked repo (e.g. https://github.com/YOUR_NAME/Botanist) and then go to the "Pull Requests" tab (between Code and Projects). Now click on "New Pull Request", select `s0lst1ce/Botanist` for the "base repository" and your repo for the "head repository". *For both ones, select the right branch.*
 
 Then you can submit your PR, after that we will review your PR to avoid conflicts. It may take few days, please be patient, we'll always seriously consider any submission :wink:
