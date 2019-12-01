@@ -33,7 +33,6 @@ class Role(commands.Cog):
         self.config_entry = None
 
     @commands.group()
-    @has_auth("admin")
     async def role(self, ctx):
         '''role management utility. Requires a Gestion role'''
         if ctx.invoked_subcommand is None:
@@ -43,20 +42,33 @@ class Role(commands.Cog):
     @role.command()
     async def add(self, ctx, member: discord.Member, *roles:discord.Role):
         '''Gives <member> listed <roles> roles'''
-        if len(roles)==0:
+        #checking if member can self-assing role(s)
+        if not has_auth("admin")(ctx):
+            allowed_roles = []
+            with ConfigFile(ctx.guild.id) as conf:
+                for role in roles:
+                    if str(role.id) in conf["free_roles"]:
+                        allowed_roles.append(role)
+                    else:
+                        await ctx.send(f"You're not allowed to give yourself the {role.name} role. Ask a moderator if you think this is wrong.")
+
+        else:
+            allowed_roles = roles
+
+        if len(allowed_roles)==0:
             local_logger.warning("User didn't provide a role")
             await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
 
         else:
             try:
-                await member.add_roles(*roles)
+                await member.add_roles(*allowed_roles)
                 roles_str = ""
-                for role in roles:
+                for role in allowed_roles:
                     roles_str+= f" {role}"
 
                 await ctx.send(f"You gave {member.name} {roles_str} role(s).")
             except Exception as e:
-                local_logger.exception("Couldn't add {} to {}".format(roles, member))
+                local_logger.exception("Couldn't add {} to {}".format(allowed_roles, member))
                 await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
 
     @role.command()
