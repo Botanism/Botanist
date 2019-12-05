@@ -101,7 +101,6 @@ class Essentials(commands.Cog):
             json.dump(DEFAULT_SERVER_FILE)
         local_logger.info(f"Joined server {guild.name}")
 
-
     @commands.Cog.listener()
     async def on_ready(self):
         print('Logged in as {0.user}'.format(self.bot))
@@ -127,7 +126,7 @@ class Essentials(commands.Cog):
     async def ping(self, ctx):
         '''This command responds with the current latency.'''
         latency = self.bot.latency
-        await ctx.send("**Pong !** Latency of {0:.3f} seconds".format(latency))
+        await ctx.send(f"""{EMOJIS["ping_pong"]} Latency of {latency:.3f} seconds""")
 
     #Command that shuts down the bot
     @commands.command()
@@ -136,8 +135,7 @@ class Essentials(commands.Cog):
         print("Goodbye")
         local_logger.info("Switching to invisible mode")
         await self.bot.change_presence(status=discord.Status.offline)
-        #time.sleep(0.1)
-        await ctx.send("Goodbye")
+        await ctx.send(f"""Going to sleep {EMOJIS["sleeping"]}""")
         local_logger.info("Closing connection to discord")
         await self.bot.close()
         local_logger.info("Quitting python")
@@ -145,16 +143,52 @@ class Essentials(commands.Cog):
 
     @commands.command()
     @has_auth("manager")
-    async def clear(self, ctx, nbr: int):
+    async def clear(self, ctx, *filters):
         '''deletes specified <nbr> number of messages in the current channel'''
+        #building arguments
+        filters = list(filters)
+        nbr = None
+        period = None
+        members = []
+        try:
+            nbr = int(filters[0])
+            filters.pop(0)
+        except:
+            pass
+
+        if filters:
+            period = to_datetime(filters[0])
+            if period:
+                filters.pop(0)
+
+            for m in filters:
+                try:
+                    members.append(await discord.ext.commands.MemberConverter().convert(ctx, m))
+                except:
+                    raise discord.ext.commands.ArgumentParsingError(f"Unrecognized filter {m}")
+
+        hist_args = {}
+        if period:
+            hist_args["after"] = period
+        if nbr and not members:
+            hist_args["limit"] = nbr+1
+        if not (period or nbr):
+            raise discord.ext.commands.ArgumentParsingError("Can't delete all messages of a user!")
+
         to_del = []
         now = datetime.datetime.now()
-        async for msg in ctx.channel.history(limit=nbr+1):
-            local_logger.info("Deleting {}".format(msg))
-            if (msg.created_at - now).days <= -14:
-                await msg.delete()
-            else:
-                to_del.append(msg)
+        async for msg in ctx.channel.history(**hist_args):
+            if not members or msg.author in members:
+                local_logger.info("Deleting {}".format(msg))
+                if (msg.created_at - now).days <= -14:
+                    await msg.delete()
+                else:
+                    to_del.append(msg)
+
+                if nbr!=None:
+                    if nbr <=0:
+                        break
+                    nbr -= 1
 
         try:
             await ctx.channel.delete_messages(to_del)

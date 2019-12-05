@@ -45,6 +45,8 @@ EMOJIS = {
     "x": "\U0000274C",
     "X": "\U00002716",
     "warning": "\U000026a0",
+    "ping_pong": "\U0001f3d3",
+    "sleeping": "\U0001F634"
 }
 
 HELP_TAB = "  "
@@ -116,7 +118,7 @@ DEFAULT_TODO_FILE = {
 #                                       #
 #########################################
 
-LOG_FILE = "forebot.log"
+LOG_FILE = "botanist.log"
 LOGGING_HANDLER     = logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER   = logging.Formatter("\n[%(asctime)s][%(name)s]:%(message)s")
 LOGGING_LEVEL       = logging.INFO
@@ -139,11 +141,14 @@ ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you
 ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.")
 ERR_MISFORMED = ("Misformed command", "The command was malformed. See `::help <command>` to get more information on the command's usage")
 ERR_TOO_MANY_ARGS = ("Too many arguments", "This command requires less arguments. See `::help <command>` to get more information on the command's usage.")
+ERR_COMMAND_NOT_FOUND = ("Command not found", "This command doesn't exist. Type `::help` to get a list of commands.")
+ERR_UNSUFFICIENT_PERMS = ("Missing privileges", "I do not have the required privileges to do this. This is probably due to a bad setup. Please report it to the server owner.")
 
 
 ERRS_MAPPING = {
     ce.MissingRequiredArgument: ERR_NOT_ENOUGH_ARG,
     ce.ArgumentParsingError: ERR_MISFORMED,
     ce.TooManyArguments: ERR_TOO_MANY_ARGS,
-
+    ce.CommandNotFound: ERR_COMMAND_NOT_FOUND,
+    ce.BotMissingPermissions: ERR_UNSUFFICIENT_PERMS,
 }

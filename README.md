@@ -56,9 +56,9 @@ A suite of commands always activated which handle extension management. This can
 
 | Group | Command  |   Arguments   |                         Description                          | Clearance |
 | ----- | :------: | :-----------: | :----------------------------------------------------------: | --------- |
-| `ext` |  `add`   | `<extension>` | loads the  specified `<extension>` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
-| `ext` |   `rm`   | `<extension>` | removes the  specified `<extension>` bot extension. If the command fails the bot will continue to run with the extension. | runner    |
-| `ext` | `reload` | `<extension>` | reloads the  specified `<extension>` bot extension. If the command fails the extension will stay unloaded | runner    |
+| `ext` |  `add`   | `<extension>` | loads the  specified `extension` bot extension. If the command fails the bot will continue to run without the extension. | runner    |
+| `ext` |   `rm`   | `<extension>` | removes the  specified `extension` bot extension. If the command fails the bot will continue to run with the extension. | runner    |
+| `ext` | `reload` | `<extension>` | reloads the  specified `extension` bot extension. If the command fails the extension will stay unloaded | runner    |
 | `ext` |   `ls`   |               |  returns an embed with all the extensions and their status   | runner    |
 
 
@@ -69,7 +69,7 @@ This suite of commands provides automatic poll creation. A poll is an embed mess
 
 | Group  | Command | Arguments  |                         Description                          | Clearance |
 | ------ | :-----: | :--------: | :----------------------------------------------------------: | --------- |
-| `poll` |  `rm`   | `<msg_id>` | if the user is the author of the poll with the `<msg_id>` message, the bot deletes the specified poll. | *         |
+| `poll` |  `rm`   | `<msg_id>` | if the user is the author of the poll with the `msg_id` message, the bot deletes the specified poll. | *         |
 
 
 
@@ -77,9 +77,9 @@ This suite of commands provides automatic poll creation. A poll is an embed mess
 
 This extension allows any user to send a message as an embed. The color of the embed is defined by the user's role color.
 
-| Group | Command | Arguments |                         Description                          | Clearance |
-| ----- | :-----: | :-------: | :----------------------------------------------------------: | --------- |
-|       | `embed` |     *     | converts all arguments which form the user's message into a new embed one. Markdown is supported, including named links | *         |
+| Group | Command |   Arguments    |                         Description                          | Clearance |
+| ----- | :-----: | :------------: | :----------------------------------------------------------: | --------- |
+|       | `embed` | `[message...]` | converts all arguments which form the user's message into a new embed one. Markdown is supported, including named links | *         |
 
 
 
@@ -88,12 +88,12 @@ This extension allows any user to send a message as an embed. The color of the e
 This extension contains some of the most basic managing commands and should almost always be enabled.
 
 
-| Group |  Command   | Arguments |                         Description                          | Clearance |
-| :---: | :--------: | :-------: | :----------------------------------------------------------: | :-------: |
-|       |   `ping`   |           |   replies with the rounded latency of the message transfer   |     *     |
-|       | `shutdown` |           |                 shuts down the bot properly                  |  runner   |
-|       |  `clear`   |  `<nbr>`  | deletes the specified `<nbr>` number of messages in the current channel; chronologically |  manager  |
-|       |  `status`  |           | returns some statistics and info about the server and its members |     *     |
+| Group |  Command   |           Arguments           |                         Description                          | Clearance |
+| :---: | :--------: | :---------------------------: | :----------------------------------------------------------: | :-------: |
+|       |   `ping`   |                               |   replies with the rounded latency of the message transfer   |     *     |
+|       | `shutdown` |                               |                 shuts down the bot properly                  |  runner   |
+|       |  `clear`   | `[nbr] [period] [members...]` | this command lets one delete messages from a channel. The provided arguments are filters that will be applied to the messages selection process. `nbr` specifies the maximum number of messages that should be deleted. If not given then there is no maximum, **be careful with it**. This will always be respected although less messages may get deleted if `period` doesn't contain enough messages. `period` represents a time frame. The bot will look for all messages within this time frame. It should be constructed like `remind`. All messages which were sent between *now* and `period` will get deleted unless this represents more messages than `nbr`. `members...` is a list of server members. Only messages from these users will get deleted. You do not need to pass any of the arguments to the command and can pass any combination of them to the command. However they **must** be given in order! |  manager  |
+|       |  `status`  |                               | returns some statistics and info about the server and its members |     *     |
 
 
 
@@ -101,11 +101,11 @@ This extension contains some of the most basic managing commands and should almo
 
 Allows moderators to give quick and light warnings to disrespectful members. By slapping a member he gets notified of his misbehavior and knows who did it. Both the administrator and the user can see his/her slap count. The slap count is also cross-server.
 
-| Group |  Command  |      Arguments      |                         Description                          | Clearance |
-| ----- | :-------: | :-----------------: | :----------------------------------------------------------: | :-------: |
-|       |  `slap`   |    `<member>`, *    | slaps the specified `<member>` member one time. The other arguments will form the optional reason for the slap. |  manager  |
-|       | `forgive` | `<member>` *`<nbr>` | slaps the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
-|       |  `slaps`  |          *          | returns an embed with a list of all slapped members and their slap count. If arguments are given they must represent members or their ids/name. If so detailed info will be returned only of those members. It gives access to the slapping log. |  manager  |
+| Group |  Command  |        Arguments        |                         Description                          | Clearance |
+| ----- | :-------: | :---------------------: | :----------------------------------------------------------: | :-------: |
+|       |  `slap`   | `<member> [message...]` | slaps the specified `<member>` member one time. The other arguments will form the optional reason for the slap. |  manager  |
+|       | `forgive` |    `<member> [nbr]`     | forgives the specified `<member>` member `<nbr>` number of time(s). If `<nbr>` is unspecified, pardons the member of all his slaps. Member can be a mention, a user id or just the string of the name of the member. |  manager  |
+|       |  `slaps`  |     `[members...]`      | returns an embed with a list of all slapped members and their slap count. If arguments are given they must represent members or their ids/name. If so detailed info will be returned only of those members. It gives access to the slapping log. |  manager  |
 
 
 
@@ -113,10 +113,10 @@ Allows moderators to give quick and light warnings to disrespectful members. By 
 
 Allows moderators to add and remove roles to members.
 
-| Group  | Command |      Arguments       |                         Description                          |   Clearance   |
-| ------ | :-----: | :------------------: | :----------------------------------------------------------: | :-----------: |
-| `role` |  `add`  | `<member>` `<roles>` | adds the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
-| `role` |  `rm`   | `<member>` `<roles>` | removes the specified `<roles>` roles from the `<member>` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
+| Group  | Command |        Arguments        |                         Description                          |   Clearance   |
+| ------ | :-----: | :---------------------: | :----------------------------------------------------------: | :-----------: |
+| `role` |  `add`  | `<member>` `<roles...>` | adds the specified `roles` roles from the `member` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
+| `role` |  `rm`   | `<member>` `<roles...>` | removes the specified `roles` roles from the `member` member (roles mustn't be empty). Member can be a mention, a user id or just the string of the name of the member | administrator |
 
 
 
@@ -127,7 +127,7 @@ Allows the owner of a server to configure the behavior of the bot.
 | Group | Command |   Arguments   |                         Description                          | Clearance |
 | ----- | :-----: | :-----------: | :----------------------------------------------------------: | --------- |
 |       | `init`  |               | starts full configuration of the bot in a new, restricted, channel | owner     |
-|       |  `chg`  | `<extension>` | **DEPRECATED**<br />starts the configuration of the `<extension>` extension. This is done in a new, restricted, channel | owner     |
+|       |  `chg`  | `<extension>` | **DEPRECATED** <br/>starts the configuration of the `extension` extension. This is done in a new, restricted, channel | owner     |
 
 
 
@@ -135,11 +135,11 @@ Allows the owner of a server to configure the behavior of the bot.
 
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 
-| Group | Command  | Arguments |                         Description                          | Clearance |
-| :---: | :------: | :-------: | :----------------------------------------------------------: | --------- |
-|       | `update` |     *     | sends an update message to all users who own a server of which the bot is a member. The given arguments will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
-|       |  `log`   |           |                  returns the bot's log file                  | owner     |
-|       |  `dev`   |           | sends the development server URL to the author of the message |           |
+| Group | Command  |   Arguments    |                         Description                          | Clearance |
+| :---: | :------: | :------------: | :----------------------------------------------------------: | --------- |
+|       | `update` | `[message...]` | sends an update message to all users who own a server of which the bot is a member. `message` will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
+|       |  `log`   |                |                  returns the bot's log file                  | owner     |
+|       |  `dev`   |                | sends the development server URL to the author of the message |           |
 
 
 
@@ -147,9 +147,9 @@ Allows the developers to update the bot and notify all server owners of the chan
 
 Gives several time-related commands to ease organization. For now this only includes a remind function but an event planner is in the works.
 
-| Group | Command  | Arguments |                         Description                          | Clearance |
-| ----- | :------: | :-------: | :----------------------------------------------------------: | --------- |
-|       | `remind` |     *     | returns the specified message after the specified amount of time. To precise the delay before sending the message use the following format: `1d 15h 6m 01s` where `d` stands for days, `h` for hours, `m` for minutes and `s` for seconds. The numbers preceding them must be integers and represent the number of units to wait for (be it days, hours, minutes or seconds). All other words given as argument will form the message's content and will be sent in PM to the user after the specified delay has elapsed. | *         |
+| Group | Command  |       Arguments       |                         Description                          | Clearance |
+| ----- | :------: | :-------------------: | :----------------------------------------------------------: | --------- |
+|       | `remind` | `<date> [message...]` | returns the specified message after the specified amount of time. To precise the delay before sending the message use the following format: `1d15h6m1s` where `d` stands for days, `h` for hours, `m` for minutes and `s` for seconds. The numbers preceding them must be integers and represent the number of units to wait for (be it days, hours, minutes or seconds). All other words given as argument will form the message's content and will be sent in PM to the user after the specified delay has elapsed. | *         |
 
 
 
