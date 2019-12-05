@@ -1,5 +1,7 @@
 import logging
 import discord
+import asyncio
+import datetime
 import os
 from settings import *
 from utilities import *
@@ -32,6 +34,7 @@ class Slapping(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.config_entry = None
+		self.spams = {}
 
 	@commands.command()
 	@is_init()
@@ -58,7 +61,7 @@ class Slapping(commands.Cog):
 			#warning
 			warning = discord.Embed(
 				title = f"Slap {len(slaps[str(member.id)])}",
-				description = f"{member.mention} you've been slapped for the {len(slaps[str(member.id)])} time because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!",
+				description = f"{member.mention} you've been slapped {len(slaps[str(member.id)])} time(s) because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!",
 				color = 16741632)
 			warning.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 			await ctx.send(embed=warning)
@@ -148,6 +151,48 @@ class Slapping(commands.Cog):
 				embed.add_field(**field)
 
 		await ctx.send(embed=embed)
+
+	@commands.command()
+	@is_init()
+	@has_auth("manager")
+	async def mute(self, ctx, member:discord.Member, time, whole:bool=False):
+		until = to_datetime(time, sub=False)
+		if not whole:
+			await ctx.channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=False))
+		else:
+			pass
+
+		seconds = until.total_seconds()
+		await asyncio.sleep(seconds)
+		await ctx.channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=None))
+
+
+	@commands.command()
+	@is_init()
+	async def spam(self, ctx, member:discord.Member):
+		"""allows users to report spamming"""
+		if not ctx.guild in self.spams:
+			self.spams[ctx.guild] = {}
+
+		g_spams = self.spams[ctx.guild]
+
+		if member not in g_spams.keys():
+			g_spams[member] = [ctx.author]
+		else:
+			if ctx.author in g_spams[member]:
+				await ctx.send(f"""{EMOJIS["warning"]} You can't report spamming for the same user multiple times or that would in turn be spamming!""")
+			else:
+				g_spams[member].append(ctx.author)
+
+				#checking if a threshold was reached
+				pass
+
+		self.spams[ctx.guild] = g_spams
+
+	@commands.command()
+	@is_init()
+	async def abuse(self, ctx, member:discord.Member):
+		pass
 
 
 

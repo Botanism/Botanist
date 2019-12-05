@@ -1,6 +1,8 @@
+from collections import OrderedDict
 import logging
 import os
 import json
+import datetime
 import discord
 from settings import *
 from discord.ext import commands
@@ -13,10 +15,10 @@ from collections import UserDict
 #                                       #
 #                                       #
 #########################################
-LOCAL_LOGGER = logging.getLogger(__name__)
-LOCAL_LOGGER.setLevel(LOGGING_LEVEL)
-LOCAL_LOGGER.addHandler(LOGGING_HANDLER)
-LOCAL_LOGGER.info(f"Innitalized {__name__} logger")
+local_logger = logging.getLogger(__name__)
+local_logger.setLevel(LOGGING_LEVEL)
+local_logger.addHandler(LOGGING_HANDLER)
+local_logger.info(f"Innitalized {__name__} logger")
 
 
 #########################################
@@ -58,8 +60,9 @@ def has_auth(clearance, *args):
             for role in ctx.author.roles:
                 if role.id in allowed_roles:
                     return True
-            LOCAL_LOGGER.send(ERR_UNSUFFICIENT_PRIVILEGE)
-            LOCAL_LOGGER.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
+            local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            #await ctx.send(embed=get_embed_err(ERR_UNSUFFICIENT_PRIVILEGE))
             return False
 
     return commands.check(predicate)
@@ -92,19 +95,51 @@ def get_embed_err(error):
 
 
 
-def assert_struct():
+def assert_struct(guilds):
     try:
         files = os.listdir()
         to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
+        
+        for folder in [CONFIG_FOLDER, SLAPPING_FOLDER]:
+            g_folder = os.listdir(folder)
+            for g in guilds:
+                if str(g.id)+".json" not in g_folder:
+                    local_logger.warning(f"Missing config file for {g}!")
+                    with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
+                        json.dump(DEFAULT_SERVER_FILE)
+
         return True
 
     except Exception as e:
-        LOCAL_LOGGER.exception(e)
+        local_logger.exception(e)
         raise e
         return False
+
+time_seps = ["d", "h", "m", "s"]
+digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+def to_datetime(argument, sub=True):
+    times = OrderedDict([('y', 0), ('M', 0), ('d', 0), ('h', 0), ('m', 0), ('s', 0)])
+
+    last = 0
+    for char, i in zip(argument, range(len(argument))):
+        if char not in digits:
+            if char in time_seps:
+                times[char] = int(argument[last:i])
+                last = i+1
+            else:
+                return False
+        else:
+            continue
+
+    diff = datetime.timedelta(days=times["d"], hours=times["h"], minutes=times["m"], seconds=times["s"])
+    if sub:
+        return datetime.datetime.now() - diff
+    else:
+        return diff
 
 
 class Singleton(type):
@@ -134,7 +169,7 @@ class ConfigFile(UserDict):
                 self.force = force
 
                 #currently only supports "json" files
-                #assert fext=="json", LOCAL_LOGGER.error(f'''Can't load file with extension: {fext}''')
+                #assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
                 #if the extension is correct -> appending the extension name to the filename
                 self.file+= "." + self.fext
                 #making path
@@ -166,7 +201,7 @@ class ConfigFile(UserDict):
                         json.dump(self.data, file)
 
                 except Exception as e:
-                    LOCAL_LOGGER.exception(e)
+                    local_logger.exception(e)
                     raise e
 
             def read(self):
@@ -180,7 +215,7 @@ class ConfigFile(UserDict):
                     return self.data
 
                 except Exception as e:
-                    LOCAL_LOGGER.exception(e)
+                    local_logger.exception(e)
                     raise e
 
 

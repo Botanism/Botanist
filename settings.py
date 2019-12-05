@@ -46,7 +46,8 @@ EMOJIS = {
     "X": "\U00002716",
     "warning": "\U000026a0",
     "ping_pong": "\U0001f3d3",
-    "sleeping": "\U0001F634"
+    "sleeping": "\U0001F634",
+    "free": "\U0001f193"
 }
 
 HELP_TAB = "  "
@@ -93,6 +94,7 @@ DEFAULT_SERVER_FILE = {
         "manager": [],
         "admin": []
     },
+    "free_roles": [],
     "messages": {
         "welcome": False,
         "goodbye": False
@@ -151,4 +153,6 @@ ERRS_MAPPING = {
     ce.TooManyArguments: ERR_TOO_MANY_ARGS,
     ce.CommandNotFound: ERR_COMMAND_NOT_FOUND,
     ce.BotMissingPermissions: ERR_UNSUFFICIENT_PERMS,
+    ce.BadArgument:  ERR_MISFORMED,
+
 }
