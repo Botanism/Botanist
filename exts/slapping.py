@@ -28,6 +28,53 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #										#
 #########################################
 
+class CommunityModerationConfigEntry(ConfigEntry):
+	"""allows to configure spam and abuse commands"""
+	def __init__(self, bot, cfg_chan_id):
+		super().__init__(bot, cfg_chan_id)
+
+	async def run(self, ctx):
+		try:
+			await ctx.send("**Starting community moderation configuration**")
+			pursue = await self.get_yn(ctx, "Do you want to configure the community moderation repercusions?")
+			while pursue:
+				await ctx.send("This bot allows you to let the members of the server report unruly behaviors and take immediate action against it. This is great if you have a small moderation team or you'd like to ease their burden. Since all server are different it is important to tailor the thresholds of each rule for your server. There are 2 community moderation commands: `spam` and `abuse`. The first is a command that, when used by enough people on the same member, mutes the said member. The later allows members to report behaviors they consider unruly and that might have slipped the attention of the moderators.")
+
+				#spam config
+				not_integer = True
+				while not_integer:
+					mute_nbr = await self.get_answer(ctx, "How many reports should there be before a user is muted in the current text channel for 10 minutes?")
+					for i in mute_nbr:
+						if i not in DIGITS:
+							await ctx.send(f"""{EMOJIS["warning"]} You must respond with a number.""")
+							continue
+					not_integer = False
+					mute_nbr = int(mute_nbr)
+
+				#abuse config
+				has_chan = False
+				while not has_chan:
+					chan = await self.get_answer(ctx, "Reports will automatically be sent to a channel for moderators to review. Which should it be?", filters=["channels"])
+					if len(chan)!=1:
+						ctx.send("You must specify **exactly** one channel")
+						continue
+					has_chan = True
+
+				confirm = await self.get_yn(ctx, f"You are about to set the spam muting threshold to {mute_nbr} and the abuse reports channel to {chan}. Do you confirm this?")
+				if confirm:
+					with ConfigFile(ctx.guild.id) as conf:
+						conf["commode"]["spam"]["mute"] = mute_nbr
+						conf["commode"]["reports_chan"] = chan.id
+				else:
+					retry = await self.get_yn(ctx, "Do you want to retry?")
+					if retry:
+						continue
+					else:
+						pursue = False
+
+		except Exception as e:
+			raise e
+
 
 class Slapping(commands.Cog):
 	"""a suite of commands meant to help moderators handle the server"""
@@ -152,20 +199,37 @@ class Slapping(commands.Cog):
 
 		await ctx.send(embed=embed)
 
+
+
+	async def make_mute(self, channel, member, time):
+		seconds = time.total_seconds()
+
+		with ConfigFile(channel.guild.id, folder=TIMES_FOLDER) as count:
+			free_at = datetime.datetime.now().total_seconds() + seconds
+			if count[str(member.id)]:
+				for chan in count[str(member.id)]:
+					if chan[0] == channel.id:
+						int(chan[1]) += seconds
+						break
+
+				count[str(member.id)].append((channel.id, free_at))
+
+			else:
+				count[str(member.id)] = [(channel.id, free_at)]
+
+		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=False))
+		await asyncio.sleep(seconds)
+		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=None))		
+
 	@commands.command()
 	@is_init()
 	@has_auth("manager")
 	async def mute(self, ctx, member:discord.Member, time, whole:bool=False):
 		until = to_datetime(time, sub=False)
 		if not whole:
-			await ctx.channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=False))
+			await make_mute(ctx.channel, member, until)
 		else:
-			pass
-
-		seconds = until.total_seconds()
-		await asyncio.sleep(seconds)
-		await ctx.channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=None))
-
+			await ctx.send(COMING_SOON)
 
 	@commands.command()
 	@is_init()
@@ -185,7 +249,12 @@ class Slapping(commands.Cog):
 				g_spams[member].append(ctx.author)
 
 				#checking if a threshold was reached
-				pass
+				amount = len(g_spams[member])
+				with ConfigFile(ctx.guild.id) as conf:
+					com = conf["commode"]["spam"]
+					#muting user if necessary
+					if amount % com["mute"] == 0:
+						self.make_mute(ctx.channel, member, 960)
 
 		self.spams[ctx.guild] = g_spams
 

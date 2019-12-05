@@ -119,14 +119,14 @@ def assert_struct(guilds):
         return False
 
 time_seps = ["d", "h", "m", "s"]
-digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 def to_datetime(argument, sub=True):
     times = OrderedDict([('y', 0), ('M', 0), ('d', 0), ('h', 0), ('m', 0), ('s', 0)])
 
     last = 0
     for char, i in zip(argument, range(len(argument))):
-        if char not in digits:
+        if char not in DIGITS:
             if char in time_seps:
                 times[char] = int(argument[last:i])
                 last = i+1

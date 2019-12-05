@@ -47,8 +47,12 @@ EMOJIS = {
     "warning": "\U000026a0",
     "ping_pong": "\U0001f3d3",
     "sleeping": "\U0001F634",
-    "free": "\U0001f193"
+    "free": "\U0001f193",
+    "soon": "\U0001f51c"
 }
+
+#NotImplemented
+COMING_SOON = f'''Sorry this is not yet implemented. Coming Soon{EMOJIS["soon"]}'''
 
 HELP_TAB = "  "
 ALLOWED_LANGS = ["en"]
@@ -68,6 +72,7 @@ EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
+TIMES_FOLDER = "countdowns"
 
 #roles
 ROLES_LEVEL = ["manager", "admin"]
@@ -88,6 +93,12 @@ DEFAULT_SLAPPED_FILE = {
 
 DEFAULT_SERVER_FILE = {
     "lang": "en",
+    "commode": {
+        "reports_chan": False
+        "spam": {
+            "mute": 3,
+        },
+    },
     "poll_channels": [],
     "todo_channel": False,
     "roles": {
