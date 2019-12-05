@@ -24,13 +24,54 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+class RoleConfigEntry(ConfigEntry):
+    """user can choose which roles are "free" """
+    def __init__(self, bot, config_chan_id):
+        super().__init__(bot, config_chan_id)
 
+    async def run(self, ctx):
+        try:
+            await ctx.send("\n**Starting free roles configuration**")
+            free_roles = []
+            pursue = await self.get_yn(ctx, "Free roles can be gotten by everyone using the `role add` command. Do you want to set some?")
+            while pursue:
+                proles = await self.get_answer(ctx, '''List all the roles you want to be "free".''')
+                roles = []
+                for role in proles.content.split(" "):
+                    try:
+                        print(role)
+                        roles.append(await discord.ext.commands.RoleConverter().convert(ctx, role))
+                    except:
+                        pass
+                        #raise discord.ext.commands.ArgumentParsingError(f"Couldn't find role {role}")
+
+                roles_str = ""
+                for role in roles:
+                    print("building the string")
+                    roles_str += f" {role.name}"
+                agrees = await self.get_yn(ctx, f'''You are about to set {roles_str} as "free" roles. Are you sure?''')
+                
+                if not agrees:
+                    retry = await self.get_yn(ctx, "Do you want to retry?")
+                    if retry:
+                        continue
+                    else:
+                        pursue = False
+
+                else:
+                    pursue = False
+                    with ConfigFile(ctx.guild.id) as conf:
+                        print(roles)
+                        print([role.id for role in roles])
+                        conf["free_roles"] = [role.id for role in roles]
+        except:
+            raise
 
 class Role(commands.Cog):
     """role management utility. Requires a Gestion role"""
     def __init__(self, bot):
         self.bot = bot
-        self.config_entry = None
+        self.config_entry = RoleConfigEntry
 
     @commands.group()
     async def role(self, ctx):
