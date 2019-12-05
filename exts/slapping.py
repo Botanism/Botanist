@@ -250,7 +250,7 @@ class Slapping(commands.Cog):
 		if member not in g_spams.keys():
 			g_spams[member] = [ctx.author]
 		else:
-			if False: #ctx.author in g_spams[member]:
+			if ctx.author in g_spams[member]:
 				await ctx.send(f"""{EMOJIS["warning"]} You can't report spamming for the same user multiple times or that would in turn be spamming!""")
 			else:
 				g_spams[member].append(ctx.author)
@@ -262,15 +262,41 @@ class Slapping(commands.Cog):
 					#muting user if necessary
 					if amount % com["mute"] == 0:
 						await self.make_mute(ctx.channel, member, datetime.timedelta(seconds=960))
+						await ctx.send(f'''{EMOJIS["zip"]} Muted {member.mention} for 10 minutes because of spamming.''')
 
 		self.spams[ctx.guild] = g_spams
 
 	@commands.command()
 	@is_init()
-	async def abuse(self, ctx, member:discord.Member):
-		pass
+	async def abuse(self, ctx, member:discord.Member, *reason):
+		with ConfigFile(ctx.guild.id) as conf:
+			mod_chan = conf["commode"]["reports_chan"]
 
+		if len(reason)==0:
+			raise discord.ext.commands.MissingRequiredArgument("You need to provide a reason.")
 
+		if mod_chan==False:
+			await ctx.send(ERR_NOT_SETUP[1])
+		else:
+			mod_chan = ctx.guild.get_channel(mod_chan)
+
+		reason_str = ""
+		for word in reason:
+			reason_str += f" {word}"
+
+		report = f"{ctx.author.mention} reported unruly behavior from {member.mention} in {ctx.channel.mention}"
+
+		card = discord.Embed(
+			title = "Abuse report",
+			url = ctx.message.jump_url,
+			timestamp = datetime.datetime.now(),
+			color = 16729127,
+			description = report
+			)
+
+		card.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+		card.add_field(name="Reason", value=reason_str)
+		await mod_chan.send(embed=card)
 
 def setup(bot):
 	bot.add_cog(Slapping(bot))

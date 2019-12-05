@@ -48,7 +48,8 @@ EMOJIS = {
     "ping_pong": "\U0001f3d3",
     "sleeping": "\U0001F634",
     "free": "\U0001f193",
-    "soon": "\U0001f51c"
+    "soon": "\U0001f51c",
+    "zip": "\U0001f910"
 }
 
 #NotImplemented
