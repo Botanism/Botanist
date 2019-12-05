@@ -90,6 +90,7 @@ class Essentials(commands.Cog):
     async def on_command_error(self, ctx, error):
         """handles command errors"""
         raise error
+        local_logger.error(error)
         if type(error) in ERRS_MAPPING.keys():
             await ctx.send(embed=get_embed_err(ERRS_MAPPING[type(error)]))
         else:

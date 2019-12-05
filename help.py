@@ -49,7 +49,7 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 			title = "Help Interface",
 			description = strings["description"],
 			color = 7506394)
-		explanation.add_field(name="Usage", value=strings["usage"], inline=False)
+		#explanation.add_field(name="Usage", value=strings["usage"], inline=False)
 		await self.get_destination().send(embed=explanation)
 
 	async def send_cog_help(self, cog):
@@ -67,7 +67,7 @@ class Help(discord.ext.commands.DefaultHelpCommand):
 
 		cmds_str = "" #what if it ends up being >2k chars?
 		for cmd in cmds:
-			cmds_str += f"`{HELP_TAB}{cmd}` " + cmds[cmd][0].lower() + "\n\n"
+			cmds_str += f"{HELP_TAB}`{cmd} " + cmds[cmd][1].lower() + "\n\n"
 			#add a list of commands and their description/usage
 		embed_help = discord.Embed(
 			title = title,

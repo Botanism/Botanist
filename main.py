@@ -212,7 +212,7 @@ except Exception as e:
 
 #running the bot, no matter what
 finally:
-    if TOKEN!=None and assert_struct():
+    if TOKEN!=None and assert_struct(bot.guilds):
         print("Running bot")
         bot.run(TOKEN)
     elif TOKEN==None:
