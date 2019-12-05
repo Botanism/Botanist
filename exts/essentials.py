@@ -130,7 +130,7 @@ class Essentials(commands.Cog):
         await ctx.send("**Pong !** Latency of {0:.3f} seconds".format(latency))
 
     #Command that shuts down the bot
-    @commands.command()
+    @commands.command(aliases=['poweroff'])
     @is_runner()
     async def shutdown(self, ctx):
         print("Goodbye")
