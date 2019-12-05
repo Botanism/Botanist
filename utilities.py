@@ -191,7 +191,7 @@ class ConfigFile(UserDict):
                 if self.file not in files:
                     if not self.force: return False
                     with open(os.path.join(self.folder,self.file), "w") as file:
-                        pass #creating empty file
+                        json.dump({0: 0}, file) #creating empty file
                 return True
 
             def save(self):

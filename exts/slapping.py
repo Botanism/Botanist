@@ -44,12 +44,12 @@ class CommunityModerationConfigEntry(ConfigEntry):
 				not_integer = True
 				while not_integer:
 					mute_nbr = await self.get_answer(ctx, "How many reports should there be before a user is muted in the current text channel for 10 minutes?")
-					for i in mute_nbr:
+					for i in mute_nbr.content:
 						if i not in DIGITS:
 							await ctx.send(f"""{EMOJIS["warning"]} You must respond with a number.""")
 							continue
 					not_integer = False
-					mute_nbr = int(mute_nbr)
+					mute_nbr = int(mute_nbr.content)
 
 				#abuse config
 				has_chan = False
@@ -60,11 +60,12 @@ class CommunityModerationConfigEntry(ConfigEntry):
 						continue
 					has_chan = True
 
-				confirm = await self.get_yn(ctx, f"You are about to set the spam muting threshold to {mute_nbr} and the abuse reports channel to {chan}. Do you confirm this?")
+				confirm = await self.get_yn(ctx, f"You are about to set the spam muting threshold to {mute_nbr} and the abuse reports channel to {chan[0].mention}. Do you confirm this?")
 				if confirm:
 					with ConfigFile(ctx.guild.id) as conf:
 						conf["commode"]["spam"]["mute"] = mute_nbr
-						conf["commode"]["reports_chan"] = chan.id
+						conf["commode"]["reports_chan"] = chan[0].id
+					pursue = False
 				else:
 					retry = await self.get_yn(ctx, "Do you want to retry?")
 					if retry:
@@ -80,7 +81,7 @@ class Slapping(commands.Cog):
 	"""a suite of commands meant to help moderators handle the server"""
 	def __init__(self, bot):
 		self.bot = bot
-		self.config_entry = None
+		self.config_entry = CommunityModerationConfigEntry
 		self.spams = {}
 
 	@commands.command()
@@ -202,22 +203,28 @@ class Slapping(commands.Cog):
 
 
 	async def make_mute(self, channel, member, time):
+		print(type(time))
 		seconds = time.total_seconds()
 
 		with ConfigFile(channel.guild.id, folder=TIMES_FOLDER) as count:
-			free_at = datetime.datetime.now().total_seconds() + seconds
-			if count[str(member.id)]:
+			free_at = datetime.datetime.now().timestamp() + seconds
+			if str(member.id) in count.keys():
+				same = False
 				for chan in count[str(member.id)]:
-					if chan[0] == channel.id:
-						int(chan[1]) += seconds
-						break
+					print(chan[0], channel.id)
+					print(int(chan[0])==channel.id)
+					if int(chan[0]) == channel.id:
+						chan[1] = int(chan[1]) + seconds
+						same = True
 
-				count[str(member.id)].append((channel.id, free_at))
+				if not same:
+					count[str(member.id)].append((channel.id, free_at))
 
 			else:
 				count[str(member.id)] = [(channel.id, free_at)]
 
 		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=False))
+		print(seconds)
 		await asyncio.sleep(seconds)
 		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=None))		
 
@@ -227,7 +234,7 @@ class Slapping(commands.Cog):
 	async def mute(self, ctx, member:discord.Member, time, whole:bool=False):
 		until = to_datetime(time, sub=False)
 		if not whole:
-			await make_mute(ctx.channel, member, until)
+			await self.make_mute(ctx.channel, member, until)
 		else:
 			await ctx.send(COMING_SOON)
 
@@ -243,7 +250,7 @@ class Slapping(commands.Cog):
 		if member not in g_spams.keys():
 			g_spams[member] = [ctx.author]
 		else:
-			if ctx.author in g_spams[member]:
+			if False: #ctx.author in g_spams[member]:
 				await ctx.send(f"""{EMOJIS["warning"]} You can't report spamming for the same user multiple times or that would in turn be spamming!""")
 			else:
 				g_spams[member].append(ctx.author)
@@ -254,7 +261,7 @@ class Slapping(commands.Cog):
 					com = conf["commode"]["spam"]
 					#muting user if necessary
 					if amount % com["mute"] == 0:
-						self.make_mute(ctx.channel, member, 960)
+						await self.make_mute(ctx.channel, member, datetime.timedelta(seconds=960))
 
 		self.spams[ctx.guild] = g_spams
 

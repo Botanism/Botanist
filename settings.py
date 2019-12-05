@@ -94,7 +94,7 @@ DEFAULT_SLAPPED_FILE = {
 DEFAULT_SERVER_FILE = {
     "lang": "en",
     "commode": {
-        "reports_chan": False
+        "reports_chan": False,
         "spam": {
             "mute": 3,
         },
