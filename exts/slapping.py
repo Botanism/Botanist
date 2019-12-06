@@ -84,7 +84,7 @@ class Slapping(commands.Cog):
 		self.config_entry = CommunityModerationConfigEntry
 		self.spams = {}
 
-	@commands.command()
+	@commands.command(aliases=['warn'])
 	@is_init()
 	@has_auth("manager")
 	async def slap(self, ctx, member:discord.Member, *reason):
@@ -114,7 +114,7 @@ class Slapping(commands.Cog):
 			warning.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 			await ctx.send(embed=warning)
 
-	@commands.command()
+	@commands.command(alias=['pardon'])
 	@is_init()
 	@has_auth("manager")
 	async def forgive(self, ctx, member:discord.Member, nbr=0):
@@ -137,7 +137,7 @@ class Slapping(commands.Cog):
 			pardon.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 			await ctx.send(embed=pardon)
 
-	@commands.command()
+	@commands.command(aliases=["warnings"])
 	@is_init()
 	@has_auth("manager")
 	async def slaps(self, ctx, *members:discord.Member):
