@@ -203,7 +203,6 @@ class Slapping(commands.Cog):
 
 
 	async def make_mute(self, channel, member, time):
-		print(type(time))
 		seconds = time.total_seconds()
 
 		with ConfigFile(channel.guild.id, folder=TIMES_FOLDER) as count:
@@ -211,8 +210,6 @@ class Slapping(commands.Cog):
 			if str(member.id) in count.keys():
 				same = False
 				for chan in count[str(member.id)]:
-					print(chan[0], channel.id)
-					print(int(chan[0])==channel.id)
 					if int(chan[0]) == channel.id:
 						chan[1] = int(chan[1]) + seconds
 						same = True
@@ -224,7 +221,6 @@ class Slapping(commands.Cog):
 				count[str(member.id)] = [(channel.id, free_at)]
 
 		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=False))
-		print(seconds)
 		await asyncio.sleep(seconds)
 		await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(send_messages=None))		
 
@@ -269,11 +265,11 @@ class Slapping(commands.Cog):
 	@commands.command()
 	@is_init()
 	async def abuse(self, ctx, member:discord.Member, *reason):
-		with ConfigFile(ctx.guild.id) as conf:
-			mod_chan = conf["commode"]["reports_chan"]
-
 		if len(reason)==0:
 			raise discord.ext.commands.MissingRequiredArgument("You need to provide a reason.")
+
+		with ConfigFile(ctx.guild.id) as conf:
+			mod_chan = conf["commode"]["reports_chan"]
 
 		if mod_chan==False:
 			await ctx.send(ERR_NOT_SETUP[1])

@@ -97,12 +97,14 @@ def get_embed_err(error):
 
 def assert_struct(guilds):
     try:
+        #making sure all folder are built
         files = os.listdir()
         to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
         
+        #making sure all config files are here, with their at least their default content
         for folder in [CONFIG_FOLDER, SLAPPING_FOLDER]:
             g_folder = os.listdir(folder)
             for g in guilds:
@@ -110,6 +112,10 @@ def assert_struct(guilds):
                     local_logger.warning(f"Missing config file for {g}!")
                     with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
                         json.dump(DEFAULT_SERVER_FILE)
+
+        #making sure the lang folder is complete
+        
+
 
         return True
 
