@@ -74,6 +74,7 @@ SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
 TIMES_FOLDER = "countdowns"
+LANG_FOLDER = "lang"
 
 #roles
 ROLES_LEVEL = ["manager", "admin"]
