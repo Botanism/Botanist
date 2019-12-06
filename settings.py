@@ -13,7 +13,7 @@ import discord.ext.commands.errors as ce
 
 PREFIX = "::"
 TOKEN = os.getenv("DISCORD_TOKEN", default=None)
-RUNNER_ID=167268121806241792
+RUNNER_ID=289426079544901633
 
 #server with all of the bot's devs. Where all bug reports should be made.
 DEV_SRV = 564213369834307600
