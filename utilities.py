@@ -241,7 +241,7 @@ class Translator(object):
         self._dict = self.load_strings()
 
     def __getitem__(self, key):
-        print(self._dict[key])
+        #print(self._dict[key])
         return self._dict[key]
 
     def __setitem__(self, key, item):
