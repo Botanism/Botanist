@@ -14,11 +14,25 @@ I ([@s0lst1ce](https://github.com/s0lst1ce)) started building this bot at the en
 
 ​	After the very first version I got some help of a friend of mine. Together we made the bot evolve so that it could join the ranks of other servers. Indeed I had started to realize that the bot, however simple, may be useful to others.
 
-## Contributing
+## Contribution
 
 If you want to contribute that would be awesome ! We would love that :smile: !
 
 So to help you out, here are some tips to get you going: [CONTRIBUTING.md](https://github.com/s0lst1ce/ForeBot/blob/master/CONTRIBUTING.md).
+
+#### Contributors
+
+Here's an exhaustive list of the bot's contributors:
+
+- @adrienluitot : he has helped develop the bot since the beginning. His involvement ranges from giving opinions, shaping the future of the bot and some small snippets of code. He's also the author of the `Todo` extension, one of our biggest.
+- @s0lst1ce : author and owner of the bot. He has thought out and written most of the bot. What we currently call the bot is practically entirely due to him.
+- @BlueHolmesMan : author of the french translation.
+
+
+
+Thanks to all of you who've made this project be, kept it alive and as available as possible. We owe you everything!
+
+
 
 ## Commands
 
