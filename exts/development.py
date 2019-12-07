@@ -26,6 +26,7 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+name = __name__.split(".")[-1]
 
 class Development(commands.Cog):
     """A suite of commands meant to let users give feedback about the bot: whether it's suggestions or bug reports.
@@ -69,7 +70,8 @@ class Development(commands.Cog):
     @commands.command()
     async def dev(self, ctx):
         """sends the developement server URL to the author of the message"""
-        await ctx.author.send("I'm full of joy seeing how interested you seem to be about me! Hopefully it's not for a bug report... In any case, here's the server where I'm developed: " + DEV_SRV_URL)
+        tr = Translator(name, get_lang(ctx))
+        await ctx.author.send(tr["dev"] + DEV_SRV_URL)
 
 
 
