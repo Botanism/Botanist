@@ -108,13 +108,14 @@ def assert_struct(guilds):
         for folder in [CONFIG_FOLDER, SLAPPING_FOLDER]:
             g_folder = os.listdir(folder)
             for g in guilds:
-                if str(g.id)+".json" not in g_folder:
+                if (str(g.id)+".json" not in g_folder) or (os.path.getsize(folder + str(g.id)+ ".json")==0):
                     local_logger.warning(f"Missing config file for {g}!")
                     with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
                         json.dump(DEFAULT_SERVER_FILE)
 
         #making sure the lang folder is complete
-        
+
+
 
 
         return True
@@ -237,7 +238,18 @@ class Translator(object):
         else:
             name = "strings"
 
-        self.file = os.path.join("lang", ext, name+self.lang)
+        self.file = os.path.join("lang", ext, name + "." + self.lang)
+        self._dict = self.load_strings()
+
+    def __getitem__(self, key):
+        #print(self._dict[key])
+        return self._dict[key]
+
+    def __setitem__(self, key, item):
+        if type(item) == str:
+            self._dict[key] = item
+        else:
+            raise TypeError("Translations must be strings!")
 
     def load_strings(self):
         with open(self.file, "r") as translation:
@@ -253,6 +265,11 @@ class Translator(object):
 
         else:
             raise TypeError("lang must be <str> or <discord.ext.commands.Context> not {}".format(type(lang)))
+
+def get_lang(ctx):
+    with ConfigFile(ctx.guild.id) as conf:
+        return conf["lang"]
+
 
 
 class ConfigEntry():

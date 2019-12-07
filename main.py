@@ -135,7 +135,7 @@ async def ls(ctx):
         enabled= []
         running = []
         disabled = []
-        #fetching list of enbaled and disabled extensions -> should be soft coded
+        #fetching list of enbaled and disabled extensions
         with ConfigFile(EXTENSIONS_FILE[:-5], folder=".") as exts:
             for e in exts:
                 if exts[e]==True:

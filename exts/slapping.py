@@ -19,7 +19,6 @@ local_logger.addHandler(LOGGING_HANDLER)
 local_logger.info("Innitalized {} logger".format(__name__))
 
 
-
 #########################################
 #										#
 #										#
@@ -28,25 +27,28 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #										#
 #########################################
 
+name = __name__.split(".")[-1]
+
 class CommunityModerationConfigEntry(ConfigEntry):
 	"""allows to configure spam and abuse commands"""
 	def __init__(self, bot, cfg_chan_id):
 		super().__init__(bot, cfg_chan_id)
 
 	async def run(self, ctx):
+		tr = Translator(name, get_lang(ctx))
 		try:
-			await ctx.send("**Starting community moderation configuration**")
-			pursue = await self.get_yn(ctx, "Do you want to configure the community moderation repercusions?")
+			await ctx.send(tr["start_conf"])
+			pursue = await self.get_yn(ctx, tr["pursue"])
 			while pursue:
-				await ctx.send("This bot allows you to let the members of the server report unruly behaviors and take immediate action against it. This is great if you have a small moderation team or you'd like to ease their burden. Since all server are different it is important to tailor the thresholds of each rule for your server. There are 2 community moderation commands: `spam` and `abuse`. The first is a command that, when used by enough people on the same member, mutes the said member. The later allows members to report behaviors they consider unruly and that might have slipped the attention of the moderators.")
+				await ctx.send(tr["ext_explanation"])
 
 				#spam config
 				not_integer = True
 				while not_integer:
-					mute_nbr = await self.get_answer(ctx, "How many reports should there be before a user is muted in the current text channel for 10 minutes?")
+					mute_nbr = await self.get_answer(ctx, tr["mute_threshold"])
 					for i in mute_nbr.content:
 						if i not in DIGITS:
-							await ctx.send(f"""{EMOJIS["warning"]} You must respond with a number.""")
+							await ctx.send(tr["assert_number"].format(EMOJIS["warning"]))
 							continue
 					not_integer = False
 					mute_nbr = int(mute_nbr.content)
@@ -54,20 +56,20 @@ class CommunityModerationConfigEntry(ConfigEntry):
 				#abuse config
 				has_chan = False
 				while not has_chan:
-					chan = await self.get_answer(ctx, "Reports will automatically be sent to a channel for moderators to review. Which should it be?", filters=["channels"])
+					chan = await self.get_answer(ctx, tr["mod_chan"], filters=["channels"])
 					if len(chan)!=1:
-						ctx.send("You must specify **exactly** one channel")
+						ctx.send(tr["exactly_one"])
 						continue
 					has_chan = True
 
-				confirm = await self.get_yn(ctx, f"You are about to set the spam muting threshold to {mute_nbr} and the abuse reports channel to {chan[0].mention}. Do you confirm this?")
+				confirm = await self.get_yn(ctx, tr["confirm_settings"].format(mute_nbr, chan[0].mention))
 				if confirm:
 					with ConfigFile(ctx.guild.id) as conf:
 						conf["commode"]["spam"]["mute"] = mute_nbr
 						conf["commode"]["reports_chan"] = chan[0].id
 					pursue = False
 				else:
-					retry = await self.get_yn(ctx, "Do you want to retry?")
+					retry = await self.get_yn(ctx, tr["retry"])
 					if retry:
 						continue
 					else:
@@ -89,12 +91,13 @@ class Slapping(commands.Cog):
 	@has_auth("manager")
 	async def slap(self, ctx, member:discord.Member, *reason):
 		'''Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server'''
+		tr = Translator(name, get_lang(ctx))
 		if len(reason):
 			reason_str=""
 			for w in reason:
 				reason_str+=f" {w}"
 		else:
-			reason_str= "your behavior"
+			reason_str= tr["default_reason"]
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
 			#building audit log entry
@@ -108,8 +111,8 @@ class Slapping(commands.Cog):
 
 			#warning
 			warning = discord.Embed(
-				title = f"Slap {len(slaps[str(member.id)])}",
-				description = f"{member.mention} you've been slapped {len(slaps[str(member.id)])} time(s) because of {reason_str}! Be careful, if you get slapped too much there *will* be consequences!",
+				title = tr["slap_title"].format(len(slaps[str(member.id)])),
+				description = tr["slap_description"].format(member.mention, len(slaps[str(member.id)]), reason_str),
 				color = 16741632)
 			warning.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 			await ctx.send(embed=warning)
@@ -118,6 +121,7 @@ class Slapping(commands.Cog):
 	@is_init()
 	@has_auth("manager")
 	async def forgive(self, ctx, member:discord.Member, nbr=0):
+		tr = Translator(name, get_lang(ctx))
 		'''Pardonning a member to reduce his slap count'''
 
 		with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
@@ -129,10 +133,10 @@ class Slapping(commands.Cog):
 					slaps[str(member.id)].pop()
 
 			#pardon
-			slp_nbr = nbr or "all"
+			slp_nbr = nbr or tr["slp_nbr_all"]
 			pardon = discord.Embed(
-				title = f"You were forgiven {slp_nbr} of your mistake(s).",
-				description = f"{ctx.message.author.name} has pardonned you for some of your mistakes {member.mention}.",
+				title = tr["forgive_title"].format(slp_nbr),
+				description = tr["forgive_description"].format(ctx.message.author.name, member.mention),
 				color = 6281471)
 			pardon.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
 			await ctx.send(embed=pardon)
@@ -142,6 +146,7 @@ class Slapping(commands.Cog):
 	@has_auth("manager")
 	async def slaps(self, ctx, *members:discord.Member):
 		'''returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided.'''
+		tr = Translator(name, get_lang(ctx))
 		fields = []
 		#a single string if there's no member argument
 		if not len(members):fields = ""
@@ -166,33 +171,33 @@ class Slapping(commands.Cog):
 							#building reason
 							reason = message.content.split(" ", 2)
 							if len(reason)==2:
-								reason="**for no provided reason**"
+								reason= tr["slaps_default_reason"]
 							else:
-								reason = f"because of **{reason[2]}**"
+								reason = tr["other_reason"].format(reason[2])
 							author = message.author.name
 						except discord.NotFound as e:
-							reason = "**Message deleted**"
+							reason = tr["message_deleted"]
 							author = None
 
 
 						#building string
-						crt_str+=f"[{author}](https://discordapp.com/channels/{ctx.guild.id}/{s}) slapped {member.name} {reason}\n"
-					fields.append({"name":f"{member.name} has been slapped {len(slaps[m])} time(s)", "value":crt_str, "inline":False})
+						crt_str += tr["crt_str"].format(author, ctx.guild.id, s, member.name, reason)
+					fields.append({"name": tr["new_field_name"].format(member.name, len(slaps[m])), "value":crt_str, "inline":False})
 
 		#checking if a member has been slapped
 		if not fields:
-			await ctx.send("Congratulations! Your server is so full of respect that not a single member is slapped"+EMOJIS["tada"])
+			await ctx.send(tr["no_slaps"] +EMOJIS["tada"])
 			return
 
 		#if a user has been slapped
 		embed = discord.Embed(
-			title="Slaps "+EMOJIS["hammer"],
-			description="The slapped users and their infraction(s)",
+			title= tr["slaps_title"] + EMOJIS["hammer"],
+			description= tr["slaps_description"],
 			colour=16741632) #used to be blurpple 7506394
 		
 		#adding fields
 		if not len(members):
-			embed.add_field(name="Members List", value=fields)
+			embed.add_field(name=tr["member_list"], value=fields)
 
 		else:
 			for field in fields:
@@ -238,6 +243,7 @@ class Slapping(commands.Cog):
 	@is_init()
 	async def spam(self, ctx, member:discord.Member):
 		"""allows users to report spamming"""
+		tr = Translator(name, get_lang(ctx))
 		if not ctx.guild in self.spams:
 			self.spams[ctx.guild] = {}
 
@@ -247,7 +253,7 @@ class Slapping(commands.Cog):
 			g_spams[member] = [ctx.author]
 		else:
 			if ctx.author in g_spams[member]:
-				await ctx.send(f"""{EMOJIS["warning"]} You can't report spamming for the same user multiple times or that would in turn be spamming!""")
+				await ctx.send(EMOJIS["warning"] + tr["cant_multi_spam"])
 			else:
 				g_spams[member].append(ctx.author)
 
@@ -258,7 +264,7 @@ class Slapping(commands.Cog):
 					#muting user if necessary
 					if amount % com["mute"] == 0:
 						await self.make_mute(ctx.channel, member, datetime.timedelta(seconds=960))
-						await ctx.send(f'''{EMOJIS["zip"]} Muted {member.mention} for 10 minutes because of spamming.''')
+						await ctx.send(EMOJIS["zip"] + tr["spam_muted"].format(member.mention))
 
 		self.spams[ctx.guild] = g_spams
 
@@ -268,6 +274,7 @@ class Slapping(commands.Cog):
 		if len(reason)==0:
 			raise discord.ext.commands.MissingRequiredArgument("You need to provide a reason.")
 
+		tr = Translator(name, get_lang(ctx))
 		with ConfigFile(ctx.guild.id) as conf:
 			mod_chan = conf["commode"]["reports_chan"]
 
@@ -280,10 +287,10 @@ class Slapping(commands.Cog):
 		for word in reason:
 			reason_str += f" {word}"
 
-		report = f"{ctx.author.mention} reported unruly behavior from {member.mention} in {ctx.channel.mention}"
+		report = tr["report"].format(ctx.author.mention, member.mention, ctx.channel.mention)
 
 		card = discord.Embed(
-			title = "Abuse report",
+			title = tr["reason_title"],
 			url = ctx.message.jump_url,
 			timestamp = datetime.datetime.now(),
 			color = 16729127,
@@ -291,7 +298,7 @@ class Slapping(commands.Cog):
 			)
 
 		card.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
-		card.add_field(name="Reason", value=reason_str)
+		card.add_field(name=tr["reason_name"], value=reason_str)
 		await mod_chan.send(embed=card)
 
 def setup(bot):

@@ -27,22 +27,25 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-class PollConfigEntry(ConfigEntry, metaclass=Singleton):
+name = __name__.split(".")[-1]
+
+class PollConfigEntry(ConfigEntry):
     """docstring for PollConfigEntry"""
     def __init__(self, bot, cfg_chan_id):
         super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
-        await self.config_channel.send("**Starting poll configuration**")
-        pursue = await self.get_yn(ctx, "Do you want to activate polls on this server?")
+        tr = Translator(name, get_lang(ctx))
+        await self.config_channel.send(tr["start_conf"])
+        pursue = await self.get_yn(ctx, tr["pursue"])
         if not pursue: return False
         retry =  True
 
         while retry:
             #getting the list of channels to be marked as polls
-            poll_channels = await self.get_answer(ctx, f"List all the channels you want to use as poll channels. You must mention those channels like this: {self.config_channel.mention}", filters=["channels"])
+            poll_channels = await self.get_answer(ctx, tr["poll_channels"].format(self.config_channel.mention), filters=["channels"])
             if self.config_channel in poll_channels:
-                await self.config_channel.send("You cannot set this channel as a poll channel. Please try again...")
+                await self.config_channel.send(tr["invalid_chan"])
                 continue
 
             poll_channels_str = ""
@@ -50,10 +53,10 @@ class PollConfigEntry(ConfigEntry, metaclass=Singleton):
                 poll_channels_str += f"{chan.mention},"
             poll_channels_str = poll_channels_str[:-1]
 
-            confirmed = await self.get_yn(ctx, f"You are about to make {poll_channels_str} poll channels. Do you want to continue?")
+            confirmed = await self.get_yn(ctx, tr["confirmed"].format(poll_channels_str))
             if not confirmed:
                 #making sure the user really wants to quit
-                drop = await self.get_yn(ctx, "Aborting addition of poll channels. Do you want to leave the poll configuration interface ?")
+                drop = await self.get_yn(ctx, tr["drop"])
                 if drop:
                     local_logger.info(f"Poll configuration has been cancelled for server {ctx.guild.name}")
                     retry = False
@@ -67,7 +70,7 @@ class PollConfigEntry(ConfigEntry, metaclass=Singleton):
         with ConfigFile(ctx.guild.id) as conf:
             conf["poll_channels"] = poll_channels_ids
 
-        await self.config_channel.send("Poll configuration is done.")
+        await self.config_channel.send(tr["conf_done"])
         local_logger.info(f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed.")
 
 
@@ -224,7 +227,7 @@ class Poll(commands.Cog):
         '''a suite of commands that lets one have more control over polls'''
         if ctx.invoked_subcommand == None:
             local_logger.warning("User didn't provide any subcommand")
-            await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+            raise discord.ext.commands.MissingRequiredArgument("Group requires a subcommand")
 
 
     @poll.command()
