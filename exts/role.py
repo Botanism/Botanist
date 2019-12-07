@@ -24,18 +24,21 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+name = __name__.split(".")[-1]
+
 class RoleConfigEntry(ConfigEntry):
     """user can choose which roles are "free" """
     def __init__(self, bot, config_chan_id):
         super().__init__(bot, config_chan_id)
 
     async def run(self, ctx):
+        tr = Translator(name, get_lang(ctx))
         try:
-            await ctx.send("\n**Starting free roles configuration**")
+            await ctx.send(tr["start_conf"])
             free_roles = []
-            pursue = await self.get_yn(ctx, "Free roles can be gotten by everyone using the `role add` command. Do you want to set some?")
+            pursue = await self.get_yn(ctx, tr["pursue"])
             while pursue:
-                proles = await self.get_answer(ctx, '''List all the roles you want to be "free".''')
+                proles = await self.get_answer(ctx, tr["proles"])
                 roles = []
                 for role in proles.content.split(" "):
                     try:
@@ -47,12 +50,11 @@ class RoleConfigEntry(ConfigEntry):
 
                 roles_str = ""
                 for role in roles:
-                    print("building the string")
                     roles_str += f" {role.name}"
-                agrees = await self.get_yn(ctx, f'''You are about to set {roles_str} as "free" roles. Are you sure?''')
+                agrees = await self.get_yn(ctx, tr["agrees"].format(roles_str))
                 
                 if not agrees:
-                    retry = await self.get_yn(ctx, "Do you want to retry?")
+                    retry = await self.get_yn(ctx, tr["retry"])
                     if retry:
                         continue
                     else:
@@ -76,13 +78,12 @@ class Role(commands.Cog):
     @commands.group()
     async def role(self, ctx):
         '''role management utility. Requires a Gestion role'''
-        if ctx.invoked_subcommand is None:
-            local_logger.warning("User didn't provide any subcommand")
-            await ctx.send("NotEnoughArguments:\tYou must provide a subcommand")
+        pass
 
     @role.command()
     async def add(self, ctx, member: discord.Member, *roles:discord.Role):
         '''Gives <member> listed <roles> roles'''
+        tr = Translator(name, get_lang(ctx))
         #checking if member can self-assing role(s)
         if not has_auth("admin")(ctx):
             allowed_roles = []
@@ -91,14 +92,14 @@ class Role(commands.Cog):
                     if str(role.id) in conf["free_roles"]:
                         allowed_roles.append(role)
                     else:
-                        await ctx.send(f"You're not allowed to give yourself the {role.name} role. Ask a moderator if you think this is wrong.")
+                        await ctx.send(tr["not_free_role"].format(role.name))
 
         else:
             allowed_roles = roles
 
         if len(allowed_roles)==0:
             local_logger.warning("User didn't provide a role")
-            await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
+            raise discord.ext.commands.MissingRequiredArgument("You must provide at least one role.")
 
         else:
             try:
@@ -107,24 +108,24 @@ class Role(commands.Cog):
                 for role in allowed_roles:
                     roles_str+= f" {role}"
 
-                await ctx.send(f"You gave {member.name} {roles_str} role(s).")
+                await ctx.send(tr["gave"].format(member.name, roles_str))
             except Exception as e:
                 local_logger.exception("Couldn't add {} to {}".format(allowed_roles, member))
-                await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
+                raise e
 
     @role.command()
     async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
         '''Removes <member>'s <roles> roles'''
         if len(roles)==0:
             local_logger.warning("User didn't provide a role")
-            await ctx.send("NotEnoughArguments:\tYou must provide at least one `role`")
+            raise discord.ext.commands.MissingRequiredArgument("You must provide at least one role.")
 
         else:
             try:
                 await member.remove_roles(*roles)
             except Exception as e:
                 local_logger.exception("Couldn't remove roles ")
-                await ctx.send("An unexpected error occured !\nTraceback:```python\n{}```".format(e))
+                raise e
 
 
 def setup(bot):
