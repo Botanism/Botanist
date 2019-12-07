@@ -108,12 +108,13 @@ def assert_struct(guilds):
         for folder in [CONFIG_FOLDER, SLAPPING_FOLDER]:
             g_folder = os.listdir(folder)
             for g in guilds:
-                if str(g.id)+".json" not in g_folder:
+                if (str(g.id)+".json" not in g_folder) or (os.path.getsize(folder + str(g.id)+ ".json")==0):
                     local_logger.warning(f"Missing config file for {g}!")
                     with open(os.path.join(CONFIG_FOLDER, str(g.id)+".json"), "w") as file:
                         json.dump(DEFAULT_SERVER_FILE)
 
         #making sure the lang folder is complete
+
 
 
 

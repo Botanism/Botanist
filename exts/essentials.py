@@ -1,6 +1,7 @@
 """Essential features all bot built with this template should have.
 Do note that disabling it will cause issues to the config extension."""
 import datetime
+from os import listdir
 import logging
 import discord
 from settings import *
@@ -98,6 +99,10 @@ class Essentials(commands.Cog):
         with open(f"{guild.id}.json", "w") as file:
             json.dump(DEFAULT_SERVER_FILE)
         local_logger.info(f"Joined server {guild.name}")
+
+    @commands.Cog.listener()
+    async def on_guild_leave(self, guild):
+        remove(os.path.join(CONFIG_FOLDER, str(guild.id)+".json"))
 
     @commands.Cog.listener()
     async def on_ready(self):
