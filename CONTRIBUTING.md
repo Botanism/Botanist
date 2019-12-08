@@ -61,14 +61,16 @@ Then you can submit your PR, after that we will review your PR to avoid conflict
 
 Since `v2.0` the bot now supports translation. However these translations are not made by the maintainer of the repository ([s0lst1ce](https://github.com/s0lst1ce)) but by different individuals from the community. Hence this section explains how such people should start begin their journey. First and foremost, previous explanations apply within the applicable limit. That means that code specific notices should be ignored if you're only translating. However general [rules](#Rules) shouldn't!
 As for translation itself it is recommended to use a good text editor with syntax highlighting. This is because no translation tool exists for our format (as far as we know) and that we use JSON files. A good choice would be to use [SBT3](https://www.sublimetext.com/) but any similar tool will do the trick.
-Now that you're setup let's get into the real thing. You should know that all you will do, you will within the `lang` folder. As explained and developed in #73 the structure of this folder is the following: ```
+Now that you're setup let's get into the real thing. You should know that all you will do, you will within the `lang` folder. As explained and developed in #73 the structure of this folder is the following:
+```json
 lang
  - ext1
   - help.**
   - strings.**
  - ext2
   - help.**
-  - strings.**```
+  - strings.**
+```
 Where `ext` is the name of the extension (eg: `slapping`) or `config`. As you can see each of this folder contains multiple files all named `help.**` and `strings.**`. Where `**` stands for the 2-letter language code (eg: `en` for english or `fr` for french). The `help.**` file contains the text that will be used by the help command to give information about the commands of the extension. This is organized like this:
 ```json
 {
