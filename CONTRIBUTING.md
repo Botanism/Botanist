@@ -9,7 +9,7 @@ Although contributing to the project is allowed and even encouraged it has to fo
 - The PR should not enter in conflict with the branch it's compared to. This excludes PR related to changing features which will obviously change the code. The intent is to preserve the global state of the code to allow other developers to keep up to date more easily and have some sort of consistency. For example you shouldn't change the name of global settings located in `settings.py`; unless that is the point of the PR.
 - Your code should follow [PEP8](https://www.python.org/dev/peps/pep-0008/) standards. The only allowed exception is the use of tabs instead of spaces. That is if your tabs are **four** spaces wide.
 - All extensions should be properly configure to generate nice logs using the `logging` module. However this is easy as you only have to copy/paste the according section of code (see any extension for further information)
-- All checks that you wish to include should be put in `checks.py`
+- All checks that you wish to include should be put in `utilities.py`
 
 
 
@@ -61,14 +61,16 @@ Then you can submit your PR, after that we will review your PR to avoid conflict
 
 Since `v2.0` the bot now supports translation. However these translations are not made by the maintainer of the repository ([s0lst1ce](https://github.com/s0lst1ce)) but by different individuals from the community. Hence this section explains how such people should start begin their journey. First and foremost, previous explanations apply within the applicable limit. That means that code specific notices should be ignored if you're only translating. However general [rules](#Rules) shouldn't!
 As for translation itself it is recommended to use a good text editor with syntax highlighting. This is because no translation tool exists for our format (as far as we know) and that we use JSON files. A good choice would be to use [SBT3](https://www.sublimetext.com/) but any similar tool will do the trick.
-Now that you're setup let's get into the real thing. You should know that all you will do, you will within the `lang` folder. As explained and developed in #73 the structure of this folder is the following: ```
+Now that you're setup let's get into the real thing. You should know that all you will do, you will within the `lang` folder. As explained and developed in #73 the structure of this folder is the following:
+```json
 lang
  - ext1
   - help.**
   - strings.**
  - ext2
   - help.**
-  - strings.**```
+  - strings.**
+```
 Where `ext` is the name of the extension (eg: `slapping`) or `config`. As you can see each of this folder contains multiple files all named `help.**` and `strings.**`. Where `**` stands for the 2-letter language code (eg: `en` for english or `fr` for french). The `help.**` file contains the text that will be used by the help command to give information about the commands of the extension. This is organized like this:
 ```json
 {
