@@ -241,8 +241,11 @@ class Translator(object):
         self.file = os.path.join("lang", ext, name + "." + self.lang)
         self._dict = self.load_strings()
 
+    def __repr__(self):
+        return f"<Translator> {self._dict}"
+
+
     def __getitem__(self, key):
-        #print(self._dict[key])
         return self._dict[key]
 
     def __setitem__(self, key, item):
