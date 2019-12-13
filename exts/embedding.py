@@ -37,7 +37,9 @@ class Embedding(commands.Cog):
 	@commands.command()
 	async def embed(self, ctx, *args):
 		"""allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !"""
-		if ctx.channel.id in get_poll_chans(ctx.guild.id):
+		with ConfigFile(ctx.guild.id) as conf:
+			poll_chans = conf["poll_channels"]
+		if ctx.channel.id in poll_chans:
 			local_logger.info("Preventing user from making an embed in a poll channel")
 			await ctx.message.delete()
 			return
