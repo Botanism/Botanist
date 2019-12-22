@@ -90,7 +90,12 @@ class Essentials(commands.Cog):
         raise error
         local_logger.error(error)
         if type(error) in ERRS_MAPPING.keys():
-            await ctx.send(embed=get_embed_err(ERRS_MAPPING[type(error)]))
+            msg = get_embed_err(ERRS_MAPPING[type(error)])
+            if ERRS_MAPPING[error][2] is False:
+                await ctx.send(embed=msg)
+            else:
+                await ctx.author.send(embed=msg)
+                await ctx.message.delete()
         else:
             await ctx.send(embed=get_embed_err(ERR_UNEXCPECTED))
 

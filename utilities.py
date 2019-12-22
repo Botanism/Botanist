@@ -62,7 +62,6 @@ def has_auth(clearance, *args):
                     return True
             local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
             local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
-            #await ctx.send(embed=get_embed_err(ERR_UNSUFFICIENT_PRIVILEGE))
             return False
 
     return commands.check(predicate)

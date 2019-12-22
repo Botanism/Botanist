@@ -148,17 +148,17 @@ LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 #########################################
 
 
-ERR_NO_SUBCOMMAND = ("No subcommand", "You didn't provide any subcommand. See `::help <command>` for more info on command usage.")
-ERR_UNEXCPECTED = ("Unexcpected error", "An unexcpected error occured. Please report a bug in {} or contact an admin of your server.")
-ERR_NOT_ENOUGH_ARG = ("Not enough arguments", "This command requires additional arguments. See `::help <command>` to get more information on the command's usage")
-ERR_UNSUFFICIENT_PRIVILEGE = ("Unsufficient privileges", "You don't have the permissions to do this...")
-ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::init` in any channel. You won't be able to use the bot before that.")
-ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.")
-ERR_MISFORMED = ("Misformed command", "The command was malformed. See `::help <command>` to get more information on the command's usage")
-ERR_TOO_MANY_ARGS = ("Too many arguments", "This command requires less arguments. See `::help <command>` to get more information on the command's usage.")
-ERR_COMMAND_NOT_FOUND = ("Command not found", "This command doesn't exist. Type `::help` to get a list of commands.")
-ERR_UNSUFFICIENT_PERMS = ("Missing privileges", "I do not have the required privileges to do this. This is probably due to a bad setup. Please report it to the server owner.")
-
+ERR_NO_SUBCOMMAND = ("No subcommand", "You didn't provide any subcommand. See `::help <command>` for more info on command usage.", False)
+ERR_UNEXCPECTED = ("Unexcpected error", "An unexcpected error occured. Please report a bug in {} or contact an admin of your server.", False)
+ERR_NOT_ENOUGH_ARG = ("Not enough arguments", "This command requires additional arguments. See `::help <command>` to get more information on the command's usage", False)
+ERR_UNSUFFICIENT_PRIVILEGE = ("Unsufficient privileges", "You don't have the permissions to do this...", False)
+ERR_NOT_SETUP = ("Server not setup", "This server hasn't been configured. If you're the owner of the server you can initialize the bot by doing `::init` in any channel. You won't be able to use the bot before that.", False)
+ERR_CANT_SAVE = ("Couldn't save configuration", "Couldn't save settings to JSON configuration file.", False)
+ERR_MISFORMED = ("Misformed command", "The command was malformed. See `::help <command>` to get more information on the command's usage", False)
+ERR_TOO_MANY_ARGS = ("Too many arguments", "This command requires less arguments. See `::help <command>` to get more information on the command's usage.", False)
+ERR_COMMAND_NOT_FOUND = ("Command not found", "This command doesn't exist. Type `::help` to get a list of commands.", False)
+ERR_UNSUFFICIENT_PERMS = ("Missing bot privileges", "I do not have the required privileges to do this. This is probably due to a bad setup. Please report it to the server owner.", True)
+ERR_CONVERSION = ('''Conversion error", "One of your arguments couldn't be converted into. This is either a `member`, `role` or `channel`. Do note that the arguments are **case-sensitive** and that they must be surrounded by quotes (`"`) if they contain spaces. If you can't get it to work, try mentionning the role/member/channel. If even this fails then whatever you tried to mention isn't part of this server anymore and there's nothing we can do about it!''', False)
 
 ERRS_MAPPING = {
     ce.MissingRequiredArgument: ERR_NOT_ENOUGH_ARG,
@@ -167,5 +167,7 @@ ERRS_MAPPING = {
     ce.CommandNotFound: ERR_COMMAND_NOT_FOUND,
     ce.BotMissingPermissions: ERR_UNSUFFICIENT_PERMS,
     ce.BadArgument:  ERR_MISFORMED,
+    ce.CheckFailure: ERR_UNSUFFICIENT_PRIVILEGE
+    ce.ConversionError: ERR_CONVERSION
 
 }
