@@ -290,7 +290,7 @@ class Slapping(commands.Cog):
 		report = tr["report"].format(ctx.author.mention, member.mention, ctx.channel.mention)
 
 		card = discord.Embed(
-			title = tr["reason_title"],
+			title = tr["report_title"],
 			url = ctx.message.jump_url,
 			timestamp = datetime.datetime.now(),
 			color = 16729127,
