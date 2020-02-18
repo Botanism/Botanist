@@ -26,50 +26,49 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+
 class Time(commands.Cog):
     """A cog which handles reminder events and commands"""
+
     def __init__(self, bot):
         self.config_entry = None
         self.bot = bot
-        self.tf = {
-        "d": 86400,
-        "h": 3600,
-        "m": 60,
-        "s": 1
-        }
-        
+        self.tf = {"d": 86400, "h": 3600, "m": 60, "s": 1}
+
     @commands.command()
     async def remind(self, ctx, *args):
-        '''the date format is as such:
+        """the date format is as such:
         d => days
         h => hours
         m => minutes
         s => seconds
-        Also the order is important. The time parser will stop once it's reached seconds.'''
+        Also the order is important. The time parser will stop once it's reached seconds."""
         delay = 0
         done = False
         text = ""
         for a in args:
             if not done:
-                #parsing the time
+                # parsing the time
                 if a[-1] in self.tf.keys():
                     try:
-                        delay+=int(a[:-1])*self.tf[a[-1]]
-                        if a[-1]=="s": done=True
-                    
-                    except ValueError as e:
-                        #if seconds isn't precised but that the timestamp is done
-                        done=True
-            else:
-                #making the text
-                text+=f" {a}"
+                        delay += int(a[:-1]) * self.tf[a[-1]]
+                        if a[-1] == "s":
+                            done = True
 
-        if delay==0:
+                    except ValueError as e:
+                        # if seconds isn't precised but that the timestamp is done
+                        done = True
+            else:
+                # making the text
+                text += f" {a}"
+
+        if delay == 0:
             await ctx.send(embed=get_embed_err(ERR_NOT_ENOUGH_ARG))
             return
 
         await asyncio.sleep(delay)
-        await ctx.author.send(text)        
+        await ctx.author.send(text)
+
 
 def setup(bot):
     bot.add_cog(Time(bot))

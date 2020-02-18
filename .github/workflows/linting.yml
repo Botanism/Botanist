@@ -1,6 +1,6 @@
 name: Linting
 
-on: [push]
+on: []
 
 jobs:
   build:
@@ -24,4 +24,4 @@ jobs:
         pip install pylint
     - name: Lint with pylint
       run: |
-        pylint exts/*.py executioner.py
+        pylint src/exts/*.py src/*.py

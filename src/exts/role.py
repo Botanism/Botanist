@@ -26,8 +26,10 @@ local_logger.info("Innitalized {} logger".format(__name__))
 
 name = __name__.split(".")[-1]
 
+
 class RoleConfigEntry(ConfigEntry):
     """user can choose which roles are "free" """
+
     def __init__(self, bot, config_chan_id):
         super().__init__(bot, config_chan_id)
 
@@ -43,16 +45,20 @@ class RoleConfigEntry(ConfigEntry):
                 for role in proles.content.split(" "):
                     try:
                         print(role)
-                        roles.append(await discord.ext.commands.RoleConverter().convert(ctx, role))
+                        roles.append(
+                            await discord.ext.commands.RoleConverter().convert(
+                                ctx, role
+                            )
+                        )
                     except:
                         pass
-                        #raise discord.ext.commands.ArgumentParsingError(f"Couldn't find role {role}")
+                        # raise discord.ext.commands.ArgumentParsingError(f"Couldn't find role {role}")
 
                 roles_str = ""
                 for role in roles:
                     roles_str += f" {role.name}"
                 agrees = await self.get_yn(ctx, tr["agrees"].format(roles_str))
-                
+
                 if not agrees:
                     retry = await self.get_yn(ctx, tr["retry"])
                     if retry:
@@ -69,22 +75,24 @@ class RoleConfigEntry(ConfigEntry):
         except:
             raise
 
+
 class Role(commands.Cog):
     """role management utility. Requires a Gestion role"""
+
     def __init__(self, bot):
         self.bot = bot
         self.config_entry = RoleConfigEntry
 
     @commands.group()
     async def role(self, ctx):
-        '''role management utility. Requires a Gestion role'''
+        """role management utility. Requires a Gestion role"""
         pass
 
     @role.command()
-    async def add(self, ctx, member: discord.Member, *roles:discord.Role):
-        '''Gives <member> listed <roles> roles'''
+    async def add(self, ctx, member: discord.Member, *roles: discord.Role):
+        """Gives <member> listed <roles> roles"""
         tr = Translator(name, get_lang(ctx))
-        #checking if member can self-assing role(s)
+        # checking if member can self-assing role(s)
         if not has_auth("admin")(ctx):
             allowed_roles = []
             with ConfigFile(ctx.guild.id) as conf:
@@ -97,28 +105,34 @@ class Role(commands.Cog):
         else:
             allowed_roles = roles
 
-        if len(allowed_roles)==0:
+        if len(allowed_roles) == 0:
             local_logger.warning("User didn't provide a role")
-            raise discord.ext.commands.MissingRequiredArgument("You must provide at least one role.")
+            raise discord.ext.commands.MissingRequiredArgument(
+                "You must provide at least one role."
+            )
 
         else:
             try:
                 await member.add_roles(*allowed_roles)
                 roles_str = ""
                 for role in allowed_roles:
-                    roles_str+= f" {role}"
+                    roles_str += f" {role}"
 
                 await ctx.send(tr["gave"].format(member.name, roles_str))
             except Exception as e:
-                local_logger.exception("Couldn't add {} to {}".format(allowed_roles, member))
+                local_logger.exception(
+                    "Couldn't add {} to {}".format(allowed_roles, member)
+                )
                 raise e
 
     @role.command()
-    async def rm(self, ctx, member:discord.Member, *roles:discord.Role):
-        '''Removes <member>'s <roles> roles'''
-        if len(roles)==0:
+    async def rm(self, ctx, member: discord.Member, *roles: discord.Role):
+        """Removes <member>'s <roles> roles"""
+        if len(roles) == 0:
             local_logger.warning("User didn't provide a role")
-            raise discord.ext.commands.MissingRequiredArgument("You must provide at least one role.")
+            raise discord.ext.commands.MissingRequiredArgument(
+                "You must provide at least one role."
+            )
 
         else:
             try:
