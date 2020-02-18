@@ -52,8 +52,9 @@ git clone $git_repo $name &> /dev/null
 token=$1
 if [[ ! -z $DISCORD_TOKEN ]]; then
     echo "Environement variable DISCORD_TOKEN already exists! Please clear it before proceeding to installation of the bot."
-    #exit 1
+    exit 1
 fi
+echo -e "DISCORD_TOKEN=$token\n" >> ~/bashrc_testing
 
 #configuring the bot
 echo "Applying configuration."
@@ -67,14 +68,13 @@ fi
 if [[ ! -z $home_url ]]; then
     sed -i "s/WEBSITE\(.*\)/WEBSITE = '$home_url'/" $settings_path
 fi
-echo -e "DISCORD_TOKEN=$token\n" >> ~/bashrc_testing
 
-if [[ -z command -v python3 ]]; then
+if ! command -v python3 &> /dev/null; then
     echo "Python3 is a required dependency of the bot. If you are sure you have it make sure it points to python3"
     exit 1
 fi
 
-echo "Making python dpy virtual environement..."
+echo "Making python dpy virtual environement."
 python3 -m venv $name/dpy
 source $name/dpy/bin/activate
 
