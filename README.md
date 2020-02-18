@@ -40,6 +40,18 @@ Thanks to all of you who've made this project be, kept it alive and as available
 
 
 
+## Setup
+
+There are two options to setup the game depending on the OS you intend to run the bot on. If you use windows or MacOS you should just clone the repository and run it set it up using `python`. You should change the settings in `settings.py`.
+
+If however you choose to run the bot under Linux (recommended) you are advised to use the `deploy.sh` script. For this follow these instructions:
+
+- Download the script (ex: `wget https://raw.githubusercontent.com/s0lst1ce/Botanist/master/deploy.sh`).
+- Give it execution permissions (ex: `chmod +x deploy.sh`)
+- Run the script `./deploy.sh`
+
+To know how to use the script it is recommended to use `deploy.sh -h`. From there the process should be straightforward. This script is mean to expand as time goes.
+
 ## Commands
 
 ### Getting started
