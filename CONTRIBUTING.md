@@ -71,7 +71,7 @@ lang
   - help.??
   - strings.??
 ```
-Where `ext` is the name of the extension (eg: `slapping`) or `config`. As you can see each of this folder contains multiple files all named `help.??` and `strings.**`. Where `**` stands for the 2-letter language code (eg: `en` for english or `fr` for french). The `help.??` file contains the text that will be used by the help command to give information about the commands of the extension. This is organized like this:
+Where `ext` is the name of the extension (eg: `slapping`) or `config`. As you can see each of this folder contains multiple files all named `help.??` and `strings.??`. Where `??` stands for the 2-letter language code (eg: `en` for english or `fr` for french). The `help.??` file contains the text that will be used by the help command to give information about the commands of the extension. This is organized like this:
 ```json
 {
 	"command_qualified_name": ["short description", "signature", "long_description"]
