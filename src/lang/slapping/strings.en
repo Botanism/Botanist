@@ -25,7 +25,7 @@
 	"member_list": "Members list",
 	"cant_multi_spam": " You can't report spamming for the same user multiple times or that would in turn be spamming!",
 	"spam_muted": " Muted {} for 10 minutes for spamming.",
-	"report": "{} reported unruly behavior from {} in {}",
+	"report": "{} reported [unruly behavior]({}) from {} in {}",
 	"report_title": "Abuse report",
 	"reason_name": "Reason"
 }
