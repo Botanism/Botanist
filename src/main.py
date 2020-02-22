@@ -10,12 +10,12 @@ import os
 
 from settings import *
 from utilities import *
-from help import Help
+from help import InteractiveHelp
 import config as cfg
 
 
 # INITS THE BOT
-bot = commands.Bot(command_prefix=PREFIX, help_command=Help("en"))
+bot = commands.Bot(command_prefix=PREFIX, help_command=InteractiveHelp())
 
 #########################################
 #                                       #
@@ -69,39 +69,39 @@ async def reload(ctx, extension: str):
 
 
 @ext.command()
-async def add(ctx, extension: str):
+async def add(ctx, *extensions: str):
+    for extension in extensions:
+        # trying to load the extension. Should only fail if the extension is not installed
+        try:
+            bot.load_extension(str(EXT_FOLDER + "." + extension))
 
-    # trying to load the extension. Should only fail if the extension is not installed
-    try:
-        bot.load_extension(str(EXT_FOLDER + "." + extension))
+        except Exception as e:
+            main_logger.exception(e)
+            await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+            raise e
 
-    except Exception as e:
-        main_logger.exception(e)
-        await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
-        raise e
+        # if the extension was correctly loaded, adding it to the enabled file
+        try:
+            with open(EXTENSIONS_FILE, "r") as file:
+                enabled_exts = json.load(file)
 
-    # if the extension was correctly loaded, adding it to the enabled file
-    try:
-        with open(EXTENSIONS_FILE, "r") as file:
-            enabled_exts = json.load(file)
+            enabled_exts[extension] = True
 
-        enabled_exts[extension] = True
+            with open(EXTENSIONS_FILE, "w") as file:
+                json.dump(enabled_exts, file)
 
-        with open(EXTENSIONS_FILE, "w") as file:
-            json.dump(enabled_exts, file)
+        except FileNotFoundError as e:
+            # if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
+            main_logger.warning("{} doesn't exist.".format(EXTENSIONS_FILE))
+            with open(EXTENSIONS_FILE, "w") as file:
+                file.write(DEFAULT_EXTENSIONS_JSON)
 
-    except FileNotFoundError as e:
-        # if the file didn't yet exist a new one will be created. This should not happen, only here as a failsafe
-        main_logger.warning("{} doesn't exist.".format(EXTENSIONS_FILE))
-        with open(EXTENSIONS_FILE, "w") as file:
-            file.write(DEFAULT_EXTENSIONS_JSON)
+        except Exception as e:
+            # logging any other possible issue
+            await ctx.send("UnexpectedError:\tReport issue to an admin")
+            raise e
 
-    except Exception as e:
-        # logging any other possible issue
-        await ctx.send("UnexpectedError:\tReport issue to an admin")
-        raise e
-
-    await ctx.send("Successfully added and loadded {}".format(extension))
+        await ctx.send("Successfully added and loadded {}".format(extension))
 
 
 @ext.command()
@@ -196,6 +196,7 @@ async def ls(ctx):
 
 # trying to load all enabled extensions
 try:
+    assert_struct(bot.guilds)
     bot.add_cog(cfg.Config(bot))
     with open(EXTENSIONS_FILE, "r") as file:
         extensions = json.load(file)

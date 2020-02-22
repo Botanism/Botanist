@@ -52,6 +52,9 @@ EMOJIS = {
     "free": "\U0001f193",
     "soon": "\U0001f51c",
     "zip": "\U0001f910",
+    "arrow_backward": "\U000025c0",
+    "arrow_forward": "\U000025b6",
+    "information_source": "\U00002139",
 }
 
 # NotImplemented
@@ -83,12 +86,14 @@ ROLES_LEVEL = ["manager", "admin"]
 
 # default JSON files
 DEFAULT_EXTENSIONS_JSON = {
-    "Slapping": False,
-    "BotEssentials": True,
-    "Role": False,
-    "Embedding": False,
-    "Config": False,
-    "Poll": False,
+    "slapping": False,
+    "essentials": True,
+    "development": False,
+    "embedding": False,
+    "role": False,
+    "poll": False,
+    "time": False,
+    "todo": False,
 }
 
 DEFAULT_SLAPPED_FILE = {"463665420054953995": 0}

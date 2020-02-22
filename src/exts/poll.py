@@ -87,7 +87,7 @@ class PollConfigEntry(ConfigEntry):
 
 
 class Poll(commands.Cog):
-    """TODO: A suite of commands providing users with tools to more easilly get the community's opinion on an idea"""
+    """A suite of commands providing users with tools to more easilly get the community's opinion on an idea"""
 
     def __init__(self, bot):
         self.bot = bot

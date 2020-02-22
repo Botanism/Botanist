@@ -108,7 +108,7 @@ def assert_struct(guilds):
     try:
         # making sure all folder are built
         files = os.listdir()
-        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER]
+        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER, LANG_FOLDER]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
@@ -126,7 +126,12 @@ def assert_struct(guilds):
                     ) as file:
                         json.dump(DEFAULT_SERVER_FILE)
 
-        # making sure the lang folder is complete
+        #TODO: making sure the lang folder is complete
+
+        #making sure ext file is there and valid
+        if EXTENSIONS_FILE not in files or os.path.getsize(EXTENSIONS_FILE) == 0:
+            with open(EXTENSIONS_FILE, "w") as file:
+                json.dump(DEFAULT_EXTENSIONS_JSON, file) #write data to the newly created file
 
         return True
 
@@ -272,9 +277,18 @@ class Translator(object):
         else:
             raise TypeError("Translations must be strings!")
 
+    @classmethod
+    def guess_lang(cls, ctx, ext, **kwargs):
+        with ConfigFile(ctx.guild.id) as conf:
+            return cls(ext, conf["lang"], **kwargs)
+
     def load_strings(self):
-        with open(self.file, "r") as translation:
-            return json.load(translation)
+        try:
+            with open(self.file, "r") as translation:
+                return json.load(translation)
+        except json.decoder.JSONDecodeError as e:
+            local_logger.error(f"Couldn't read translation for file {self.file}")
+            raise e
 
     def get_lang(self, lang):
         if isinstance(lang, str):
