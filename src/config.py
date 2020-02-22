@@ -178,28 +178,57 @@ class Config(commands.Cog, ConfigEntry):
         return self.config_channels[g.id]
 
     @commands.command()
+    async def cfg(self, ctx, cog_name: str):
+        cog = self.bot.get_cog(cog_name.title())
+        if not cog:
+            local_logger.debug(
+                f"{ctx.author} tried to configure {cog_name} which doesn't exist."
+            )
+            raise discord.ext.commands.errors.ArgumentParsingError(
+                message=f"{cog_name} cog doesn't exist."
+            )
+            return
+
+        if cog.config_entry:
+            try:
+                self.config_channel = await self.make_cfg_chan(ctx)
+                ctx.channel = self.config_channel
+                await cog.config_entry(self.bot, self.config_channel).run(ctx)
+
+            finally:
+                await self.config_channels[ctx.guild.id].send(
+                    f"You Successfully configured {cog.qualified_name}.\nThis channel will be deleted in 10 seconds..."
+                )
+                await asyncio.sleep(10)
+                await self.config_channels[ctx.guild.id].delete(
+                    reason="Configuration completed"
+                )
+
+        else:
+            await ctx.send("{cog.qualified_name} doesn't have any configuration entry!")
+
+    @commands.command()
     async def init(self, ctx):
-        await self.make_cfg_chan(ctx)
-        self.config_channel = self.config_channels[ctx.guild.id]
         # creating new hidden channel only the owner/admins can see
+        self.config_channel = await self.make_cfg_chan(ctx)
         ctx.channel = self.config_channel
 
-        # starting all configurations
-        await self.config_channels[ctx.guild.id].send(
-            f"""You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities"""
-        )
-        pursue = await self.get_yn(
-            ctx,
-            "This will overwrite all of your existing configurations. Do you want to continue ?",
-        )
-        if not pursue:
-            return False
-
-        await self.config_channels[ctx.guild.id].send(
-            "**Starting full bot configuration...**"
-        )
-
         try:
+            # starting all configurations
+            await self.config_channels[ctx.guild.id].send(
+                f"""You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities"""
+            )
+            pursue = await self.get_yn(
+                ctx,
+                "This will overwrite all of your existing configurations. Do you want to continue ?",
+            )
+            if not pursue:
+                return False
+
+            await self.config_channels[ctx.guild.id].send(
+                "**Starting full bot configuration...**"
+            )
+
             for cog in self.bot.cogs:
                 if self.bot.cogs[cog].config_entry:
                     await self.bot.cogs[cog].config_entry(
@@ -244,9 +273,6 @@ class Config(commands.Cog, ConfigEntry):
                 "Dropping configuration and rolling back unconfirmed changes."
             )
             local_logger.exception(e)
-
-        except:
-            raise
 
         finally:
             await self.config_channels[ctx.guild.id].send(
