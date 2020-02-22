@@ -44,7 +44,6 @@ class RoleConfigEntry(ConfigEntry):
                 roles = []
                 for role in proles.content.split(" "):
                     try:
-                        print(role)
                         roles.append(
                             await discord.ext.commands.RoleConverter().convert(
                                 ctx, role
@@ -69,8 +68,6 @@ class RoleConfigEntry(ConfigEntry):
                 else:
                     pursue = False
                     with ConfigFile(ctx.guild.id) as conf:
-                        print(roles)
-                        print([role.id for role in roles])
                         conf["free_roles"] = [role.id for role in roles]
         except:
             raise

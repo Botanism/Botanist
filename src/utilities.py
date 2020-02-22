@@ -67,8 +67,8 @@ def has_auth(clearance, *args):
             for role in ctx.author.roles:
                 if role.id in allowed_roles:
                     return True
-            local_logger.send(ERR_UNSUFFICIENT_PRIVILEGE)
-            local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE)
+            #await ctx.send(embed=get_embed_err(ERR_UNSUFFICIENT_PRIVILEGE)) -> not async
+            local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE[1])
             return False
 
     return commands.check(predicate)
@@ -126,12 +126,14 @@ def assert_struct(guilds):
                     ) as file:
                         json.dump(DEFAULT_SERVER_FILE)
 
-        #TODO: making sure the lang folder is complete
+        # TODO: making sure the lang folder is complete
 
-        #making sure ext file is there and valid
+        # making sure ext file is there and valid
         if EXTENSIONS_FILE not in files or os.path.getsize(EXTENSIONS_FILE) == 0:
             with open(EXTENSIONS_FILE, "w") as file:
-                json.dump(DEFAULT_EXTENSIONS_JSON, file) #write data to the newly created file
+                json.dump(
+                    DEFAULT_EXTENSIONS_JSON, file
+                )  # write data to the newly created file
 
         return True
 

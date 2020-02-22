@@ -34,56 +34,60 @@ class PollConfigEntry(ConfigEntry):
 
     def __init__(self, bot, cfg_chan_id):
         super().__init__(bot, cfg_chan_id)
+        print("I'm here")
 
     async def run(self, ctx):
-        tr = Translator(name, get_lang(ctx))
-        await self.config_channel.send(tr["start_conf"])
-        pursue = await self.get_yn(ctx, tr["pursue"])
-        if not pursue:
-            return False
-        retry = True
+        try:
+            tr = Translator(name, get_lang(ctx))
+            await self.config_channel.send(tr["start_conf"])
+            pursue = await self.get_yn(ctx, tr["pursue"])
+            if not pursue:
+                return False
+            retry = True
 
-        while retry:
-            # getting the list of channels to be marked as polls
-            poll_channels = await self.get_answer(
-                ctx,
-                tr["poll_channels"].format(self.config_channel.mention),
-                filters=["channels"],
-            )
-            if self.config_channel in poll_channels:
-                await self.config_channel.send(tr["invalid_chan"])
-                continue
+            while retry:
+                # getting the list of channels to be marked as polls
+                poll_channels = await self.get_answer(
+                    ctx,
+                    tr["poll_channels"].format(self.config_channel.mention),
+                    filters=["channels"],
+                )
+                if self.config_channel in poll_channels:
+                    await self.config_channel.send(tr["invalid_chan"])
+                    continue
 
-            poll_channels_str = ""
-            for chan in poll_channels:
-                poll_channels_str += f"{chan.mention},"
-            poll_channels_str = poll_channels_str[:-1]
+                poll_channels_str = ""
+                for chan in poll_channels:
+                    poll_channels_str += f"{chan.mention},"
+                poll_channels_str = poll_channels_str[:-1]
 
-            confirmed = await self.get_yn(
-                ctx, tr["confirmed"].format(poll_channels_str)
-            )
-            if not confirmed:
-                # making sure the user really wants to quit
-                drop = await self.get_yn(ctx, tr["drop"])
-                if drop:
-                    local_logger.info(
-                        f"Poll configuration has been cancelled for server {ctx.guild.name}"
-                    )
+                confirmed = await self.get_yn(
+                    ctx, tr["confirmed"].format(poll_channels_str)
+                )
+                if not confirmed:
+                    # making sure the user really wants to quit
+                    drop = await self.get_yn(ctx, tr["drop"])
+                    if drop:
+                        local_logger.info(
+                            f"Poll configuration has been cancelled for server {ctx.guild.name}"
+                        )
+                        retry = False
+                else:
                     retry = False
-            else:
-                retry = False
 
-        poll_channels_ids = []
-        for chan in poll_channels:
-            poll_channels_ids.append(chan.id)
+            poll_channels_ids = []
+            for chan in poll_channels:
+                poll_channels_ids.append(chan.id)
 
-        with ConfigFile(ctx.guild.id) as conf:
-            conf["poll_channels"] = poll_channels_ids
+            with ConfigFile(ctx.guild.id) as conf:
+                conf["poll_channels"] = poll_channels_ids
 
-        await self.config_channel.send(tr["conf_done"])
-        local_logger.info(
-            f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed."
-        )
+            await self.config_channel.send(tr["conf_done"])
+            local_logger.info(
+                f"Configuration of poll for server {ctx.guild.name} ({ctx.guild.id}) has been completed."
+            )
+        except Exception as e:
+            raise e
 
 
 class Poll(commands.Cog):
