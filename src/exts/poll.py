@@ -106,6 +106,7 @@ class Poll(commands.Cog):
         # @is_init
         with ConfigFile(payload.guild_id) as conf:
             poll_allowed_chans = conf["poll_channels"]
+            print(poll_allowed_chans)
 
         # checking that user isn't the bot
         if (payload.user_id != self.bot.user.id) and (
@@ -117,6 +118,9 @@ class Poll(commands.Cog):
                 payload.message_id
             )
             user = self.bot.get_user(payload.user_id)
+            local_logger.info(f"Message {message} is a poll one")
+            print("a poll channel")
+
             # checking wether the reaction should delete the poll
             if payload.emoji.name == EMOJIS["x"]:
                 if payload.user.name == message.embeds[0].title:
