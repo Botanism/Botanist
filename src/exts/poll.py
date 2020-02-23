@@ -106,7 +106,6 @@ class Poll(commands.Cog):
         # @is_init
         with ConfigFile(payload.guild_id) as conf:
             poll_allowed_chans = conf["poll_channels"]
-            print(poll_allowed_chans)
 
         # checking that user isn't the bot
         if (payload.user_id != self.bot.user.id) and (
@@ -118,8 +117,6 @@ class Poll(commands.Cog):
                 payload.message_id
             )
             user = self.bot.get_user(payload.user_id)
-            local_logger.info(f"Message {message} is a poll one")
-            print("a poll channel")
 
             # checking wether the reaction should delete the poll
             if payload.emoji.name == EMOJIS["x"]:
@@ -198,12 +195,15 @@ class Poll(commands.Cog):
         # poll_allowed_chans = ConfigFile(message.guild.id)["poll_channels"]
         with ConfigFile(message.guild.id) as conf:
             poll_allowed_chans = conf["poll_channels"]
+        print(poll_allowed_chans)
 
         if (
             message.channel.id in poll_allowed_chans
             and message.content.startswith(PREFIX) != True
         ):
 
+            print("a poll channel")
+            local_logger.info(f"Message {message} is a poll one")
             # rebuilding attachements
             files = []
             for attachment in message.attachments:
