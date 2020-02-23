@@ -101,11 +101,6 @@ class Poll(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         """currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs"""
 
-        # fetching concerned message and the user who added the reaction
-        message = await self.bot.get_channel(payload.channel_id).fetch_message(
-            payload.message_id
-        )
-        user = self.bot.get_user(payload.user_id)
 
         # getting poll_allowed_chans
         # @is_init
@@ -117,6 +112,11 @@ class Poll(commands.Cog):
             payload.channel_id in poll_allowed_chans
         ):
 
+            # fetching concerned message and the user who added the reaction
+            message = await self.bot.get_channel(payload.channel_id).fetch_message(
+                payload.message_id
+            )
+            user = self.bot.get_user(payload.user_id)
             # checking wether the reaction should delete the poll
             if payload.emoji.name == EMOJIS["x"]:
                 if payload.user.name == message.embeds[0].title:
