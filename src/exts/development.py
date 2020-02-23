@@ -37,7 +37,7 @@ class Development(commands.Cog):
         self.config_entry = None
 
     @commands.command()
-    @commands.is_runner()
+    @is_runner()
     async def update(self, ctx, *words):  # should message be put in settings.py ?
         """Lets the owner of the bot update the bot from github's repositery. It also sends a notification to all server owners who use the bot. The message sent in the notification is the description of the release on github.
         NB: as of now the bot only sends a generic notification & doesn't update the bot."""
