@@ -58,7 +58,7 @@ class Development(commands.Cog):
             await o.send(message)
 
     @commands.command()
-    @commands.is_owner()  # -> this needs to be changed to is_dev()
+    @is_runner()  # -> this needs to be changed to is_dev()
     async def log(self, ctx):
         """returns the bot's log as an attachement"""
         # getting the log
