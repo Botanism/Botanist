@@ -1,2 +1,4 @@
 forebot.log
 *.pyc
+*.json
+OLD*
