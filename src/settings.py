@@ -62,6 +62,7 @@ COMING_SOON = f"""Sorry this is not yet implemented. Coming Soon{EMOJIS["soon"]}
 
 HELP_TAB = "  "
 ALLOWED_LANGS = ["en"]
+HELP_TIME = 180  # maximum time to wait for a reaction on a help message
 
 
 #########################################

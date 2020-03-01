@@ -1,7 +1,9 @@
 import logging
+from asyncio.exceptions import TimeoutError
+from asyncio import sleep as asleep
 from time import time
 import discord
-from settings import *
+from settings import EMOJIS, HELP_TIME
 from utilities import *
 
 #########################################
@@ -28,24 +30,31 @@ local_logger.info("Innitalized {} logger".format(__name__))
 class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
     """This Help class offers interaction support through embeds and reactions."""
 
-    def __init__(self, react_time: int = 180, **options):
+    def __init__(self, react_time: int = HELP_TIME, **options):
         super().__init__(**options)
+        self.react_time = react_time
 
     def help_reaction(self, reaction, user):
-        if reaction not in (
+        if reaction.emoji not in (
             EMOJIS["arrow_backward"],
             EMOJIS["arrow_forward"],
             EMOJIS["information_source"],
         ):
             return False
 
-        if not user == ctx.author:
+        # making sure the author of the help command is indeed the one reacting
+        if user == reaction.message.author:
             return False
 
         return True
 
+    def get_help_lang(self):
+        with ConfigFile(self.get_destination().guild.id) as conf:
+            lang = conf["lang"]
+        return lang
+
     async def send_bot_help(self, mapping):
-        pass
+        print("in send_bot_help")
 
     async def send_cog_help(self, cog):
         pass
@@ -54,53 +63,73 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         pass
 
     async def send_command_help(self, command):
-        pages = get_command_pages(command)
+        pages = get_command_pages(command, self.get_help_lang())
         current_page = 0
         msg = await self.get_destination().send(embed=pages[current_page])
 
         # adding approriate interactions
-        await msg.add_reaction(EMOJIS["information_source"])
         if len(pages) > 1:
-            # only adding forward since you can't go before the first page!
+            await msg.add_reaction(EMOJIS["arrow_backward"])
+            await msg.add_reaction(EMOJIS["information_source"])
             await msg.add_reaction(EMOJIS["arrow_forward"])
+        else:
+            await msg.add_reaction(EMOJIS["information_source"])
 
         start_time = time()
         elapsed_time = 0
-        while elapsed_time < self.react_time:
-            reaction, user = self.context.bot.wait_for(
-                "reaction_add",
-                timeout=self.react_time - elapsed_time,
-                check=self.help_reaction,
-            )
+        try:
+            while elapsed_time < self.react_time:
+                print("waiting for a reaction")
+                reaction, user = await self.context.bot.wait_for(
+                    "reaction_add",
+                    timeout=self.react_time - elapsed_time,
+                    check=self.help_reaction,
+                )
+                print(f"Got reaction {reaction} from {user}")
 
-            # interpret reactions
-            if reaction == EMOJIS["arrow_forward"]:
-                # making sure you're not on the last page
-                if current_page != len(pages) - 1:
-                    current_page += 1
+                # interpret reactions
+                if reaction.emoji == EMOJIS["arrow_forward"]:
+                    # making sure you're not on the last page
+                    local_logger.info("Going forward in paging")
+                    if current_page != len(pages) - 1:
+                        current_page += 1
+
+                elif reaction.emoji == EMOJIS["arrow_backward"]:
+                    local_logger.info("Going backward in paging")
+                    # making sure you're not on the first page
+                    if current_page != 0:
+                        current_page -= 1
+
                 else:
-                    await msg.remove_reaction(reaction, user)
+                    # the only other allowed reaction is information_source
+                    local_logger.info(
+                        "Deleting help embed and sending help interface manual."
+                    )
+                    await self.send_bot_help(self.get_bot_mapping())
+                    await msg.delete()
+                    break
 
-            elif reaction == EMOJIS["arrow_backward"]:
-                # making sure you're not on the first page
-                if current_page != 0:
-                    current_page -= 1
-                else:
-                    await msg.remove_reaction(reaction, user)
+                await msg.remove_reaction(reaction, user)
+                await msg.edit(suppress=True, embed=pages[current_page])
+                elapsed_time = time() - start_time
+                # print("Seconds gone by:", elapsed_time)
+        except TimeoutError:
+            # print("Time is over, deleting message")
+            await msg.delete()
 
-            else:
-                # the only other allowed reaction is information_source
-                await self.send_bot_help(self.get_bot_mapping())
-                await msg.delete()
-                break
 
-            await msg.edit(suppress=True, embeds=pages[current_page])
-            elapsed_time = time() - start_time
-        await msg.delete()
+def get_help(command: discord.ext.commands.command, lang: str):
+    if command.cog:
+        return Translator(command.cog.__module__.split(".")[1], lang, help_type=True)[
+            command.name
+        ]
+    else:
+        # the only commands not in a cog are in main.py -> ext group
+        return Translator("default", lang, help_type=True)[command.name]
 
 
 def get_command_pages(
-    command: discord.ext.commands.command, threshold: int = 150
+    command: discord.ext.commands.command, lang: str, threshold: int = 150
 ) -> list:
     """this returns a list of Embeds that represent help pages
     cmd_type is an int that must be 0 (command), 1 (cog), 2 (group)
@@ -111,21 +140,53 @@ def get_command_pages(
             name += f"{parent.name} / "
     name += command.name
 
-    description, usage = get_help(command)
+    description, usage = get_help(command, lang)
 
-    char_count += count_chars(description, usage, name)
-    if char_count > 6000 - threshold:
-        # split command in multiple pages
-        pass
+    # split command in multiple pages
+    if (
+        count_chars(description, usage, name) > 2048 - threshold
+    ):  # maximum embed description size is 2048 chars
+        pages = []
+        # splitting by line breaks
+        paragraphs = description.split("\n")
 
-    embed = discord.Embed(
-        title=name,
-        description=description,
-        usage=f"`{command.name}" + usage,
-        color=7506394,
-    )
+        # splitting by "."
+        for paragraph in paragraphs:
+            if count_chars(paragraph) > 2048 - threshold:
+                sentences = paragraph.split(".")
+                assert len(sentences) > 0, ValueError(
+                    "No known parsing method for this help string. Should contain at least one dot."
+                )
+                while sentences:
+                    page = ""  # the page we're starting to build
+                    crt_count = 2048  # how many chars are left before we need to make a new page
+                    while (crt_count > threshold) and len(sentences) != 0:
+                        # print(sentences)
+                        sentence = sentences.pop(0)
+                        crt_count -= count_chars(sentence)
+                        # /!\ currently not handling the case of sentences larger than 2048 chars
+                        assert crt_count > 0, ValueError(
+                            "This sentence is over 2048 characters long!"
+                        )  # > and not >= because we need to add the dot again
+                        page += sentence + "."
+                    pages.append(page)
 
-    return [embed]
+            else:
+                pages.append(paragraph)
+    else:
+        pages = [description]
+
+    # building the embeds from the paged descriptions
+    embeds = []
+    pages_number = len(pages)
+    for page, crt in zip(pages, range(len(pages))):
+        embed = discord.Embed(title=name, description=page, color=7506394,)
+        embed.set_footer(text=f"Page ({crt+1}/{pages_number})")
+        embed.add_field(name="Usage", value=f"{command.name} `{usage}", inline=False)
+        embeds.append(embed)
+
+    print(embeds)
+    return embeds
 
 
 def get_command_help(command: discord.ext.commands.command):
