@@ -195,14 +195,12 @@ class Poll(commands.Cog):
         # poll_allowed_chans = ConfigFile(message.guild.id)["poll_channels"]
         with ConfigFile(message.guild.id) as conf:
             poll_allowed_chans = conf["poll_channels"]
-        print(poll_allowed_chans)
 
         if (
             message.channel.id in poll_allowed_chans
             and message.content.startswith(PREFIX) != True
         ):
 
-            print("a poll channel")
             local_logger.info(f"Message {message} is a poll one")
             # rebuilding attachements
             files = []

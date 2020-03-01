@@ -122,12 +122,11 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
             await msg.delete()
 
     async def send_bot_help(self, mapping):
-        pages = get_bot_pages(lang)
+        pages = get_bot_pages(self.context.bot.cogs.values(), lang)
         msg = await self.get_destination().send(embed=pages[0])
 
         await self.set_reactions(msg, len(pages))
         await self.start_interaction(pages, msg)
-
 
     async def send_cog_help(self, cog):
         pages = get_cog_pages(cog, self.get_help_lang())
@@ -177,6 +176,25 @@ def get_help(command, lang: str):
         # the only commands not in a cog are in main.py -> ext group
         return Translator("default", lang, help_type=True)[command.name]
 
+def get_bot_pages(cogs, lang: str):
+    """currently doesn't support commands outside of cogs"""
+    pages = []
+    for commands in cogs:
+        pages += get_cog_pages(cog, lang, paginate = False)
+
+    description = Translator("help", lang, help_type=True)._dict["description"]
+    header = discord.Embed(title="Help", description=description, color=7506394)
+
+    pages_number = len(pages)
+    header.set_footer(text=f"Page (1/{pages_number+1})")
+    for embed, crt in zip(pages, range(pages_number)):
+        embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+    pages.insert(0, header)
+    return pages
+    
+
+
 def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = True) -> list:
     pages = []
     for command in cog.get_commands():
@@ -185,7 +203,7 @@ def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = Tru
         else:
             pages += get_command_pages(command, lang, paginate=False)
 
-    description = Translator(cog.__module__.split(".")[1], lang, help_type=True)._dict["cog_description"]
+    description = Translator("help", lang, help_type=True)._dict[cog.qualified_name.lower()]
     header = discord.Embed(title=cog.qualified_name, description=description, color=7506394)
 
     #paginating

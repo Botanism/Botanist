@@ -101,7 +101,7 @@ async def add(ctx, *extensions: str):
             await ctx.send("UnexpectedError:\tReport issue to an admin")
             raise e
 
-        await ctx.send("Successfully added and loadded {}".format(extension))
+        await ctx.send(f"Successfully added and loadded {extension}")
 
 
 @ext.command()
@@ -111,7 +111,7 @@ async def rm(ctx, extension: str):
 
     except Exception as e:
         main_logger.exception(e)
-        await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+        await ctx.send(f"UnexpectedError:\tReport issue to an admin\n{e}")
         raise e
 
     # if the extension was correctly unloaded, removing it from the enblaed extension file
@@ -126,10 +126,10 @@ async def rm(ctx, extension: str):
 
     except Exception as e:
         main_logger.exception(e)
-        await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+        await ctx.send(f"UnexpectedError:\tReport issue to an admin\n{e}")
         raise e
 
-    await ctx.send("Successfully removed and unloaded {}".format(extension))
+    await ctx.send(f"Successfully removed and unloaded {extension}")
     LOCAL_LOGGER.info(f"Disabled and removed {extension}")
 
 
@@ -155,14 +155,14 @@ async def ls(ctx):
         # building strings
         disabled_str = ""
         for e in disabled:
-            disabled_str += f"""{EMOJIS["X"]} {e}\n"""
+            disabled_str += EMOJIS["X"] + e + "\n"
 
         enabled_str = ""
         for e in enabled:
             if EXT_FOLDER + "." + e in running:
-                enabled_str += f"""{EMOJIS["check"]} {e}\n"""
+                enabled_str += EMOJIS["check"] + e + "\n"
             else:
-                enabled_str += f"""{EMOJIS["x"]} {e}\n"""
+                enabled_str += EMOJIS["x"] + e + "\n"
 
         # building embed
         ext_embed = discord.Embed(

@@ -42,7 +42,7 @@ def is_runner():  # to be deleted sine it does the same as is_owner()
 
 
 def is_init():
-    """checks whether the server has been initialized. Meant as a fale-safe for commands requiring configuration."""
+    """checks whether the server has been initialized. Meant as a fail-safe for commands requiring configuration."""
 
     def check_condition(ctx):
         conf_files = os.listdir(CONFIG_FOLDER)
@@ -67,7 +67,7 @@ def has_auth(clearance, *args):
             for role in ctx.author.roles:
                 if role.id in allowed_roles:
                     return True
-            #await ctx.send(embed=get_embed_err(ERR_UNSUFFICIENT_PRIVILEGE)) -> not async
+            # await ctx.send(embed=get_embed_err(ERR_UNSUFFICIENT_PRIVILEGE)) -> not async
             local_logger.warning(ERR_UNSUFFICIENT_PRIVILEGE[1])
             return False
 
@@ -221,14 +221,14 @@ class ConfigFile(UserDict):
         if self.file not in files:
             if not self.force:
                 return False
-            with open(os.path.join(self.folder, self.file), "w") as file:
+            with open(os.path.join(self.folder, self.file), "w", encoding="utf-8") as file:
                 json.dump({0: 0}, file)  # creating empty file
         return True
 
     def save(self):
         """makes the file from the dict"""
         try:
-            with open(self.path, "w") as file:
+            with open(self.path, "w", encoding="utf-8") as file:
                 json.dump(self.data, file)
 
         except Exception as e:
@@ -286,7 +286,7 @@ class Translator(object):
 
     def load_strings(self):
         try:
-            with open(self.file, "r") as translation:
+            with open(self.file, "r", encoding="utf-8") as translation:
                 return json.load(translation)
         except json.decoder.JSONDecodeError as e:
             local_logger.error(f"Couldn't read translation for file {self.file}")
