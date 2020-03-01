@@ -120,9 +120,14 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
 
 def get_help(command: discord.ext.commands.command, lang: str):
     if command.cog:
-        return Translator(command.cog.__module__.split(".")[1], lang, help_type=True)[
-            command.name
-        ]
+        text = Translator(command.cog.__module__.split(".")[1], lang, help_type=True)._dict
+        if not command.parents:
+            return text[command.name]
+        else:
+            for parent in command.parents:
+                text = text[parent.name][1]
+            return text[command.name]
+
     else:
         # the only commands not in a cog are in main.py -> ext group
         return Translator("default", lang, help_type=True)[command.name]
