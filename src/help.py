@@ -122,27 +122,22 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
             await msg.delete()
 
     async def send_bot_help(self, mapping):
-        print("in send_bot_help")
+        pages = get_bot_pages(lang)
+        msg = await self.get_destination().send(embed=pages[0])
+
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
+
 
     async def send_cog_help(self, cog):
-        pass
+        pages = get_cog_pages(cog, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
+
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
     async def send_group_help(self, group):
-        pages = []
-        lang = self.get_help_lang()
-        for command in group.commands:
-            pages.append(*get_command_pages(command, lang))
-
-        # rewritting the footer because get_command_help is only aware of itself
-        pages_number = len(pages)
-        for embed, crt in zip(pages, range(pages_number)):
-            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
-
-        description = get_help(group, lang)
-        header = discord.Embed(title=group.name, description=description, color=7506394)
-        header.set_footer(text=f"Page (1/{pages_number+1})")
-        pages.insert(0, header)
-
+        pages = get_group_pages(group, self.get_help_lang())
         msg = await self.get_destination().send(embed=pages[0])
 
         await self.set_reactions(msg, len(pages))
@@ -169,7 +164,6 @@ def get_help(command, lang: str):
                 return text[command.name]
 
         else:
-            print("wth?")
             if isinstance(command, discord.ext.commands.Command):
                 for parent in command.parents:
                     text = text[parent.name][1]
@@ -183,9 +177,48 @@ def get_help(command, lang: str):
         # the only commands not in a cog are in main.py -> ext group
         return Translator("default", lang, help_type=True)[command.name]
 
+def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = True) -> list:
+    pages = []
+    for command in cog.get_commands():
+        if isinstance(command, discord.ext.commands.Group):
+            pages += get_group_pages(command, lang, paginate=False)
+        else:
+            pages += get_command_pages(command, lang, paginate=False)
+
+    description = Translator(cog.__module__.split(".")[1], lang, help_type=True)._dict["cog_description"]
+    header = discord.Embed(title=cog.qualified_name, description=description, color=7506394)
+
+    #paginating
+    if paginate:
+        pages_number = len(pages)
+        header.set_footer(text=f"Page (1/{pages_number+1})")
+        for embed, crt in zip(pages, range(pages_number)):
+            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+    pages.insert(0, header)
+    return pages
+
+def get_group_pages(group: discord.ext.commands.Group, lang: str, paginate: bool = True) -> list:
+    pages = []
+    for command in group.commands:
+        pages += get_command_pages(command, lang, paginate=False)
+
+    description = get_help(group, lang)
+    header = discord.Embed(title=group.name, description=description, color=7506394)
+
+    #paginating
+    if paginate:
+        pages_number = len(pages)
+        header.set_footer(text=f"Page (1/{pages_number+1})")
+        for embed, crt in zip(pages, range(pages_number)):
+            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+    pages.insert(0, header)
+    return pages
+
 
 def get_command_pages(
-    command: discord.ext.commands.command, lang: str, threshold: int = 150
+    command: discord.ext.commands.command, lang: str, threshold: int = 150, paginate: bool = True
 ) -> list:
     """this returns a list of Embeds that represent help pages
     cmd_type is an int that must be 0 (command), 1 (cog), 2 (group)
@@ -237,11 +270,11 @@ def get_command_pages(
     pages_number = len(pages)
     for page, crt in zip(pages, range(len(pages))):
         embed = discord.Embed(title=name, description=page, color=7506394,)
-        embed.set_footer(text=f"Page ({crt+1}/{pages_number})")
+        if paginate:
+            embed.set_footer(text=f"Page ({crt+1}/{pages_number})")
         embed.add_field(name="Usage", value=f"`{command.name} {usage}", inline=False)
         embeds.append(embed)
 
-    print(embeds)
     return embeds
 
 
