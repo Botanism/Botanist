@@ -39,6 +39,8 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
             EMOJIS["arrow_backward"],
             EMOJIS["arrow_forward"],
             EMOJIS["information_source"],
+            EMOJIS["track_previous"],
+            EMOJIS["track_next"],
         ):
             return False
 
@@ -56,9 +58,14 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
     async def set_reactions(self, msg: discord.Message, pages: int):
         # adding approriate interactions
         if pages > 1:
+            if pages > 2:
+                await msg.add_reaction(EMOJIS["track_previous"])
             await msg.add_reaction(EMOJIS["arrow_backward"])
             await msg.add_reaction(EMOJIS["information_source"])
             await msg.add_reaction(EMOJIS["arrow_forward"])
+            if pages > 2:
+                await msg.add_reaction(EMOJIS["track_next"])
+
         else:
             await msg.add_reaction(EMOJIS["information_source"])
 
@@ -79,19 +86,27 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
                 # interpret reactions
                 if reaction.emoji == EMOJIS["arrow_forward"]:
                     # making sure you're not on the last page
-                    local_logger.info("Going forward in paging")
+                    local_logger.debug("Going forward in paging")
                     if current_page != len(pages) - 1:
                         current_page += 1
 
                 elif reaction.emoji == EMOJIS["arrow_backward"]:
-                    local_logger.info("Going backward in paging")
+                    local_logger.debug("Going backward in paging")
                     # making sure you're not on the first page
                     if current_page != 0:
                         current_page -= 1
 
+                elif reaction.emoji == EMOJIS["track_next"]:
+                    local_logger.debug("Going to last page.")
+                    current_page = len(pages) - 1
+
+                elif reaction.emoji == EMOJIS["track_previous"]:
+                    local_logger.debug("Going to first page")
+                    current_page = 0
+
                 else:
                     # the only other allowed reaction is information_source
-                    local_logger.info(
+                    local_logger.debug(
                         "Deleting help embed and sending help interface manual."
                     )
                     await self.send_bot_help(self.get_bot_mapping())
@@ -113,7 +128,25 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         pass
 
     async def send_group_help(self, group):
-        pass
+        pages = []
+        lang = self.get_help_lang()
+        for command in group.commands:
+            pages.append(*get_command_pages(command, lang))
+
+        # rewritting the footer because get_command_help is only aware of itself
+        pages_number = len(pages)
+        for embed, crt in zip(pages, range(pages_number)):
+            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+        description = get_help(group, lang)
+        header = discord.Embed(title=group.name, description=description, color=7506394)
+        header.set_footer(text=f"Page (1/{pages_number+1})")
+        pages.insert(0, header)
+
+        msg = await self.get_destination().send(embed=pages[0])
+
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
     async def send_command_help(self, command):
         pages = get_command_pages(command, self.get_help_lang())
@@ -123,15 +156,28 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         await self.start_interaction(pages, msg)
 
 
-def get_help(command: discord.ext.commands.command, lang: str):
+def get_help(command, lang: str):
+    """this needs heavy refactoring"""
     if command.cog:
-        text = Translator(command.cog.__module__.split(".")[1], lang, help_type=True)._dict
+        text = Translator(
+            command.cog.__module__.split(".")[1], lang, help_type=True
+        )._dict
         if not command.parents:
-            return text[command.name]
+            if isinstance(command, discord.ext.commands.Group):
+                return text[command.name][0]  # returns the description of the group
+            elif isinstance(command, discord.ext.commands.Command):
+                return text[command.name]
+
         else:
-            for parent in command.parents:
-                text = text[parent.name][1]
-            return text[command.name]
+            print("wth?")
+            if isinstance(command, discord.ext.commands.Command):
+                for parent in command.parents:
+                    text = text[parent.name][1]
+                return text[command.name]
+            elif isinstance(command, discord.ext.commands.Group):
+                for parent in command.parents[:-1]:
+                    text = text[parent.name][1]
+                return text[0]  # returns the description of the group
 
     else:
         # the only commands not in a cog are in main.py -> ext group
@@ -192,20 +238,11 @@ def get_command_pages(
     for page, crt in zip(pages, range(len(pages))):
         embed = discord.Embed(title=name, description=page, color=7506394,)
         embed.set_footer(text=f"Page ({crt+1}/{pages_number})")
-        embed.add_field(name="Usage", value=f"{command.name} `{usage}", inline=False)
+        embed.add_field(name="Usage", value=f"`{command.name} {usage}", inline=False)
         embeds.append(embed)
 
     print(embeds)
     return embeds
-
-
-def get_command_help(command: discord.ext.commands.command):
-    cog_strings = Translator(command.cog.qualified_name, "en", help_type=True)._dict
-    if command.parents:
-        for parent in command.parents:
-            cog_strings = cog_strings[parent]
-
-    return cog_strings[command.name]
 
 
 def count_chars(*args: str) -> int:
@@ -216,9 +253,3 @@ def count_chars(*args: str) -> int:
         )
         count += len(string)
     return count
-
-
-def get_commands_tree(command, cmd_type: int = 1) -> dict:
-    """returns a dict with a list of all commands strings (reads the JSONs)
-    cmd_type can be 1 or 2"""
-    assert cmd_type in [1, 2], RuntimeError(f"Invalid value {cmd_type} for cmd_type.")

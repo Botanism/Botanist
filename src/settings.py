@@ -55,6 +55,8 @@ EMOJIS = {
     "arrow_backward": "\U000025c0",
     "arrow_forward": "\U000025b6",
     "information_source": "\U00002139",
+    "track_previous": "\U000023ee",
+    "track_next": "\U000023ed",
 }
 
 # NotImplemented
