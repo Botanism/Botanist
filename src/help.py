@@ -53,28 +53,17 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
             lang = conf["lang"]
         return lang
 
-    async def send_bot_help(self, mapping):
-        print("in send_bot_help")
-
-    async def send_cog_help(self, cog):
-        pass
-
-    async def send_group_help(self, group):
-        pass
-
-    async def send_command_help(self, command):
-        pages = get_command_pages(command, self.get_help_lang())
-        current_page = 0
-        msg = await self.get_destination().send(embed=pages[current_page])
-
+    async def set_reactions(self, msg: discord.Message, pages: int):
         # adding approriate interactions
-        if len(pages) > 1:
+        if pages > 1:
             await msg.add_reaction(EMOJIS["arrow_backward"])
             await msg.add_reaction(EMOJIS["information_source"])
             await msg.add_reaction(EMOJIS["arrow_forward"])
         else:
             await msg.add_reaction(EMOJIS["information_source"])
 
+    async def start_interaction(self, pages: list, msg: discord.Message):
+        current_page = 0
         start_time = time()
         elapsed_time = 0
         try:
@@ -116,6 +105,22 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         except TimeoutError:
             # print("Time is over, deleting message")
             await msg.delete()
+
+    async def send_bot_help(self, mapping):
+        print("in send_bot_help")
+
+    async def send_cog_help(self, cog):
+        pass
+
+    async def send_group_help(self, group):
+        pass
+
+    async def send_command_help(self, command):
+        pages = get_command_pages(command, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
+
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
 
 def get_help(command: discord.ext.commands.command, lang: str):
