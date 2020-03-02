@@ -114,15 +114,13 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
                     break
 
                 await msg.remove_reaction(reaction, user)
-                await msg.edit(suppress=True, embed=pages[current_page])
+                await msg.edit(suppress=False, embed=pages[current_page])
                 elapsed_time = time() - start_time
-                # print("Seconds gone by:", elapsed_time)
         except TimeoutError:
-            # print("Time is over, deleting message")
             await msg.delete()
 
     async def send_bot_help(self, mapping):
-        pages = get_bot_pages(self.context.bot.cogs.values(), lang)
+        pages = get_bot_pages(self.context.bot.cogs.values(), self.get_help_lang())
         msg = await self.get_destination().send(embed=pages[0])
 
         await self.set_reactions(msg, len(pages))
@@ -154,7 +152,7 @@ def get_help(command, lang: str):
     """this needs heavy refactoring"""
     if command.cog:
         text = Translator(
-            command.cog.__module__.split(".")[1], lang, help_type=True
+            command.cog.__module__.split(".")[-1], lang, help_type=True
         )._dict
         if not command.parents:
             if isinstance(command, discord.ext.commands.Group):
@@ -179,7 +177,7 @@ def get_help(command, lang: str):
 def get_bot_pages(cogs, lang: str):
     """currently doesn't support commands outside of cogs"""
     pages = []
-    for commands in cogs:
+    for cog in cogs:
         pages += get_cog_pages(cog, lang, paginate = False)
 
     description = Translator("help", lang, help_type=True)._dict["description"]
