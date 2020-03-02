@@ -1,6 +1,5 @@
 import logging
-from asyncio.exceptions import TimeoutError
-from asyncio import sleep as asleep
+import asyncio
 from time import time
 import discord
 from settings import EMOJIS, HELP_TIME
@@ -116,7 +115,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
                 await msg.remove_reaction(reaction, user)
                 await msg.edit(suppress=False, embed=pages[current_page])
                 elapsed_time = time() - start_time
-        except TimeoutError:
+        except asyncio.exceptions.TimeoutError:
             await msg.delete()
 
     async def send_bot_help(self, mapping):
