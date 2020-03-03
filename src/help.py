@@ -119,7 +119,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
             await msg.delete()
 
     async def send_bot_help(self, mapping):
-        pages = get_bot_pages(self.context.bot.cogs.values(), self.get_help_lang())
+        pages = get_bot_pages(self.context.bot.cogs, self.get_help_lang())
         msg = await self.get_destination().send(embed=pages[0])
 
         await self.set_reactions(msg, len(pages))
@@ -173,21 +173,34 @@ def get_help(command, lang: str):
         # the only commands not in a cog are in main.py -> ext group
         return Translator("default", lang, help_type=True)[command.name]
 
-def get_bot_pages(cogs, lang: str):
+def get_bot_pages(cog_mapping, lang: str):
     """currently doesn't support commands outside of cogs"""
+    cogs = cog_mapping.values()
+    cog_names = cog_mapping.keys()
+
     pages = []
     for cog in cogs:
         pages += get_cog_pages(cog, lang, paginate = False)
 
-    description = Translator("help", lang, help_type=True)._dict["description"]
+    #explaining how help works
+    tr = Translator("help", lang, help_type=True)._dict
+    description = tr["description"]
     header = discord.Embed(title="Help", description=description, color=7506394)
 
+    #listing all available cogs
+    chars_per_cog = int(5000 / len(cog_names))
+    index = discord.Embed(title="Index", description="Here's an index of all cogs (sometimes also refered to as extensions) this bot contains. To get more information on a specific one type `::help <cog>`. Otherwise you can also browse through the pages.", color=7506394)
+    for cog in cog_names:
+        index.add_field(name=cog, value=tr[cog.lower()][:chars_per_cog], inline=True)
+
     pages_number = len(pages)
-    header.set_footer(text=f"Page (1/{pages_number+1})")
+    header.set_footer(text=f"Page (1/{pages_number+2})")
+    index.set_footer(text=f"Page (2/{pages_number+2})")
     for embed, crt in zip(pages, range(pages_number)):
-        embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+        embed.set_footer(text=f"Page ({crt+3}/{pages_number+2})")
 
     pages.insert(0, header)
+    pages.insert(1, index)
     return pages
     
 

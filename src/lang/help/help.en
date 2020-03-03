@@ -1,5 +1,5 @@
 {
-	"description": "This is the `help` command interface. With you can learn to use all commands made available to you by this bot. Type `::help <command>` to get more information on a specific command. Here are some basic concepts:\n  a command is a process that you ask the bot to do. They are differenciated by their name and to call (=invoke) them you must append `::` before the name of the command.\n  arguments, also known as parameters are options you can pass to the commands. You specify them by writting them down after the said command.\n\nThere are many kinds of parameters.\n`<arg>` is a **required** parameter that must be specified. If you don't you'll get a `NotEnoughArguments` error.\n`[arg]` are **optional** arguments\n`...` means that you can specify multiple arguments of this type. All arguments are separated by a space (` `).",
+	"description": "This is the `help` command interface. With you can learn to use all commands made available to you by this bot. Type `::help <command>` to get more information on a specific command.\nHere are some basic concepts:\n  a command is a process that you ask the bot to do. They are differenciated by their name and to call (=invoke) them you must append `::` before the name of the command.\n**Beware**, for the sake of performance the interactive help sessions get shut down after some time and delete themselves to save space and improve readibility.\n  Arguments, also known as parameters are options you can pass to the commands. You specify them by writting them down after the said command.\n\nThere are many kinds of parameters.\n`<arg>` is a **required** parameter that must be specified. If you don't you'll get a `NotEnoughArguments` error.\n`[arg]` are **optional** arguments\n`...` means that you can specify multiple arguments of this type. All arguments are separated by a space (` `).",
 	"time": "Time provides various commands linked to time.",
 	"role": "Role management utilities",
 	"slapping": "A warning interface meant to use moderation on server with multiple moderators and lots of members.",
@@ -10,4 +10,3 @@
 	"config": "Allows the owner of a server to configure the behavior of the bot.",
 	"defaults": "A suite of commands always activated which handle extension management. This cannot be unloaded as it is part of the core of the bot and is required for live updates."
 }
-
