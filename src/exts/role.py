@@ -138,6 +138,30 @@ class Role(commands.Cog):
                 local_logger.exception("Couldn't remove roles ")
                 raise e
 
+    @role.command()
+    async def free(self, ctx):
+        """return a list of free role"""
+        free_roles = ""
+        with ConfigFile(ctx.guild.id) as conf:
+            for role in conf["free_roles"]:
+                try:
+                    resolved = ctx.guild.get_role(role)
+                    free_roles += f"{resolved.mention}\n"
+
+                except discord.ext.commands.ConversionError as e:
+                    raise e
+                    local_logger.error("A free role couldn't be found, maybe it was deleted?")
+                    local_logger.exception(e)
+
+            #if no role was added -> report it to the user
+            if not free_roles:
+                await ctx.send("There is no free role on this server.")
+                return
+
+        listing = discord.Embed(title="Free roles", description="The list of free roles of this server. Free roles are roles anyone can get, by themselves. They can be obtained using `role add <member> [roles...]`.", color=7506394)
+        listing.add_field(name="Listing", value=free_roles)
+        await ctx.send(embed=listing)
+
 
 def setup(bot):
     bot.add_cog(Role(bot))
