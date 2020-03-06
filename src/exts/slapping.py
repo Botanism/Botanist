@@ -320,7 +320,9 @@ class Slapping(commands.Cog):
             mod_chan = conf["commode"]["reports_chan"]
 
         if mod_chan == False:
-            await ctx.send("The server owner has disabled this feature because he didn't set any moderation channel. Contact him/her if you think this is not right.")
+            await ctx.send(
+                "The server owner has disabled this feature because he didn't set any moderation channel. Contact him/her if you think this is not right."
+            )
         else:
             mod_chan = ctx.guild.get_channel(mod_chan)
 
@@ -329,7 +331,10 @@ class Slapping(commands.Cog):
             reason_str += f" {word}"
 
         report = tr["report"].format(
-            ctx.author.mention, ctx.message.jump_url, member.mention, ctx.channel.mention
+            ctx.author.mention,
+            ctx.message.jump_url,
+            member.mention,
+            ctx.channel.mention,
         )
 
         card = discord.Embed(

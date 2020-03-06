@@ -173,6 +173,7 @@ def get_help(command, lang: str):
         # the only commands not in a cog are in main.py -> ext group
         return Translator("default", lang, help_type=True)[command.name]
 
+
 def get_bot_pages(cog_mapping, lang: str):
     """currently doesn't support commands outside of cogs"""
     cogs = cog_mapping.values()
@@ -180,16 +181,20 @@ def get_bot_pages(cog_mapping, lang: str):
 
     pages = []
     for cog in cogs:
-        pages += get_cog_pages(cog, lang, paginate = False)
+        pages += get_cog_pages(cog, lang, paginate=False)
 
-    #explaining how help works
+    # explaining how help works
     tr = Translator("help", lang, help_type=True)._dict
     description = tr["description"]
     header = discord.Embed(title="Help", description=description, color=7506394)
 
-    #listing all available cogs
+    # listing all available cogs
     chars_per_cog = int(5000 / len(cog_names))
-    index = discord.Embed(title="Index", description="Here's an index of all cogs (sometimes also refered to as extensions) this bot contains. To get more information on a specific one type `::help <cog>`. Otherwise you can also browse through the pages.", color=7506394)
+    index = discord.Embed(
+        title="Index",
+        description="Here's an index of all cogs (sometimes also refered to as extensions) this bot contains. To get more information on a specific one type `::help <cog>`. Otherwise you can also browse through the pages.",
+        color=7506394,
+    )
     for cog in cog_names:
         index.add_field(name=cog, value=tr[cog.lower()][:chars_per_cog], inline=True)
 
@@ -202,10 +207,11 @@ def get_bot_pages(cog_mapping, lang: str):
     pages.insert(0, header)
     pages.insert(1, index)
     return pages
-    
 
 
-def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = True) -> list:
+def get_cog_pages(
+    cog: discord.ext.commands.Cog, lang: str, paginate: bool = True
+) -> list:
     pages = []
     for command in cog.get_commands():
         if isinstance(command, discord.ext.commands.Group):
@@ -213,10 +219,14 @@ def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = Tru
         else:
             pages += get_command_pages(command, lang, paginate=False)
 
-    description = Translator("help", lang, help_type=True)._dict[cog.qualified_name.lower()]
-    header = discord.Embed(title=cog.qualified_name, description=description, color=7506394)
+    description = Translator("help", lang, help_type=True)._dict[
+        cog.qualified_name.lower()
+    ]
+    header = discord.Embed(
+        title=cog.qualified_name, description=description, color=7506394
+    )
 
-    #paginating
+    # paginating
     if paginate:
         pages_number = len(pages)
         header.set_footer(text=f"Page (1/{pages_number+1})")
@@ -226,7 +236,10 @@ def get_cog_pages(cog: discord.ext.commands.Cog, lang: str, paginate: bool = Tru
     pages.insert(0, header)
     return pages
 
-def get_group_pages(group: discord.ext.commands.Group, lang: str, paginate: bool = True) -> list:
+
+def get_group_pages(
+    group: discord.ext.commands.Group, lang: str, paginate: bool = True
+) -> list:
     pages = []
     for command in group.commands:
         pages += get_command_pages(command, lang, paginate=False)
@@ -234,7 +247,7 @@ def get_group_pages(group: discord.ext.commands.Group, lang: str, paginate: bool
     description = get_help(group, lang)
     header = discord.Embed(title=group.name, description=description, color=7506394)
 
-    #paginating
+    # paginating
     if paginate:
         pages_number = len(pages)
         header.set_footer(text=f"Page (1/{pages_number+1})")
@@ -246,7 +259,10 @@ def get_group_pages(group: discord.ext.commands.Group, lang: str, paginate: bool
 
 
 def get_command_pages(
-    command: discord.ext.commands.command, lang: str, threshold: int = 150, paginate: bool = True
+    command: discord.ext.commands.command,
+    lang: str,
+    threshold: int = 150,
+    paginate: bool = True,
 ) -> list:
     """this returns a list of Embeds that represent help pages
     cmd_type is an int that must be 0 (command), 1 (cog), 2 (group)

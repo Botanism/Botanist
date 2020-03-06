@@ -101,7 +101,6 @@ class Poll(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         """currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs"""
 
-
         # getting poll_allowed_chans
         # @is_init
         with ConfigFile(payload.guild_id) as conf:

@@ -150,15 +150,21 @@ class Role(commands.Cog):
 
                 except discord.ext.commands.ConversionError as e:
                     raise e
-                    local_logger.error("A free role couldn't be found, maybe it was deleted?")
+                    local_logger.error(
+                        "A free role couldn't be found, maybe it was deleted?"
+                    )
                     local_logger.exception(e)
 
-            #if no role was added -> report it to the user
+            # if no role was added -> report it to the user
             if not free_roles:
                 await ctx.send("There is no free role on this server.")
                 return
 
-        listing = discord.Embed(title="Free roles", description="The list of free roles of this server. Free roles are roles anyone can get, by themselves. They can be obtained using `role add <member> [roles...]`.", color=7506394)
+        listing = discord.Embed(
+            title="Free roles",
+            description="The list of free roles of this server. Free roles are roles anyone can get, by themselves. They can be obtained using `role add <member> [roles...]`.",
+            color=7506394,
+        )
         listing.add_field(name="Listing", value=free_roles)
         await ctx.send(embed=listing)
 
