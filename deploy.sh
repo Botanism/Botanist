@@ -58,7 +58,8 @@ echo -e "DISCORD_TOKEN=$token\n" >> ~/bashrc_testing
 
 #configuring the bot
 echo "Applying configuration."
-settings_path="$name/settings.py"
+base_path="$name/src/"
+settings_path="$name/src/settings.py"
 
 if [[ ! -z $prefix ]]; then
     echo "yup"
@@ -79,8 +80,8 @@ python3 -m venv $name/dpy
 source $name/dpy/bin/activate
 
 echo "Installing dependencies."
-python3 -m pip install -r $name/requirements.txt
+python3 -m pip install -r $base_path/requirements.txt
 deactivate
 
-echo "Finished installing $name. To start it run: source $name/dpy/bin/activate && python3 $name/main.py"
+echo "Finished installing $name. To start it run: source $name/dpy/bin/activate && python3 $base_path/main.py"
 exit 0

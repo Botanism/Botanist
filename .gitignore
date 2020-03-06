@@ -1,2 +1,4 @@
-forebot.log
+*.log
 *.pyc
+*.json
+OLD*

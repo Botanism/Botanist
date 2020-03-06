@@ -1,8 +1,8 @@
 import logging
-import os
-import json
+import asyncio
+from time import time
 import discord
-from settings import *
+from settings import EMOJIS, HELP_TIME
 from utilities import *
 
 #########################################
@@ -17,8 +17,6 @@ local_logger.setLevel(LOGGING_LEVEL)
 local_logger.addHandler(LOGGING_HANDLER)
 local_logger.info("Innitalized {} logger".format(__name__))
 
-
-
 #########################################
 #                                       #
 #                                       #
@@ -27,165 +25,308 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-class Help(discord.ext.commands.DefaultHelpCommand):
-    """docstring for Help. An interactive object that issues help to the servers and DMs."""
-    def __init__(self, language, **options):
-        super(Help, self).__init__(**options)
-        self.lang = language
-        self.paginator = Paginator()
 
-    def load_help(self, ext):
-        return Translator(ext, self.lang, help_type=True)._dict
+class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
+    """This Help class offers interaction support through embeds and reactions."""
 
-    def to_cmds(self, grp):
-        cmds = []
-        for cmd in grp:
-            cmds.append()
+    def __init__(self, react_time: int = HELP_TIME, **options):
+        super().__init__(**options)
+        self.react_time = react_time
 
+    def help_reaction(self, reaction, user):
+        if reaction.emoji not in (
+            EMOJIS["arrow_backward"],
+            EMOJIS["arrow_forward"],
+            EMOJIS["information_source"],
+            EMOJIS["track_previous"],
+            EMOJIS["track_next"],
+        ):
+            return False
+
+        # making sure the author of the help command is indeed the one reacting
+        if user == reaction.message.author:
+            return False
+
+        return True
+
+    def get_help_lang(self):
+        with ConfigFile(self.get_destination().guild.id) as conf:
+            lang = conf["lang"]
+        return lang
+
+    async def set_reactions(self, msg: discord.Message, pages: int):
+        # adding approriate interactions
+        if pages > 1:
+            if pages > 2:
+                await msg.add_reaction(EMOJIS["track_previous"])
+            await msg.add_reaction(EMOJIS["arrow_backward"])
+            await msg.add_reaction(EMOJIS["information_source"])
+            await msg.add_reaction(EMOJIS["arrow_forward"])
+            if pages > 2:
+                await msg.add_reaction(EMOJIS["track_next"])
+
+        else:
+            await msg.add_reaction(EMOJIS["information_source"])
+
+    async def start_interaction(self, pages: list, msg: discord.Message):
+        current_page = 0
+        start_time = time()
+        elapsed_time = 0
+        try:
+            while elapsed_time < self.react_time:
+                print("waiting for a reaction")
+                reaction, user = await self.context.bot.wait_for(
+                    "reaction_add",
+                    timeout=self.react_time - elapsed_time,
+                    check=self.help_reaction,
+                )
+                print(f"Got reaction {reaction} from {user}")
+
+                # interpret reactions
+                if reaction.emoji == EMOJIS["arrow_forward"]:
+                    # making sure you're not on the last page
+                    local_logger.debug("Going forward in paging")
+                    if current_page != len(pages) - 1:
+                        current_page += 1
+
+                elif reaction.emoji == EMOJIS["arrow_backward"]:
+                    local_logger.debug("Going backward in paging")
+                    # making sure you're not on the first page
+                    if current_page != 0:
+                        current_page -= 1
+
+                elif reaction.emoji == EMOJIS["track_next"]:
+                    local_logger.debug("Going to last page.")
+                    current_page = len(pages) - 1
+
+                elif reaction.emoji == EMOJIS["track_previous"]:
+                    local_logger.debug("Going to first page")
+                    current_page = 0
+
+                else:
+                    # the only other allowed reaction is information_source
+                    local_logger.debug(
+                        "Deleting help embed and sending help interface manual."
+                    )
+                    await self.send_bot_help(self.get_bot_mapping())
+                    await msg.delete()
+                    break
+
+                await msg.remove_reaction(reaction, user)
+                await msg.edit(suppress=False, embed=pages[current_page])
+                elapsed_time = time() - start_time
+        except asyncio.exceptions.TimeoutError:
+            await msg.delete()
 
     async def send_bot_help(self, mapping):
-        strings = self.load_help("help")
-        pages = self.paginator.to_embeds("Help Interface", description=strings["description"])
-        await self.get_destination().send(embed=pages[0])
+        pages = get_bot_pages(self.context.bot.cogs, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
+
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
     async def send_cog_help(self, cog):
-        if isinstance(cog, discord.ext.commands.Cog):
-            name = cog.qualified_name.lower()
-        else:
-            name = "defaults"
+        pages = get_cog_pages(cog, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
 
-        description = self.load_help("help")[name]
-
-        cmds = []
-        helps = self.load_help(name)
-        for cmd in helps:
-            crt = helps[cmd]
-            if isinstance(crt[1], dict):
-                crt = "` " + crt[0]
-            else:
-                crt = " " + crt[1]
-
-            cmds.append("`" + cmd + crt)
-
-        pages = self.paginator.to_embeds(name.title(), description=description, commands=cmds)
-        await self.get_destination().send(embed=pages[0])
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
     async def send_group_help(self, group):
-        title = f"**{group.name.title()}**"
+        pages = get_group_pages(group, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
 
-        if group.cog:
-            title += f" from extension **{group.cog.qualified_name}**"
-
-        if not group.parents:
-            description, cmds = self.load_help(group.cog_name.lower())[group.name]
-
-        else: #this may fail
-            path = self.load_help()[group.cog.qualified_name.lower()] #what if it's None for external ones?
-            for parent in group.parents:
-                path = path[parent.qualified_name]
-            description, cmds = path[1][group.name]
-
-        cmds_str = ""
-        for cmd in cmds:
-            cmds_str += f"--`{cmd}` " + cmds[cmd][0].lower() + "\n"
-            #add a list of commands and their description/usage
-
-        embed_help = discord.Embed(
-            title = title,
-            description = description,
-            color = 7506394)
-
-        embed_help.add_field(name="Commands", value=cmds_str)
-        await self.get_destination().send(embed=embed_help)
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
     async def send_command_help(self, command):
-        title = f"**{command.name.title()}**"
+        pages = get_command_pages(command, self.get_help_lang())
+        msg = await self.get_destination().send(embed=pages[0])
 
-        if command.cog:
-            title += f" from extension **{command.cog.qualified_name}**"
+        await self.set_reactions(msg, len(pages))
+        await self.start_interaction(pages, msg)
 
+
+def get_help(command, lang: str):
+    """this needs heavy refactoring"""
+    if command.cog:
+        text = Translator(
+            command.cog.__module__.split(".")[-1], lang, help_type=True
+        )._dict
         if not command.parents:
-            description, usage = self.load_help(command.cog.qualified_name.lower())[command.name]
+            if isinstance(command, discord.ext.commands.Group):
+                return text[command.name][0]  # returns the description of the group
+            elif isinstance(command, discord.ext.commands.Command):
+                return text[command.name]
+
         else:
-            path = self.load_help()[command.cog.qualified_name.lower()]
-            for parent in command.parents:
-                path = path[parent.qualified_name]
-            description, usage = path[1][command.name]
+            if isinstance(command, discord.ext.commands.Command):
+                for parent in command.parents:
+                    text = text[parent.name][1]
+                return text[command.name]
+            elif isinstance(command, discord.ext.commands.Group):
+                for parent in command.parents[:-1]:
+                    text = text[parent.name][1]
+                return text[0]  # returns the description of the group
+
+    else:
+        # the only commands not in a cog are in main.py -> ext group
+        return Translator("default", lang, help_type=True)[command.name]
 
 
-        usage = "`" + command.name + " " + usage
+def get_bot_pages(cog_mapping, lang: str):
+    """currently doesn't support commands outside of cogs"""
+    cogs = cog_mapping.values()
+    cog_names = cog_mapping.keys()
 
-        embed_help = discord.Embed(
-            title = title,
-            description = description,
-            color = 7506394)
+    pages = []
+    for cog in cogs:
+        pages += get_cog_pages(cog, lang, paginate=False)
 
-        embed_help.add_field(name="Usage", value=usage)
-        await self.get_destination().send(embed=embed_help)
+    # explaining how help works
+    tr = Translator("help", lang, help_type=True)._dict
+    description = tr["description"]
+    header = discord.Embed(title="Help", description=description, color=7506394)
+
+    # listing all available cogs
+    chars_per_cog = int(5000 / len(cog_names))
+    index = discord.Embed(
+        title="Index",
+        description="Here's an index of all cogs (sometimes also refered to as extensions) this bot contains. To get more information on a specific one type `::help <cog>`. Otherwise you can also browse through the pages.",
+        color=7506394,
+    )
+    for cog in cog_names:
+        index.add_field(name=cog, value=tr[cog.lower()][:chars_per_cog], inline=True)
+
+    pages_number = len(pages)
+    header.set_footer(text=f"Page (1/{pages_number+2})")
+    index.set_footer(text=f"Page (2/{pages_number+2})")
+    for embed, crt in zip(pages, range(pages_number)):
+        embed.set_footer(text=f"Page ({crt+3}/{pages_number+2})")
+
+    pages.insert(0, header)
+    pages.insert(1, index)
+    return pages
 
 
-class Paginator():
-    """makes the help pages"""
-    def __init__(self, base_offset="--", title="Help Interface"):
-        self.max_size = 5997
-        self._count = 0
-        self.base_offset = base_offset
-        self._title = title
-        self.clear()
-
-    def clear(self):
-        self.pages = []
-        self._current_page = {"title": self._title, "description": "", "color": 7506394}
-
-    def add_line(self, line="", empty=False, offset=0):
-        if self._count + len(line + offset * self.base_offset) > self.max_size:
-            raise RuntimeError("Line is too big for the current page.")
-
-        self._current_page["description"] += "\n" + offset * self.base_offset + line
-        if empty:
-            self._current_page["description"] += "\n"
-
-        self._count -= len(self._current_page)
-        if self.chars_left() <= 2:
-            self.close_page()
-
-    def chars_left(self, plus=""):
-        if not plus:
-            return self.max_size - self._count
+def get_cog_pages(
+    cog: discord.ext.commands.Cog, lang: str, paginate: bool = True
+) -> list:
+    pages = []
+    for command in cog.get_commands():
+        if isinstance(command, discord.ext.commands.Group):
+            pages += get_group_pages(command, lang, paginate=False)
         else:
-            return self.max_size > self._count + len(plus)
+            pages += get_command_pages(command, lang, paginate=False)
+
+    description = Translator("help", lang, help_type=True)._dict[
+        cog.qualified_name.lower()
+    ]
+    header = discord.Embed(
+        title=cog.qualified_name, description=description, color=7506394
+    )
+
+    # paginating
+    if paginate:
+        pages_number = len(pages)
+        header.set_footer(text=f"Page (1/{pages_number+1})")
+        for embed, crt in zip(pages, range(pages_number)):
+            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+    pages.insert(0, header)
+    return pages
 
 
-    def close_page(self):
-        self.pages.append(self._current_page)
-        self._count = self._title
-        self._current_page = {"title": self._title, "description": "", "color": 7506394}
+def get_group_pages(
+    group: discord.ext.commands.Group, lang: str, paginate: bool = True
+) -> list:
+    pages = []
+    for command in group.commands:
+        pages += get_command_pages(command, lang, paginate=False)
+
+    description = get_help(group, lang)
+    header = discord.Embed(title=group.name, description=description, color=7506394)
+
+    # paginating
+    if paginate:
+        pages_number = len(pages)
+        header.set_footer(text=f"Page (1/{pages_number+1})")
+        for embed, crt in zip(pages, range(pages_number)):
+            embed.set_footer(text=f"Page ({crt+2}/{pages_number+1})")
+
+    pages.insert(0, header)
+    return pages
 
 
-    def help_page(self, title=None, description="", commands=[]):
-        if title == None:
-            rtitle = self._title
-        else:
-            rtitle = str(title)
-        
-        embed = {"title": rtitle, "description":description}
-        self._count -= len(rtitle + description)
-        for line in commands:
-            if not self.chars_left(plus=line):
-                self.close_page()
-            print(line, type(line))
-            self.add_line(line=line, empty=True, offset=1)
+def get_command_pages(
+    command: discord.ext.commands.command,
+    lang: str,
+    threshold: int = 150,
+    paginate: bool = True,
+) -> list:
+    """this returns a list of Embeds that represent help pages
+    cmd_type is an int that must be 0 (command), 1 (cog), 2 (group)
+    maybe return a generator instead?"""
+    name = ""
+    if command.parents:
+        for parent in command.parents:
+            name += f"{parent.name} / "
+    name += command.name
 
-        self.close_page()
-        return embed
+    description, usage = get_help(command, lang)
 
-    def to_embeds(self, title, description="", commands=[], usage_title="Commands"):
-        embed0 = self.help_page(title=title, description=description, commands=commands)
-        embeds = [discord.Embed(**embed0, color=7506394)]
-        if len(description+title) <= self.max_size and self.pages[0]["description"]:
-            embeds[0].add_field(name=usage_title, value = self.pages[0]["description"])
+    # split command in multiple pages
+    if (
+        count_chars(description, usage, name) > 2048 - threshold
+    ):  # maximum embed description size is 2048 chars
+        pages = []
+        # splitting by line breaks
+        paragraphs = description.split("\n")
 
-        for page in self.pages[1:]:
-            embeds.append(discord.Embed(**page, color=7506394))
+        # splitting by "."
+        for paragraph in paragraphs:
+            if count_chars(paragraph) > 2048 - threshold:
+                sentences = paragraph.split(".")
+                assert len(sentences) > 0, ValueError(
+                    "No known parsing method for this help string. Should contain at least one dot."
+                )
+                while sentences:
+                    page = ""  # the page we're starting to build
+                    crt_count = 2048  # how many chars are left before we need to make a new page
+                    while (crt_count > threshold) and len(sentences) != 0:
+                        # print(sentences)
+                        sentence = sentences.pop(0)
+                        crt_count -= count_chars(sentence)
+                        # /!\ currently not handling the case of sentences larger than 2048 chars
+                        assert crt_count > 0, ValueError(
+                            "This sentence is over 2048 characters long!"
+                        )  # > and not >= because we need to add the dot again
+                        page += sentence + "."
+                    pages.append(page)
 
-        return embeds
+            else:
+                pages.append(paragraph)
+    else:
+        pages = [description]
+
+    # building the embeds from the paged descriptions
+    embeds = []
+    pages_number = len(pages)
+    for page, crt in zip(pages, range(len(pages))):
+        embed = discord.Embed(title=name, description=page, color=7506394,)
+        if paginate:
+            embed.set_footer(text=f"Page ({crt+1}/{pages_number})")
+        embed.add_field(name="Usage", value=f"`{command.name} {usage}", inline=False)
+        embeds.append(embed)
+
+    return embeds
+
+
+def count_chars(*args: str) -> int:
+    count = 0
+    for string in args:
+        assert type(string) == str, TypeError(
+            f"args should be of type str not {type(string)}"
+        )
+        count += len(string)
+    return count
