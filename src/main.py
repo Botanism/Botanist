@@ -72,6 +72,7 @@ async def reload(ctx, extension: str):
 async def add(ctx, *extensions: str):
     for extension in extensions:
         # trying to load the extension. Should only fail if the extension is not installed
+        extension = extension.lower()
         try:
             bot.load_extension(str(EXT_FOLDER + "." + extension))
 
@@ -106,6 +107,7 @@ async def add(ctx, *extensions: str):
 
 @ext.command()
 async def rm(ctx, extension: str):
+    extension = extension.lower()
     try:
         bot.unload_extension(str(EXT_FOLDER + "." + extension))
 

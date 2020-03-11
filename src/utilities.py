@@ -108,7 +108,7 @@ def assert_struct(guilds):
     try:
         # making sure all folder are built
         files = os.listdir()
-        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER, LANG_FOLDER]
+        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER, LANG_FOLDER, EVENT_FOLDER]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
@@ -147,13 +147,22 @@ time_seps = ["d", "h", "m", "s"]
 DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 
-def to_datetime(argument, sub=True):
+def to_datetime(argument, sub=True, lenient=False):
+    """the date format is as such:
+d => days
+h => hours
+m => minutes
+s => seconds"""
+
     times = OrderedDict([("y", 0), ("M", 0), ("d", 0), ("h", 0), ("m", 0), ("s", 0)])
 
     last = 0
     for char, i in zip(argument, range(len(argument))):
         if char not in DIGITS:
             if char in time_seps:
+                if lenient:
+                    if len(argument[last:i]) == 0:
+                        return False
                 times[char] = int(argument[last:i])
                 last = i + 1
             else:
