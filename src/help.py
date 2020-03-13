@@ -74,13 +74,11 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         elapsed_time = 0
         try:
             while elapsed_time < self.react_time:
-                print("waiting for a reaction")
                 reaction, user = await self.context.bot.wait_for(
                     "reaction_add",
                     timeout=self.react_time - elapsed_time,
                     check=self.help_reaction,
                 )
-                print(f"Got reaction {reaction} from {user}")
 
                 # interpret reactions
                 if reaction.emoji == EMOJIS["arrow_forward"]:

@@ -253,6 +253,7 @@ class ConfigFile(UserDict):
                 json.dump(self.data, file)
 
         except Exception as e:
+            local_logger.error(f"An exception occured while saving {self.file}.")
             local_logger.exception(e)
             raise e
 
@@ -268,6 +269,7 @@ class ConfigFile(UserDict):
             return self.data
 
         except Exception as e:
+            local_logger.error(f"An exception occured while reading {self.file}.")
             local_logger.exception(e)
             raise e
 

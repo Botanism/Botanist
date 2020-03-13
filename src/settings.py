@@ -129,7 +129,7 @@ DEFAULT_TODO_FILE = {"groups": {"default": []}, "types": {"default": "000000"}}
 LOG_FILE = "botanist.log"
 LOGGING_HANDLER = logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER = logging.Formatter("\n[%(asctime)s][%(name)s]:%(message)s")
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 
 #########################################
