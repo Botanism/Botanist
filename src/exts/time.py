@@ -26,18 +26,33 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
-def from_file(bot, user_id):
+async def get_event_view(user_id):
+    with ConfigFile(str(user_id + ".json"), folder=EVENT_FOLDER) as user_events:
+        return user_events.keys()
+
+async def events_from_file(bot, user_id):
     events = []
-    with ConfigFile(str(user_id + ".json"), folder=EVENT_FOLDER) as file:
-        for name, params in file.items():
+    with ConfigFile(str(user_id + ".json"), folder=EVENT_FOLDER) as user_events:
+        for name, params in user_events.items():
             events.append(Event.from_dict(bot, user_id, name, params))
     return events
 
 
-
 class Event(object):
     """This is a data strcuture representing a discord user event."""
-    def __init__(self, bot, user_id: int, name: str, time: int, reminder: int = 0, description: str = None, guild: int = None, channel: int = None, role: int = None):
+
+    def __init__(
+        self,
+        bot,
+        user_id: int,
+        name: str,
+        time: int,
+        reminder: int = 0,
+        description: str = None,
+        guild: int = None,
+        channel: int = None,
+        role: int = None,
+    ):
         self.bot = bot
         self.user_id = user_id
         self.name = name
@@ -49,7 +64,7 @@ class Event(object):
             self.channel = bot.get_channel(channel)
         else:
             self.channel = None
-        
+
         if guild:
             self.guild = bot.get_guild(guild)
             if role:
@@ -86,7 +101,7 @@ class Time(commands.Cog):
     async def remind(self, ctx, *args):
         """for more information on how argument parsing is done see to_datetime"""
         args = list(args)
-        args.append("null")
+        args.append("null") #so that a missing message is detected in the while loop
         print(args)
         delay = 0
         time_factor = to_datetime(args[0], sub=False, lenient=True)
@@ -96,8 +111,8 @@ class Time(commands.Cog):
             args.pop(0)
             time_factor = to_datetime(args[0], sub=False, lenient=True)
 
-        #making sure the reminder is not set to current time
-        if delay == 0 or len(args)==1:
+        # making sure the reminder is not set to current time
+        if delay == 0 or len(args) == 1:
             await ctx.send(embed=get_embed_err(ERR_NOT_ENOUGH_ARG))
             return
 
@@ -115,8 +130,13 @@ class Time(commands.Cog):
         Handles creation, tracking and publishing"""
         pass
 
+
     @event.command()
+    @
     async def new(self, ctx, name: str):
+        #making sure an event with the same name isn't already registered for this user
+        evts_names = await get_event_view(ctx.author.name)
+
         await ctx.send(f"Starting creation of {name} event.")
 
 

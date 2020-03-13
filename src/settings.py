@@ -81,7 +81,11 @@ EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
-TIMES_FOLDER = "countdowns"
+TIME_FOLDER = "countdowns"
+REMINDERS_FOLDER = "remind"
+EVENT_FOLDER = "events"
+#REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
+#EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
 LANG_FOLDER = "lang"
 
 # roles

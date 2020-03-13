@@ -30,7 +30,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
     """This Help class offers interaction support through embeds and reactions."""
 
     def __init__(self, react_time: int = HELP_TIME, **options):
-        super().__init__(**options)
+        super().__init__(**options, verify_checks=False)
         self.react_time = react_time
 
     def help_reaction(self, reaction, user):
@@ -110,7 +110,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
                     )
                     await self.send_bot_help(self.get_bot_mapping())
                     await msg.delete()
-                    break
+                    return
 
                 await msg.remove_reaction(reaction, user)
                 await msg.edit(suppress=False, embed=pages[current_page])
