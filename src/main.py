@@ -17,6 +17,14 @@ import config as cfg
 # INITS THE BOT
 bot = commands.Bot(command_prefix=PREFIX, help_command=InteractiveHelp())
 
+bot.help_command = InteractiveHelp(
+    command_attrs={
+        "max_concurrency": discord.ext.commands.MaxConcurrency(
+            1, per=commands.BucketType.user, wait=False
+        )
+    }
+)
+
 #########################################
 #                                       #
 #                                       #
