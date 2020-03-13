@@ -15,7 +15,7 @@ import config as cfg
 
 
 # INITS THE BOT
-bot = commands.Bot(command_prefix=PREFIX, help_command=InteractiveHelp())
+bot = commands.Bot(command_prefix=PREFIX, help_command=None)
 
 bot.help_command = InteractiveHelp(
     command_attrs={
