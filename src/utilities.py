@@ -55,7 +55,11 @@ def is_init():
 
 def was_init(ctx):
     """same as the previous function except this one isn't a decorator. Mainly used for listenners"""
-    return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
+    if ctx.guild:
+        return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
+    else:
+        #so that we make sure the check doesn't fail in a DM
+        return True
 
 
 def has_auth(clearance, *args):
@@ -336,7 +340,7 @@ def get_lang(ctx):
         return conf["lang"]
 
 
-class ConfigEntry:
+class ConfigEntry(object):
     """A generic configuration class that must subclasses to be used correctly in each extension."""
 
     def __init__(self, bot, cfg_chan_id):

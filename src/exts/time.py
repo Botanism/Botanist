@@ -26,9 +26,11 @@ local_logger.info("Innitalized {} logger".format(__name__))
 #                                       #
 #########################################
 
+
 async def get_event_view(user_id):
     with ConfigFile(str(user_id + ".json"), folder=EVENT_FOLDER) as user_events:
         return user_events.keys()
+
 
 async def events_from_file(bot, user_id):
     events = []
@@ -101,7 +103,7 @@ class Time(commands.Cog):
     async def remind(self, ctx, *args):
         """for more information on how argument parsing is done see to_datetime"""
         args = list(args)
-        args.append("null") #so that a missing message is detected in the while loop
+        args.append("null")  # so that a missing message is detected in the while loop
         print(args)
         delay = 0
         time_factor = to_datetime(args[0], sub=False, lenient=True)
@@ -130,14 +132,79 @@ class Time(commands.Cog):
         Handles creation, tracking and publishing"""
         pass
 
-
     @event.command()
-    @
     async def new(self, ctx, name: str):
-        #making sure an event with the same name isn't already registered for this user
-        evts_names = await get_event_view(ctx.author.name)
+        """creates a new event and starts the creation interface
+        TODO: merge with ConfigEntry class
+        TODO: refactor time checkers
+        TODO: merge attributions with ConfigEntry methods
+        TODO: make sure the rest of the "conversation" tales place exclusively in DM
 
-        await ctx.send(f"Starting creation of {name} event.")
+        this command should be sent in a guild so that the bot can get its ID. The creation process will then take place in the DM."""
+        # making sure an event with the same name isn't already registered for this user
+
+        evts_names = await get_event_view(ctx.author.name)
+        if name in evts_names:
+            await ctx.send(
+                "An event with the same name is already registered. Type `::event list` to get a list of registered events or `::help event` to learn how events work."
+            )
+            return
+
+        await ctx.send(
+            f"Starting creation of {name} event. You will need to enter details about the event you have in mind. You can always come back on these by using `::event edit <name>`."
+        )
+
+        # description
+        await ctx.send(
+            "Please enter the description of your event."
+        )  # no need to check for char count since the user can't send more than 2k chars in a single message
+        description = await ctx.bot.wait_for("message")
+        await ctx.send("Added the following text as description:\n--- **START** ---")
+        await ctx.send(description)
+        await ctx.send("--- **STOP** ---")
+
+        # start date
+        # TODO: add support for fixed GMT time input instead?
+        await ctx.send(
+            "In how much time should the event start? To learn more on the time format type `::help remind`."
+        )
+        true_time = False
+        while not true_time:
+            time = await ctx.bot.wait_for("message")
+            true_time = to_datetime(time, lenient=True)
+
+            if true_time == False:
+                await ctx.send("The time you entered is incorrect, please try again.")
+                continue
+            else:
+                if true_time.total_seconds() + 30 <= time.time():
+                    continue
+
+        start_date = true_time.total_seconds()
+        await ctx.send(f"The event is set to start in {true_time}.")
+
+        # remind date
+        await ctx.send(
+            "How long before the event starts should subscribed users be reminded?"
+        )
+        true_time = False
+        while not true_time:
+            time = await ctx.bot.wait_for("message")
+            true_time = to_datetime(time, sub=False, lenient=True)
+
+            if true_time == False:
+                await ctx.send("The time you entered is incorrect, please try again.")
+                continue
+        remind = true_time.total_seconds()
+        await ctx.send(f"The reminder will go off in {start_date - true_time}.")
+
+        # attributed role
+
+        # attributed channel
+        await ctx.send(
+            "Should there be a new channel attributed and dedicated to the event?"
+        )
+        answer = await ctx.bot.wait_for("message", check=ConfigEntry.is_yn_answer)
 
 
 def setup(bot):
