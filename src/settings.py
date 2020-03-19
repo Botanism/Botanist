@@ -40,7 +40,6 @@ EMOJIS = {
     "wave": "\U0001F44B",
     "no_entry_sign": "\U0001F6AB",
     "red_circle": "\U0001F534",
-    "white_circle": "\U000026AA",
     "large_blue_circle": "\U0001F535",
     "tada": "\U0001F389",
     "hammer": "\U0001F528",
@@ -83,6 +82,7 @@ CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
 TIMES_FOLDER = "countdowns"
 LANG_FOLDER = "lang"
+TEX_FOLDER = "tex"
 
 # roles
 ROLES_LEVEL = ["manager", "admin"]
@@ -97,6 +97,7 @@ DEFAULT_EXTENSIONS_JSON = {
     "poll": False,
     "time": False,
     "todo": False,
+    "math": False,
 }
 
 DEFAULT_SLAPPED_FILE = {"463665420054953995": 0}
