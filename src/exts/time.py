@@ -154,6 +154,9 @@ class Time(commands.Cog):
             f"Starting creation of {name} event. You will need to enter details about the event you have in mind. You can always come back on these by using `::event edit <name>`."
         )
 
+        await ctx.send("Which guild is this event for?")
+
+
         # description
         await ctx.send(
             "Please enter the description of your event."
@@ -199,6 +202,12 @@ class Time(commands.Cog):
         await ctx.send(f"The reminder will go off in {start_date - true_time}.")
 
         # attributed role
+        await ctx.send("Should a role be made for this event?")
+        answer = await ctx.bot.wait_for("message", check=ConfigEntry.is_yn_answer)
+        if answer:
+            role = True
+        else:
+            role = False
 
         # attributed channel
         await ctx.send(
