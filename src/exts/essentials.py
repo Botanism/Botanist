@@ -110,6 +110,7 @@ class Essentials(commands.Cog):
     async def on_guild_join(self, guild):
         with open(os.path.join(CONFIG_FOLDER, f"{guild.id}.json"), "w") as file:
             json.dump(DEFAULT_SERVER_FILE)
+        await guild.owner.send(f"I was just added to your server. For me to work correctly (or at all) on your server you should send `::init` in any channel of your {guild.name} server.")
         local_logger.info(f"Joined server {guild.name}")
 
     @commands.Cog.listener()
