@@ -59,7 +59,8 @@ class Math(commands.Cog):
 
         #rendering formula
         run(["latex", "-shell-escape", "-interaction=batchmode", "temp.tex", "1>/dev/null"]) #the last param is to prevent shell from being clogged since there is no -quiet option
-        await ctx.send(file=discord.File("temp.png", filename="formula.png"))
+        await ctx.message.delete()
+        await ctx.send(f"**{ctx.author.name}:**", file=discord.File("temp.png", filename="formula.png"))
         for file in listdir():
             if file.startswith("temp"):
                 remove(file)

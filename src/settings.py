@@ -189,7 +189,7 @@ ERR_UNSUFFICIENT_PERMS = (
     True,
 )
 ERR_CONVERSION = (
-    "Conversion error", "One of your arguments couldn't be converted into. This is either a `member`, `role` or `channel`. Do note that the arguments are **case-sensitive** and that they must be surrounded by quotes (`"`) if they contain spaces. If you can't get it to work, try mentionning the role/member/channel. If even this fails then whatever you tried to mention isn't part of this server anymore and there's nothing we can do about it!""",
+    "Conversion error", """One of your arguments couldn't be converted into. This is either a `member`, `role` or `channel`. Do note that the arguments are **case-sensitive** and that they must be surrounded by quotes (`"`) if they contain spaces. If you can't get it to work, try mentionning the role/member/channel. If even this fails then whatever you tried to mention isn't part of this server anymore and there's nothing we can do about it!""",
     False,
 )
 
