@@ -185,6 +185,9 @@ class Poll(commands.Cog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             return
+        if not isinstance(self.get_destination(), discord.Guild):
+            #we're in a DM
+            return
 
         if not was_init(message):
             await message.channel.send(embed=get_embed_err(ERR_NOT_SETUP))
