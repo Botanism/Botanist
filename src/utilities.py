@@ -325,28 +325,33 @@ class ConfigEntry:
         self.allowed_answers = {1: ["yes", "y"], 0: ["no", "n"]}
 
     def is_answer(self, ctx):
-        if ctx.channel == self.config_channel:
+        if ctx.channel == self.config_channel and ctx.author == ctx.guild.owner:
             return True
         return False
 
-    def is_yn_answer(self, ctx):
+    def list_allowed_answers(self) -> list:
         correct_answers = []
-        for i in self.allowed_answers:
-            for ans in self.allowed_answers[i]:
-                correct_answers.append(ans)
+        for ans in self.allowed_answers.values():
+            correct_answers += ans
+        return correct_answers
 
-        if self.is_answer(ctx) and (ctx.content.lower() in correct_answers):
-            return True
+    def is_react_yn_answer(self, reaction, user):
+        if self.is_answer(reaction.message) and reaction.message.channel == self.config_channel:
+            if reaction.emoji in [EMOJIS["negative_squared_cross_mark"], EMOJIS["white_check_mark"]]:
+                return True
         return False
 
     async def get_yn(self, ctx, question):
-        await ctx.send(question + " [y/n]")
-        response = await self.bot.wait_for("message", check=self.is_yn_answer)
+        msg = await ctx.send(question)
+        await msg.add_reaction(EMOJIS["white_check_mark"])
+        await msg.add_reaction(EMOJIS["negative_squared_cross_mark"])
+        reaction, user = await self.bot.wait_for("reaction_add", check=self.is_react_yn_answer)
+        #print(response)
 
-        if response.content.lower() in self.allowed_answers[0]:
-            return False
-        else:
+        if reaction.emoji == EMOJIS["white_check_mark"]:
             return True
+        else:
+            return False
 
     async def get_answer(self, ctx, question, filters=[]):
         await ctx.send(question)
