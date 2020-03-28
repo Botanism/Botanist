@@ -108,7 +108,7 @@ def assert_struct(guilds):
     try:
         # making sure all folder are built
         files = os.listdir()
-        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER, LANG_FOLDER]
+        to_make = [SLAPPING_FOLDER, TODO_FOLDER, CONFIG_FOLDER, LANG_FOLDER, POLL_FOLDER]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
@@ -336,7 +336,7 @@ class ConfigEntry:
         return correct_answers
 
     def is_react_yn_answer(self, reaction, user):
-        if self.is_answer(reaction.message) and reaction.message.channel == self.config_channel:
+        if reaction.message.channel == self.config_channel and user == reaction.message.guild.owner:
             if reaction.emoji in [EMOJIS["negative_squared_cross_mark"], EMOJIS["white_check_mark"]]:
                 return True
         return False
@@ -346,7 +346,6 @@ class ConfigEntry:
         await msg.add_reaction(EMOJIS["white_check_mark"])
         await msg.add_reaction(EMOJIS["negative_squared_cross_mark"])
         reaction, user = await self.bot.wait_for("reaction_add", check=self.is_react_yn_answer)
-        #print(response)
 
         if reaction.emoji == EMOJIS["white_check_mark"]:
             return True
