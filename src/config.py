@@ -287,27 +287,37 @@ class Config(commands.Cog, ConfigEntry):
         config = ConfigFile(ctx.guild.id).read()
 
         config_sum = discord.Embed(
-            title="Server settings", description=f"""This server uses `{config["lang"]}` language and have set advertisement policy to **{config["advertisement"]}**.""", color=7506394
+            title="Server settings",
+            description=f"""This server uses `{config["lang"]}` language and have set advertisement policy to **{config["advertisement"]}**.""",
+            color=7506394,
         )
 
-        #messages
+        # messages
         messages = ""
         for msg_type in config["messages"]:
             if config["messages"][msg_type]:
-                messages += f"""**{msg_type.title()}:**\n{config["messages"][msg_type]}\n"""
+                messages += (
+                    f"""**{msg_type.title()}:**\n{config["messages"][msg_type]}\n"""
+                )
 
-        if len(messages)==0:
-            messages = "No **welcome** or **goodbye** messages were set for this server."
+        if len(messages) == 0:
+            messages = (
+                "No **welcome** or **goodbye** messages were set for this server."
+            )
         config_sum.add_field(name="Messages", value=messages, inline=False)
 
-        #community moderation
-        if config["commode"]["reports_chan"]: 
+        # community moderation
+        if config["commode"]["reports_chan"]:
             try:
-                value = await discord.ext.commands.TextChannelConverter().convert(ctx, str(config["commode"]["reports_chan"]))
+                value = await discord.ext.commands.TextChannelConverter().convert(
+                    ctx, str(config["commode"]["reports_chan"])
+                )
                 value = "The channel for reports is:" + value.mention + "\n"
             except Exception as e:
-                local_logger.exception(f"The report channel for guild {ctx.guild.id} was deleted.", e)
-                #the channel was deleted
+                local_logger.exception(
+                    f"The report channel for guild {ctx.guild.id} was deleted.", e
+                )
+                # the channel was deleted
                 value = "The set report channel was deleted. You are advised to set a new one using `::cfg slapping`.\n"
         else:
             value = "No report channel has been set. You are advised to set one using `::cfg slapping`.\n"
@@ -315,15 +325,19 @@ class Config(commands.Cog, ConfigEntry):
         value += f"""A user is automatically muted in a channel for 10 minutes after **{config["commode"]["spam"]["mute"]}** `spam` reports."""
         config_sum.add_field(name="Community moderation", value=value, inline=True)
 
-        #polls
-        if len(config["poll_channels"])>0:
+        # polls
+        if len(config["poll_channels"]) > 0:
             chans = "The **poll channels** are:"
             for chan in config["poll_channels"]:
                 try:
-                    crt_chan = await discord.ext.commands.TextChannelConverter().convert(ctx, str(chan))
+                    crt_chan = await discord.ext.commands.TextChannelConverter().convert(
+                        ctx, str(chan)
+                    )
                 except Exception as e:
-                    #the channel was deleted
-                    local_logger.exception(f"A poll channel of guild {ctx.guild.id} was deleted.")
+                    # the channel was deleted
+                    local_logger.exception(
+                        f"A poll channel of guild {ctx.guild.id} was deleted."
+                    )
                     continue
 
                 chans += crt_chan.mention
@@ -337,10 +351,15 @@ class Config(commands.Cog, ConfigEntry):
             clearance += f"**{level.title()}:**\n"
             for role_id in config["roles"][level]:
                 try:
-                    crt_role = await discord.ext.commands.RoleConverter().convert(ctx, str(role_id))
+                    crt_role = await discord.ext.commands.RoleConverter().convert(
+                        ctx, str(role_id)
+                    )
                 except Exception as e:
                     # the role doesn't exist anymore
-                    local_logger.exception(f"The role associated with {level} clearance doesn't exist anymiore", e)
+                    local_logger.exception(
+                        f"The role associated with {level} clearance doesn't exist anymiore",
+                        e,
+                    )
                     continue
                 clearance += " " + crt_role.mention
             clearance += "\n"
@@ -349,7 +368,9 @@ class Config(commands.Cog, ConfigEntry):
             clearance += "**Free roles:**\n"
             for role_id in config["free_roles"]:
                 try:
-                    crt_role = await discord.ext.commands.RoleConverter().convert(ctx, str(role_id))
+                    crt_role = await discord.ext.commands.RoleConverter().convert(
+                        ctx, str(role_id)
+                    )
                 except Exception as e:
                     # the role doesn't exist anymore
                     local_logger.exception(f"The free role doesn't exist anymiore", e)
