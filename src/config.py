@@ -180,7 +180,7 @@ class Config(commands.Cog, ConfigEntry):
         return self.config_channels[g.id]
 
     @commands.command()
-    @is_server_owner()
+    @has_auth("admin")
     async def cfg(self, ctx, cog_name: str):
         cog = self.bot.get_cog(cog_name.title())
         if not cog:
