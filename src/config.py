@@ -46,7 +46,7 @@ class MendatoryConfigEntries(ConfigEntry):
             while not good:
                 lang = await self.get_answer(
                     ctx,
-                    f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with? Languages are expressed in their 2 letter code.",
+                    f"I'm an international robot and tend to opperate in many places. This also means that I speak many language! The list of supported languages can be found on my website {WEBSITE}. So which do you want to speak with? Languages are expressed in their 2 letter code. You can choose from this list: {ALLOWED_LANGS}",
                 )
                 if not self.is_valid(lang.content):
                     continue
@@ -169,15 +169,18 @@ class Config(commands.Cog, ConfigEntry):
         self.config_channels[g.id] = await g.create_text_channel(
             "cli-bot-config", overwrites=overwrite
         )
-        with open(os.path.join(CONFIG_FOLDER, str(g.id) + ".json"), "w") as file:
-            json.dump(DEFAULT_SERVER_FILE, file)
+        if f"{g.id}.json" not in os.listdir(CONFIG_FOLDER):
+            # making sure there's a file to write on but don't overwrite if there's already one.
+            with open(os.path.join(CONFIG_FOLDER, str(g.id) + ".json"), "w") as file:
+                json.dump(DEFAULT_SERVER_FILE, file)
 
-        with open(os.path.join(SLAPPING_FOLDER, str(g.id) + ".json"), "w") as file:
-            json.dump(DEFAULT_SLAPPED_FILE, file)
+            with open(os.path.join(SLAPPING_FOLDER, str(g.id) + ".json"), "w") as file:
+                json.dump(DEFAULT_SLAPPED_FILE, file)
 
         return self.config_channels[g.id]
 
     @commands.command()
+    @is_server_owner()
     async def cfg(self, ctx, cog_name: str):
         cog = self.bot.get_cog(cog_name.title())
         if not cog:
@@ -208,6 +211,7 @@ class Config(commands.Cog, ConfigEntry):
             await ctx.send("{cog.qualified_name} doesn't have any configuration entry!")
 
     @commands.command()
+    @is_server_owner()
     async def init(self, ctx):
         # creating new hidden channel only the owner/admins can see
         self.config_channel = await self.make_cfg_chan(ctx)
@@ -218,12 +222,6 @@ class Config(commands.Cog, ConfigEntry):
             await self.config_channels[ctx.guild.id].send(
                 f"""You are about to start the configuration of {ctx.me.mention}. If you are unfamiliar with CLI (Command Line Interface) you may want to check the documentation on github ({WEBSITE}). The same goes if you don't know the bot's functionnalities"""
             )
-            pursue = await self.get_yn(
-                ctx,
-                "This will overwrite all of your existing configurations. Do you want to continue ?",
-            )
-            if not pursue:
-                return False
 
             await self.config_channels[ctx.guild.id].send(
                 "**Starting full bot configuration...**"
@@ -282,6 +280,88 @@ class Config(commands.Cog, ConfigEntry):
             await self.config_channels[ctx.guild.id].delete(
                 reason="Configuration completed"
             )
+
+    @commands.command()
+    @has_auth("admin")
+    async def summary(self, ctx):
+        config = ConfigFile(ctx.guild.id).read()
+
+        config_sum = discord.Embed(
+            title="Server settings", description=f"""This server uses `{config["lang"]}` language and have set advertisement policy to **{config["advertisement"]}**.""", color=7506394
+        )
+
+        #messages
+        messages = ""
+        for msg_type in config["messages"]:
+            if config["messages"][msg_type]:
+                messages += f"""**{msg_type.title()}:**\n{config["messages"][msg_type]}\n"""
+
+        if len(messages)==0:
+            messages = "No **welcome** or **goodbye** messages were set for this server."
+        config_sum.add_field(name="Messages", value=messages, inline=False)
+
+        #community moderation
+        if config["commode"]["reports_chan"]: 
+            try:
+                value = await discord.ext.commands.TextChannelConverter().convert(ctx, str(config["commode"]["reports_chan"]))
+                value = "The channel for reports is:" + value.mention + "\n"
+            except Exception as e:
+                local_logger.exception(f"The report channel for guild {ctx.guild.id} was deleted.", e)
+                #the channel was deleted
+                value = "The set report channel was deleted. You are advised to set a new one using `::cfg slapping`.\n"
+        else:
+            value = "No report channel has been set. You are advised to set one using `::cfg slapping`.\n"
+
+        value += f"""A user is automatically muted in a channel for 10 minutes after **{config["commode"]["spam"]["mute"]}** `spam` reports."""
+        config_sum.add_field(name="Community moderation", value=value, inline=True)
+
+        #polls
+        if len(config["poll_channels"])>0:
+            chans = "The **poll channels** are:"
+            for chan in config["poll_channels"]:
+                try:
+                    crt_chan = await discord.ext.commands.TextChannelConverter().convert(ctx, str(chan))
+                except Exception as e:
+                    #the channel was deleted
+                    local_logger.exception(f"A poll channel of guild {ctx.guild.id} was deleted.")
+                    continue
+
+                chans += crt_chan.mention
+        else:
+            chans = "There are no **poll channels** for this server."
+        config_sum.add_field(name="Poll Channels", value=chans, inline=True)
+
+        # clearance/roles
+        clearance = ""
+        for level in config["roles"]:
+            clearance += f"**{level.title()}:**\n"
+            for role_id in config["roles"][level]:
+                try:
+                    crt_role = await discord.ext.commands.RoleConverter().convert(ctx, str(role_id))
+                except Exception as e:
+                    # the role doesn't exist anymore
+                    local_logger.exception(f"The role associated with {level} clearance doesn't exist anymiore", e)
+                    continue
+                clearance += " " + crt_role.mention
+            clearance += "\n"
+
+        if config["free_roles"]:
+            clearance += "**Free roles:**\n"
+            for role_id in config["free_roles"]:
+                try:
+                    crt_role = await discord.ext.commands.RoleConverter().convert(ctx, str(role_id))
+                except Exception as e:
+                    # the role doesn't exist anymore
+                    local_logger.exception(f"The free role doesn't exist anymiore", e)
+                    continue
+                clearance += " " + crt_role.mention
+
+        else:
+            clearance += "There are no **free roles** in this server."
+
+        config_sum.add_field(name="Clearance", value=clearance, inline=True)
+
+        await ctx.send(embed=config_sum)
 
 
 def setup(bot):

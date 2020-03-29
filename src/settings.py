@@ -57,7 +57,7 @@ EMOJIS = {
     "information_source": "\U00002139",
     "track_previous": "\U000023ee",
     "track_next": "\U000023ed",
-    "negative_squared_cross_mark": "\U0000274E"
+    "negative_squared_cross_mark": "\U0000274E",
 }
 
 # NotImplemented
