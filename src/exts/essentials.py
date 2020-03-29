@@ -94,7 +94,7 @@ class Essentials(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """handles command errors"""
-        raise error
+        #raise error
         local_logger.error(error)
         if type(error) in ERRS_MAPPING.keys():
             msg = get_embed_err(ERRS_MAPPING[type(error)])
@@ -110,6 +110,9 @@ class Essentials(commands.Cog):
     async def on_guild_join(self, guild):
         with open(os.path.join(CONFIG_FOLDER, f"{guild.id}.json"), "w") as file:
             json.dump(DEFAULT_SERVER_FILE)
+        await guild.owner.send(
+            f"I was just added to your server. For me to work correctly (or at all) on your server you should send `::init` in any channel of your {guild.name} server."
+        )
         local_logger.info(f"Joined server {guild.name}")
 
     @commands.Cog.listener()
@@ -205,8 +208,10 @@ class Essentials(commands.Cog):
         now = datetime.datetime.now()
         async for msg in ctx.channel.history(**hist_args):
             if not members or msg.author in members:
-                local_logger.info("Deleting {}".format(msg))
-                if (msg.created_at - now).days <= -14:
+                local_logger.info(
+                    f"Deleting message {msg.jump_url} from guild {msg.guild.name}."
+                )
+                if (msg.created_at - now).days >= -14:
                     await msg.delete()
                 else:
                     to_del.append(msg)
@@ -235,7 +240,7 @@ class Essentials(commands.Cog):
             description=tr["stats_description"].format(
                 ctx.guild.name,
                 str(ctx.guild.created_at)[:10],
-                ctx.guild.owner.name,
+                ctx.guild.owner.mention,
                 ctx.guild.member_count - 1,
             ),
             color=7506394,
@@ -253,12 +258,10 @@ class Essentials(commands.Cog):
         # structure info
         rs = ctx.guild.roles
         rs.reverse()
-        print(rs, type(rs))
         rs_str = ""
         for r in rs:
-            rs_str += f"{r.name}\n"
-        struct_str = tr["struct_str"].format(len(rs), rs_str)
-        stats.add_field(name=tr["sstats_name"], value=struct_str, inline=False)
+            rs_str += f"{r.mention}"
+        stats.add_field(name=tr["sstats_name"], value=rs_str, inline=False)
         await ctx.send(embed=stats)
 
 

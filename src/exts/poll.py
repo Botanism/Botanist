@@ -34,7 +34,6 @@ class PollConfigEntry(ConfigEntry):
 
     def __init__(self, bot, cfg_chan_id):
         super().__init__(bot, cfg_chan_id)
-        print("I'm here")
 
     async def run(self, ctx):
         try:
@@ -100,7 +99,6 @@ class Poll(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         """currently makes this checks for ALL channels. Might want to change the behavior to allow reactions on other msgs"""
-
         # getting poll_allowed_chans
         # @is_init
         with ConfigFile(payload.guild_id) as conf:
@@ -117,12 +115,27 @@ class Poll(commands.Cog):
             )
             user = self.bot.get_user(payload.user_id)
 
+            if f"{message.id}.json" in os.listdir(POLL_FOLDER):
+                with ConfigFile(message.id, folder=POLL_FOLDER) as settings:
+                    good = False
+                    if payload.emoji.is_unicode_emoji():
+                        if str(payload.emoji) in settings["unicode"]:
+                            good = True
+                    else:
+                        #this is a custom emoji
+                        if payload.emoji.id in settings["custom"]:
+                            good = True
+                    if not good:
+                        local_logger.debug("User tried to add some forbidden reaction to an extended poll.")
+                        await message.remove_reaction(payload.emoji, user)
+                return
+
             # checking wether the reaction should delete the poll
             if payload.emoji.name == EMOJIS["x"]:
                 if payload.user.name == message.embeds[0].title:
                     return message.delete()
                 else:
-                    return reaction.remove(user)
+                    return message.remove_reaction(payload.emoji, user)
 
             # checking if reaction is allowed
             elif payload.emoji.name not in [
@@ -171,6 +184,11 @@ class Poll(commands.Cog):
         message = await self.bot.get_channel(payload.channel_id).fetch_message(
             payload.message_id
         )
+        if len(message.embeds):
+            # so we're not interacting with something that is not bot-related -> may still interact with other embeds, TODO
+            if len(message.embeds[0].fields) > 0:
+                # it's an extended embed, no need to treat it
+                return
 
         # checking that user isn't the bot
         if (payload.user_id != self.bot.user.id) and (
@@ -299,6 +317,56 @@ class Poll(commands.Cog):
     async def status(self, ctx, msg_id: discord.Message):
         """returns stats about your running polls. This is also called when one of you poll gets deleted."""
         pass
+
+    @poll.command()
+    async def extended(self, ctx, *words):
+        """polls that can have more than the 3 standard reaction but do not support dynamic color.
+        the way to make one is to be write the following command in a poll channel (message discarded otherswise)
+        the message is composed of the description then a line break then, one each following line:
+        an emoji followed by a description
+        each of these lines are seperated by a line break
+        TODO: make sure message follows this strict format"""
+        with ConfigFile(ctx.guild.id) as conf:
+            poll_allowed_chans = conf["poll_channels"]
+
+        # making sure it's a poll chan
+        if ctx.channel.id not in poll_allowed_chans:
+            await ctx.message.delete()
+            await ctx.author.send("You are not allowed to make polls in this channel.")
+
+        # building the description
+        description_words, choices = ctx.message.content.split("\n", 1)
+        description_words = description_words.split(" ")[2:]
+        description = ""
+        for word in description_words:
+            description += f" {word}"
+
+        # making embed
+        embed_poll = discord.Embed(
+            title=ctx.author.name, description=description, colour=7506394,
+        )
+        embed_poll.add_field(name="Choices", value=choices)
+        embed_poll.set_thumbnail(url=ctx.author.avatar_url)
+        msg = await ctx.send(embed=embed_poll)
+
+        # deleting user message
+        await ctx.message.delete()
+
+        # getting emojis & react
+        emotes = {"unicode": [], "custom": []}
+        for choice in choices.split("\n"):
+            it = choice.split(" ", 1)[0]
+            if it.startswith("<"):
+                #this is a custom emoji
+                emotes["custom"].append(int(it.split(":", 2)[2][:-1]))
+            else:
+                emotes["unicode"].append(it)
+            await msg.add_reaction(it)
+
+        # saving this for later times
+        with ConfigFile(msg.id, folder=POLL_FOLDER) as settings:
+            settings.data = emotes
+            print(settings)
 
 
 def setup(bot):

@@ -10,9 +10,8 @@
 	"latency": " Latency of {0:.3f} seconds",
 	"stats_name": "Server info",
 	"stats_description": "{} was created on {} and belongs to {}. Since then {} users have joined it.",
-	"status_str": "{online} online\n{idle} idling\n{dnd} not to disturb\n{offline} offline",
+	"status_str": "**{online} **🟢 online\n**{idle} **🟠 idling\n**{dnd} **🔴 not to disturb\n**{offline} **⚪ offline",
 	"mstats_name": "Member statistics",
-	"struct_str": "**This server uses the {} following roles:**\n{}",
-	"sstats_name": "Server structure"
+	"sstats_name": "Roles"
 
 }

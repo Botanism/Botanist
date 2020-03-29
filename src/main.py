@@ -15,7 +15,15 @@ import config as cfg
 
 
 # INITS THE BOT
-bot = commands.Bot(command_prefix=PREFIX, help_command=InteractiveHelp())
+bot = commands.Bot(command_prefix=PREFIX, help_command=None)
+
+bot.help_command = InteractiveHelp(
+    command_attrs={
+        "max_concurrency": discord.ext.commands.MaxConcurrency(
+            1, per=commands.BucketType.user, wait=False
+        )
+    }
+)
 
 #########################################
 #                                       #
@@ -59,7 +67,7 @@ async def ext(ctx):
 @ext.command()
 async def reload(ctx, extension: str):
     try:
-        bot.reload_extension(os.path.join(EXT_FOLDER, extension))
+        bot.reload_extension(str(EXT_FOLDER + "." + extension))
         await ctx.send("Successfully reloaded {}".format(extension))
     except Exception as e:
         await ctx.send(
@@ -130,7 +138,7 @@ async def rm(ctx, extension: str):
         raise e
 
     await ctx.send(f"Successfully removed and unloaded {extension}")
-    LOCAL_LOGGER.info(f"Disabled and removed {extension}")
+    local_logger.info(f"Disabled and removed {extension}")
 
 
 @ext.command()
@@ -160,7 +168,7 @@ async def ls(ctx):
         enabled_str = ""
         for e in enabled:
             if EXT_FOLDER + "." + e in running:
-                enabled_str += EMOJIS["check"] + e + "\n"
+                enabled_str += EMOJIS["white_check_mark"] + e + "\n"
             else:
                 enabled_str += EMOJIS["x"] + e + "\n"
 

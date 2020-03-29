@@ -36,7 +36,8 @@ class Embedding(commands.Cog):
 
     @commands.command()
     async def embed(self, ctx, *args):
-        """allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !"""
+        """allows you to post a message as an embed. Your msg will be reposted by the bot as an embed !
+        NOTE: Does not support aliases!"""
         with ConfigFile(ctx.guild.id) as conf:
             poll_chans = conf["poll_channels"]
         if ctx.channel.id in poll_chans:
@@ -54,7 +55,7 @@ class Embedding(commands.Cog):
 
         embed_msg = discord.Embed(
             title=None,
-            description=ctx.message.content[8:],
+            description=str(ctx.message.content[8:]),
             colour=ctx.author.color,
             url=None,
         )
