@@ -133,15 +133,15 @@ class Time(commands.Cog):
         pass
 
     @event.command()
+    @discord.ext.commands.dm_only()
     async def new(self, ctx, name: str):
         """creates a new event and starts the creation interface
-        TODO: merge with ConfigEntry class
-        TODO: refactor time checkers
-        TODO: merge attributions with ConfigEntry methods
         TODO: make sure the rest of the "conversation" tales place exclusively in DM
 
         this command should be sent in a guild so that the bot can get its ID. The creation process will then take place in the DM."""
         # making sure an event with the same name isn't already registered for this user
+
+        interface = ConfigEntry(self.bot, ctx.channel)
 
         evts_names = await get_event_view(ctx.author.name)
         if name in evts_names:
@@ -154,66 +154,27 @@ class Time(commands.Cog):
             f"Starting creation of {name} event. You will need to enter details about the event you have in mind. You can always come back on these by using `::event edit <name>`."
         )
 
-        await ctx.send("Which guild is this event for?")
-
-
         # description
-        await ctx.send(
-            "Please enter the description of your event."
-        )  # no need to check for char count since the user can't send more than 2k chars in a single message
-        description = await ctx.bot.wait_for("message")
+        description = await interface.get_answer(ctx, "Please enter the description of your event.") # no need to check for char count since the user can't send more than 2k chars in a single message
+        description = description.content
         await ctx.send("Added the following text as description:\n--- **START** ---")
         await ctx.send(description)
         await ctx.send("--- **STOP** ---")
 
         # start date
         # TODO: add support for fixed GMT time input instead?
-        await ctx.send(
-            "In how much time should the event start? To learn more on the time format type `::help remind`."
-        )
-        true_time = False
-        while not true_time:
-            time = await ctx.bot.wait_for("message")
-            true_time = to_datetime(time, lenient=True)
-
-            if true_time == False:
-                await ctx.send("The time you entered is incorrect, please try again.")
-                continue
-            else:
-                if true_time.total_seconds() + 30 <= time.time():
-                    continue
-
-        start_date = true_time.total_seconds()
+        start_date = await interface.get_datetime(ctx, "In how much time should the event start? To learn more on the time format type `::help remind`.", later=60, seconds=True)
         await ctx.send(f"The event is set to start in {true_time}.")
 
         # remind date
-        await ctx.send(
-            "How long before the event starts should subscribed users be reminded?"
-        )
-        true_time = False
-        while not true_time:
-            time = await ctx.bot.wait_for("message")
-            true_time = to_datetime(time, sub=False, lenient=True)
-
-            if true_time == False:
-                await ctx.send("The time you entered is incorrect, please try again.")
-                continue
-        remind = true_time.total_seconds()
-        await ctx.send(f"The reminder will go off in {start_date - true_time}.")
+        remind = interface.get_datetime(ctx, "The time you entered is incorrect, please try again.", seconds=True)
+        await ctx.send(f"The reminder will go off in {start_date - remind}.")
 
         # attributed role
-        await ctx.send("Should a role be made for this event?")
-        answer = await ctx.bot.wait_for("message", check=ConfigEntry.is_yn_answer)
-        if answer:
-            role = True
-        else:
-            role = False
+        role = await interface.get_yn(ctx, "Should a role be made for this event? You will be able to modify its name and permissions directly from your guild once you send the event.")
 
         # attributed channel
-        await ctx.send(
-            "Should there be a new channel attributed and dedicated to the event?"
-        )
-        answer = await ctx.bot.wait_for("message", check=ConfigEntry.is_yn_answer)
+        chan = await interface.get_yn(ctx, "Should there be a new channel attributed and dedicated to the event?")
 
 
 def setup(bot):

@@ -89,7 +89,7 @@ EVENT_FOLDER = "events"
 LANG_FOLDER = "lang"
 
 # roles
-ROLES_LEVEL = ["manager", "admin"]
+ROLES_LEVEL = ["manager", "admin", "planner"]
 
 # default JSON files
 DEFAULT_EXTENSIONS_JSON = {

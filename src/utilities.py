@@ -2,6 +2,7 @@ from collections import OrderedDict
 import logging
 import os
 import json
+from time import time
 import datetime
 import discord
 from settings import *
@@ -343,10 +344,10 @@ def get_lang(ctx):
 class ConfigEntry(object):
     """A generic configuration class that must subclasses to be used correctly in each extension."""
 
-    def __init__(self, bot, cfg_chan_id):
+    def __init__(self, bot, config_channel):
         self.bot = bot
         # only a single config channel because the class can have several instances, each for a different server
-        self.config_channel = cfg_chan_id
+        self.config_channel = config_channel
         self.allowed_answers = {1: ["yes", "y"], 0: ["no", "n"]}
 
     def is_answer(self, ctx):
@@ -397,6 +398,34 @@ class ConfigEntry(object):
                 return response
 
             await ctx.send(question)
+
+    async def get_datetime(self, ctx, question, later: int = False, seconds: bool = False):
+        """"this returns a datetime object from a user message.
+        question: the question to ask the user
+        later: if true will refuse any datetime that is already in the past. Can either be an int for a treshold or bool for simple comparison.
+        seconds: if true returns a int representing seconds instead of a datetime"""
+        
+        await ctx.send(question)
+        true_time = False
+        while not true_time:
+            response = await self.bot.wait_for("message", check=self.is_answer)
+            true_time = to_datetime(response.content, lenient=True)
+
+            if not true_time:
+                await ctx.send("The time you entered is incorrect, please try again.")
+                continue
+            else:
+                if later:
+                    if type(later) == int:
+                        if true_time.total_seconds() + later <= time():
+                            continue
+                    else:
+                        if true_time.total_seconds() <= time():
+                            continue
+
+                if seconds:
+                    return true_time.total_seconds()
+                return true_time
 
     def filter_msg(self, msg):
         # assert filters != None, TypeError("You must set filters to filter a message.")
