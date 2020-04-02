@@ -35,7 +35,7 @@ EMOJIS = {
     "thumbsdown": "\U0001f44e",
     "shrug": "\U0001f937",
     "wastebasket": "\U0001F5D1",
-    "check": "\U00002705",
+    "white_check_mark": "\U00002705",
     "hourglass": "\U000023F3",
     "wave": "\U0001F44B",
     "no_entry_sign": "\U0001F6AB",
@@ -57,6 +57,7 @@ EMOJIS = {
     "information_source": "\U00002139",
     "track_previous": "\U000023ee",
     "track_next": "\U000023ed",
+    "negative_squared_cross_mark": "\U0000274E",
 }
 
 # NotImplemented
@@ -87,6 +88,7 @@ EVENT_FOLDER = "events"
 #REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
 #EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
 LANG_FOLDER = "lang"
+POLL_FOLDER = "poll"
 
 # roles
 ROLES_LEVEL = ["manager", "admin", "planner"]

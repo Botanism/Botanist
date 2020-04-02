@@ -101,9 +101,11 @@ A suite of commands always activated which handle extension management. This can
 
 This suite of commands provides automatic poll creation. A poll is an embed message sent by the bot to specified channels. Every user can react to the poll to show their opinion regarding the interrogation submitted by the poll. With each reaction, the poll's color will change to give everyone a quick visual feedback of all members' opinion. A poll is generated from a user's message. Currently it only supports messages from a `poll` channel. However it is planned to improve this to allow one to create a poll using a dedicated command. Same goes for poll editing which is yet unsupported. To palliate to this you can remove your poll if you consider it was malformed. Polls can also be deleted when reacting with the `:x:` emoji.
 
-| Group  | Command | Arguments  |                         Description                          | Clearance |
-| ------ | :-----: | :--------: | :----------------------------------------------------------: | --------- |
-| `poll` |  `rm`   | `<msg_id>` | if the user is the author of the poll with the `msg_id` message, the bot deletes the specified poll. | *         |
+| Group  |  Command   |            Arguments            |                         Description                          | Clearance |
+| ------ | :--------: | :-----------------------------: | :----------------------------------------------------------: | :-------: |
+| `poll` |    `rm`    |           `<msg_id>`            | If the user is the author of the poll with the `msg_id` message, the bot deletes the specified poll. |     *     |
+| `poll` |  `status`  |                                 | Returns stats about your active polls. This is also called when one of you poll gets deleted. |     *     |
+| `poll` | `extended` | `<description...> <choices...>` | This command creates polls that can have more than the 3 standard reaction but do not support dynamic color. The way to make one is to be write the following command in a poll channel (message discarded otherwise). The message is composed of the description then a line break then, one each following line: an emoji followed by a description each of these lines are separated by a line break |     *     |
 
 
 
@@ -161,10 +163,11 @@ Allows moderators to add and remove roles to members.
 
 Allows the owner of a server to configure the behavior of the bot.
 
-| Group | Command |   Arguments   |                         Description                          | Clearance |
-| ----- | :-----: | :-----------: | :----------------------------------------------------------: | --------- |
-|       | `init`  |               | starts full configuration of the bot in a new, restricted, channel | owner     |
-|       |  `cfg`  | `<extension>` | starts the configuration of the `extension` extension. This is done in a new, restricted, channel | owner     |
+| Group |  Command  |   Arguments   |                         Description                          |   Clearance   |
+| ----- | :-------: | :-----------: | :----------------------------------------------------------: | :-----------: |
+|       |  `init`   |               | starts full configuration of the bot in a new, restricted, channel |     owner     |
+|       |   `cfg`   | `<extension>` | starts the configuration of the `extension` extension. This is done in a new, restricted, channel | administrator |
+|       | `summary` |               | Returns an exhaustive description of all settings set in the current server | administrator |
 
 
 
@@ -173,10 +176,10 @@ Allows the owner of a server to configure the behavior of the bot.
 Allows the developers to update the bot and notify all server owners of the changes. It also facilitates bug fixing by providing an easy way to retrieve the log.
 
 | Group | Command  |   Arguments    |                         Description                          | Clearance |
-| :---: | :------: | :------------: | :----------------------------------------------------------: | --------- |
-|       | `update` | `[message...]` | sends an update message to all users who own a server of which the bot is a member. `message` will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. | owner     |
-|       |  `log`   |                |                  returns the bot's log file                  | owner     |
-|       |  `dev`   |                | sends the development server URL to the author of the message |           |
+| :---: | :------: | :------------: | :----------------------------------------------------------: | :-------: |
+|       | `update` | `[message...]` | sends an update message to all users who own a server of which the bot is a member. `message` will be transformed into the message sent to the server owners. A default message is sent if none is provided. This can be modified in `settings.py`. |  runner   |
+|       |  `log`   |                |                  returns the bot's log file                  |  runner   |
+|       |  `dev`   |                | sends the development server URL to the author of the message |     *     |
 
 
 
@@ -194,17 +197,4 @@ Gives several time-related commands to ease organization. For now this only incl
 | event |  `edit`   |   `<name> <field>`    |       lets the user only edit `field` for `name` event       |     *     |
 | event | `preview` |       `<name>`        |          returns the current embed bound to `name`           |     *     |
 
-
-
-#### Todo *In development* 
-
-Allows moderators to make a to-do list  in one or more channels. It's also possible to make types for the to-do's, to assign a member to a to-do and to make a copy of the to-do in a public or in a other channel. If the to-do is deleted the replica will also be deleted. For all the command where arguments are split with : `;` you must respect those.
-
-| Group  |   Command    |                          Arguments                           |                         Description                          | Clearance |
-| ------ | :----------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :-------: |
-| `todo` |    `add`     | `<to-do_content>` `<to-do_type>;<assigned member/false>` `<repost_channel/false>` | adds the to-do in the selected channel (see `todo channel` command) . A color will be used for the embeds if the to-do type exist. The member can be mention or just wrote normally, he will be mention in both case. The channel can be a mention or can be wrote manually, he will be write as mentioned is both case. |     *     |
-| `todo` | `removetype` |                        `<type_name>`                         |                       removes the type                       |     *     |
-| `todo` | `listtypes`  |                        `<type_name>`                         |                      list created types                      |     *     |
-| `todo` |  `addtype`   |                   `<type_name>` `<color>`                    |                  adds a type for the to-dos                  |     *     |
-| `todo` |  `channel`   |                                                              |          select the channel for the future to-do's           |     *     |
 
