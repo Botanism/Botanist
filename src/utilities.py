@@ -59,7 +59,7 @@ def was_init(ctx):
     if ctx.guild:
         return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
     else:
-        #so that we make sure the check doesn't fail in a DM
+        # so that we make sure the check doesn't fail in a DM
         return True
 
 
@@ -121,7 +121,7 @@ def assert_struct(guilds):
             EVENT_FOLDER,
             TIME_FOLDER,
             EVENT_FOLDER,
-            REMINDERS_FOLDER
+            REMINDERS_FOLDER,
             POLL_FOLDER,
         ]
         for folder in to_make:
@@ -159,7 +159,7 @@ def assert_struct(guilds):
 
 
 time_seps = ["d", "h", "m", "s"]
-DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+DIGITS = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
 
 def to_datetime(argument, sub=True, lenient=False):
@@ -351,8 +351,14 @@ class ConfigEntry(object):
         self.config_channel = config_channel
         self.allowed_answers = {1: ["yes", "y"], 0: ["no", "n"]}
 
-    def is_answer(self, ctx):
-        if ctx.channel == self.config_channel and ctx.author == ctx.guild.owner:
+        if isinstance(config_channel, discord.TextChannel):
+            self.owner = config_channel.guild.owner
+        else:
+            # in a DM
+            self.owner = config_channel.recipient
+
+    def is_answer(self, message):
+        if message.channel == self.config_channel and message.author == self.owner:
             return True
         return False
 
@@ -363,10 +369,7 @@ class ConfigEntry(object):
         return correct_answers
 
     def is_react_yn_answer(self, reaction, user):
-        if (
-            reaction.message.channel == self.config_channel
-            and user == reaction.message.guild.owner
-        ):
+        if reaction.message.channel == self.config_channel and user == self.owner:
             if reaction.emoji in [
                 EMOJIS["negative_squared_cross_mark"],
                 EMOJIS["white_check_mark"],
@@ -412,17 +415,20 @@ class ConfigEntry(object):
 
             await ctx.send(question)
 
-    async def get_datetime(self, ctx, question, later: int = False, seconds: bool = False):
+    async def get_datetime(
+        self, ctx, question, later: int = False, seconds: bool = False
+    ):
         """"this returns a datetime object from a user message.
         question: the question to ask the user
         later: if true will refuse any datetime that is already in the past. Can either be an int for a treshold or bool for simple comparison.
         seconds: if true returns a int representing seconds instead of a datetime"""
-        
+
         await ctx.send(question)
         true_time = False
         while not true_time:
             response = await self.bot.wait_for("message", check=self.is_answer)
-            true_time = to_datetime(response.content, lenient=True)
+            true_time = to_datetime(response.content, sub=False, lenient=True)
+            print(true_time, type(true_time))
 
             if not true_time:
                 await ctx.send("The time you entered is incorrect, please try again.")
@@ -430,12 +436,13 @@ class ConfigEntry(object):
             else:
                 if later:
                     if type(later) == int:
-                        if true_time.total_seconds() + later <= time():
+                        if true_time.total_seconds() <= later:
                             continue
                     else:
-                        if true_time.total_seconds() <= time():
+                        if true_time.total_seconds() <= 0:
                             continue
 
+                print(true_time)
                 if seconds:
                     return true_time.total_seconds()
                 return true_time

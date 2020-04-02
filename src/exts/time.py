@@ -77,6 +77,9 @@ class Event(object):
             self.guild = None
             self.role = None
 
+    def __repr__(self):
+        return f"<exts.time.Event name={self.name}, time={self.time}, reminder={self.reminder}, role={self.role}, channel={self.channel}, guild={self.guild}>"
+
     @classmethod
     def from_dict(cls, bot, user_id: int, name: str, params: dict):
         time = params.pop("time")
@@ -155,26 +158,54 @@ class Time(commands.Cog):
         )
 
         # description
-        description = await interface.get_answer(ctx, "Please enter the description of your event.") # no need to check for char count since the user can't send more than 2k chars in a single message
+        description = await interface.get_answer(
+            ctx, "Please enter the description of your event."
+        )  # no need to check for char count since the user can't send more than 2k chars in a single message
         description = description.content
-        await ctx.send("Added the following text as description:\n--- **START** ---")
-        await ctx.send(description)
-        await ctx.send("--- **STOP** ---")
+        await ctx.send(
+            "Added the following text as description:\n--- **START** ---\n"
+            + description
+            + "\n--- **STOP** ---"
+        )
 
         # start date
         # TODO: add support for fixed GMT time input instead?
-        start_date = await interface.get_datetime(ctx, "In how much time should the event start? To learn more on the time format type `::help remind`.", later=60, seconds=True)
-        await ctx.send(f"The event is set to start in {true_time}.")
+        start_date = await interface.get_datetime(
+            ctx,
+            "In how much time should the event start? To learn more on the time format type `::help remind`.",
+            later=60,
+            seconds=True,
+        )
+        await ctx.send(f"The event is set to start in {start_date} seconds.")
 
         # remind date
-        remind = interface.get_datetime(ctx, "The time you entered is incorrect, please try again.", seconds=True)
+        remind = await interface.get_datetime(
+            ctx,
+            "How much time before the event starts should the user be reminded?",
+            seconds=True,
+        )
         await ctx.send(f"The reminder will go off in {start_date - remind}.")
 
         # attributed role
-        role = await interface.get_yn(ctx, "Should a role be made for this event? You will be able to modify its name and permissions directly from your guild once you send the event.")
+        role = await interface.get_yn(
+            ctx,
+            "Should a role be made for this event? You will be able to modify its name and permissions directly from your guild once you send the event.",
+        )
 
         # attributed channel
-        chan = await interface.get_yn(ctx, "Should there be a new channel attributed and dedicated to the event?")
+        chan = await interface.get_yn(
+            ctx, "Should there be a new channel attributed and dedicated to the event?"
+        )
+
+        draft = Event(
+            self.bot,
+            ctx.author.id,
+            name,
+            start_date,
+            reminder=remind,
+            description=description,
+        )
+        print(draft)
 
 
 def setup(bot):

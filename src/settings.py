@@ -85,8 +85,8 @@ TODO_FOLDER = "todo"
 TIME_FOLDER = "countdowns"
 REMINDERS_FOLDER = "remind"
 EVENT_FOLDER = "events"
-#REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
-#EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
+# REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
+# EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
 LANG_FOLDER = "lang"
 POLL_FOLDER = "poll"
 
