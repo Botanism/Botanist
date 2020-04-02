@@ -30,7 +30,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
     """This Help class offers interaction support through embeds and reactions."""
 
     def __init__(self, react_time: int = HELP_TIME, **options):
-        super().__init__(**options)
+        super().__init__(**options, verify_checks=False)
         self.react_time = react_time
 
     def help_reaction(self, reaction, user):
@@ -74,13 +74,11 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         elapsed_time = 0
         try:
             while elapsed_time < self.react_time:
-                print("waiting for a reaction")
                 reaction, user = await self.context.bot.wait_for(
                     "reaction_add",
                     timeout=self.react_time - elapsed_time,
                     check=self.help_reaction,
                 )
-                print(f"Got reaction {reaction} from {user}")
 
                 # interpret reactions
                 if reaction.emoji == EMOJIS["arrow_forward"]:
@@ -110,7 +108,7 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
                     )
                     await self.send_bot_help(self.get_bot_mapping())
                     await msg.delete()
-                    break
+                    return
 
                 await msg.remove_reaction(reaction, user)
                 await msg.edit(suppress=False, embed=pages[current_page])

@@ -25,6 +25,7 @@ bot.help_command = InteractiveHelp(
     }
 )
 
+
 #########################################
 #                                       #
 #                                       #
@@ -70,9 +71,7 @@ async def reload(ctx, extension: str):
         bot.reload_extension(str(EXT_FOLDER + "." + extension))
         await ctx.send("Successfully reloaded {}".format(extension))
     except Exception as e:
-        await ctx.send(
-            "Couldn't reload extension {} because:```python\n{}```".format(extension, e)
-        )
+        main_logger.error(f"Couldn't reaload extension {extension} because of the following exception", e)
         raise e
 
 
@@ -80,12 +79,12 @@ async def reload(ctx, extension: str):
 async def add(ctx, *extensions: str):
     for extension in extensions:
         # trying to load the extension. Should only fail if the extension is not installed
+        extension = extension.lower()
         try:
             bot.load_extension(str(EXT_FOLDER + "." + extension))
 
         except Exception as e:
-            main_logger.exception(e)
-            await ctx.send("UnexpectedError:\tReport issue to an admin\n{}".format(e))
+            main_logger.error(f"Couldn't load extension {extension} because of the following exception", e)
             raise e
 
         # if the extension was correctly loaded, adding it to the enabled file
@@ -106,20 +105,21 @@ async def add(ctx, *extensions: str):
 
         except Exception as e:
             # logging any other possible issue
-            await ctx.send("UnexpectedError:\tReport issue to an admin")
+            main_logger.error(f"Couldn't update extension list with {extension} because of the following exception", e)
             raise e
 
+        main_logger.debug(f"Successfully added extension {extension}")
         await ctx.send(f"Successfully added and loadded {extension}")
 
 
 @ext.command()
 async def rm(ctx, extension: str):
+    extension = extension.lower()
     try:
         bot.unload_extension(str(EXT_FOLDER + "." + extension))
 
     except Exception as e:
-        main_logger.exception(e)
-        await ctx.send(f"UnexpectedError:\tReport issue to an admin\n{e}")
+        main_logger.error(f"Couldn't unload extension {extension} because of the following exception", e)
         raise e
 
     # if the extension was correctly unloaded, removing it from the enblaed extension file
@@ -133,10 +133,10 @@ async def rm(ctx, extension: str):
             json.dump(enabled_exts, file)
 
     except Exception as e:
-        main_logger.exception(e)
-        await ctx.send(f"UnexpectedError:\tReport issue to an admin\n{e}")
+        main_logger.error(f"Couldn't update extension list with {extension} because of the following exception", e)
         raise e
 
+    main_logger.debug(f"Disabled and removed {extension}")
     await ctx.send(f"Successfully removed and unloaded {extension}")
     local_logger.info(f"Disabled and removed {extension}")
 
@@ -188,8 +188,7 @@ async def ls(ctx):
         await ctx.send(embed=ext_embed)
 
     except Exception as e:
-        raise e
-        LOCAL_LOGGER.exception(e)
+        main_logger.error("Couldn't get extension list because of the following exception", e)
 
 
 #########################################
@@ -216,14 +215,17 @@ try:
 
 # if no extension is enabled
 except FileNotFoundError as e:
-    main_logger.warning(
-        "No extension enabled, none loaded. You probably want to configure the bot or add some extensions"
+    main_logger.error(
+        "No extension enabled, none loaded. You probably want to configure the bot or add some extensions", e
     )
     raise e
+#json error
+except json.decoder.JSONDecodeError as e:
+    main_logger.error("Couldn't load extension file", e)
 
 # unexpected error handling
 except Exception as e:
-    main_logger.exception(e)
+    main_logger.critical("Couldn't load extensions", e)
     raise e
 
 # running the bot, no matter what
@@ -232,8 +234,8 @@ finally:
         print("Running bot")
         bot.run(TOKEN)
     elif TOKEN == None:
-        main_logger.error(
+        main_logger.critical(
             """Invalid TOKEN. Make sure you set up the "DISCORD_TOKEN" environement variable."""
         )
     else:
-        main_logger.error("""Directory structure is invalid.""")
+        main_logger.critical("""Directory structure is invalid.""")

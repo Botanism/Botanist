@@ -2,6 +2,7 @@ from collections import OrderedDict
 import logging
 import os
 import json
+from time import time
 import datetime
 import discord
 from settings import *
@@ -55,7 +56,11 @@ def is_init():
 
 def was_init(ctx):
     """same as the previous function except this one isn't a decorator. Mainly used for listenners"""
-    return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
+    if ctx.guild:
+        return f"{ctx.guild.id}.json" in os.listdir(CONFIG_FOLDER)
+    else:
+        #so that we make sure the check doesn't fail in a DM
+        return True
 
 
 def has_auth(clearance, *args):
@@ -113,6 +118,10 @@ def assert_struct(guilds):
             TODO_FOLDER,
             CONFIG_FOLDER,
             LANG_FOLDER,
+            EVENT_FOLDER,
+            TIME_FOLDER,
+            EVENT_FOLDER,
+            REMINDERS_FOLDER
             POLL_FOLDER,
         ]
         for folder in to_make:
@@ -153,13 +162,23 @@ time_seps = ["d", "h", "m", "s"]
 DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 
-def to_datetime(argument, sub=True):
+def to_datetime(argument, sub=True, lenient=False):
+    """the date format is as such:
+    d => days
+    h => hours
+    m => minutes
+    s => seconds
+    """
+
     times = OrderedDict([("y", 0), ("M", 0), ("d", 0), ("h", 0), ("m", 0), ("s", 0)])
 
     last = 0
     for char, i in zip(argument, range(len(argument))):
         if char not in DIGITS:
             if char in time_seps:
+                if lenient:
+                    if len(argument[last:i]) == 0:
+                        return False
                 times[char] = int(argument[last:i])
                 last = i + 1
             else:
@@ -240,6 +259,7 @@ class ConfigFile(UserDict):
                 json.dump(self.data, file)
 
         except Exception as e:
+            local_logger.error(f"An exception occured while saving {self.file}.")
             local_logger.exception(e)
             raise e
 
@@ -255,6 +275,7 @@ class ConfigFile(UserDict):
             return self.data
 
         except Exception as e:
+            local_logger.error(f"An exception occured while reading {self.file}.")
             local_logger.exception(e)
             raise e
 
@@ -321,13 +342,13 @@ def get_lang(ctx):
         return conf["lang"]
 
 
-class ConfigEntry:
+class ConfigEntry(object):
     """A generic configuration class that must subclasses to be used correctly in each extension."""
 
-    def __init__(self, bot, cfg_chan_id):
+    def __init__(self, bot, config_channel):
         self.bot = bot
         # only a single config channel because the class can have several instances, each for a different server
-        self.config_channel = cfg_chan_id
+        self.config_channel = config_channel
         self.allowed_answers = {1: ["yes", "y"], 0: ["no", "n"]}
 
     def is_answer(self, ctx):
@@ -390,6 +411,34 @@ class ConfigEntry:
                 return response
 
             await ctx.send(question)
+
+    async def get_datetime(self, ctx, question, later: int = False, seconds: bool = False):
+        """"this returns a datetime object from a user message.
+        question: the question to ask the user
+        later: if true will refuse any datetime that is already in the past. Can either be an int for a treshold or bool for simple comparison.
+        seconds: if true returns a int representing seconds instead of a datetime"""
+        
+        await ctx.send(question)
+        true_time = False
+        while not true_time:
+            response = await self.bot.wait_for("message", check=self.is_answer)
+            true_time = to_datetime(response.content, lenient=True)
+
+            if not true_time:
+                await ctx.send("The time you entered is incorrect, please try again.")
+                continue
+            else:
+                if later:
+                    if type(later) == int:
+                        if true_time.total_seconds() + later <= time():
+                            continue
+                    else:
+                        if true_time.total_seconds() <= time():
+                            continue
+
+                if seconds:
+                    return true_time.total_seconds()
+                return true_time
 
     def filter_msg(self, msg):
         # assert filters != None, TypeError("You must set filters to filter a message.")

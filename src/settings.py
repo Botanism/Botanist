@@ -82,12 +82,16 @@ EXTENSIONS_FILE = "enabled_exts.json"
 SLAPPING_FOLDER = "slapping"
 CONFIG_FOLDER = "servers"
 TODO_FOLDER = "todo"
-TIMES_FOLDER = "countdowns"
+TIME_FOLDER = "countdowns"
+REMINDERS_FOLDER = "remind"
+EVENT_FOLDER = "events"
+#REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
+#EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
 LANG_FOLDER = "lang"
 POLL_FOLDER = "poll"
 
 # roles
-ROLES_LEVEL = ["manager", "admin"]
+ROLES_LEVEL = ["manager", "admin", "planner"]
 
 # default JSON files
 DEFAULT_EXTENSIONS_JSON = {
@@ -127,7 +131,7 @@ DEFAULT_TODO_FILE = {"groups": {"default": []}, "types": {"default": "000000"}}
 LOG_FILE = "botanist.log"
 LOGGING_HANDLER = logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER = logging.Formatter("\n[%(asctime)s][%(name)s]:%(message)s")
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 LOGGING_HANDLER.setFormatter(LOGGING_FORMATTER)
 
 #########################################
