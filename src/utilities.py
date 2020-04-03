@@ -215,7 +215,9 @@ class ConfigFile(UserDict):
             force:  creates the file if not found
             """
 
-    def __init__(self, file, folder=CONFIG_FOLDER, fext="json", force=True):
+    def __init__(
+        self, file, folder=CONFIG_FOLDER, fext="json", force=True, default={"0": 0}
+    ):
         super(ConfigFile, self).__init__()
         # since the ID is an int -> making sure it is considered as a string
         self.file = str(file)
@@ -223,6 +225,7 @@ class ConfigFile(UserDict):
         self.folder = folder
         self.fext = fext
         self.force = force
+        self.default = default
 
         # currently only supports "json" files
         # assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
@@ -249,7 +252,7 @@ class ConfigFile(UserDict):
             with open(
                 os.path.join(self.folder, self.file), "w", encoding="utf-8"
             ) as file:
-                json.dump({0: 0}, file)  # creating empty file
+                json.dump(self.default, file)  # creating empty file
         return True
 
     def save(self):
@@ -428,7 +431,6 @@ class ConfigEntry(object):
         while not true_time:
             response = await self.bot.wait_for("message", check=self.is_answer)
             true_time = to_datetime(response.content, sub=False, lenient=True)
-            print(true_time, type(true_time))
 
             if not true_time:
                 await ctx.send("The time you entered is incorrect, please try again.")
@@ -442,10 +444,25 @@ class ConfigEntry(object):
                         if true_time.total_seconds() <= 0:
                             continue
 
-                print(true_time)
                 if seconds:
                     return true_time.total_seconds()
                 return true_time
+
+    async def get_color(self, ctx, question: str):
+        await ctx.send(question)
+        color = None
+        while not color:
+            response = await self.bot.wait_for("message", check=self.is_answer)
+            if response.content.startswith("#"):
+                base = 16
+            else:
+                base = 10
+
+            try:
+                color = discord.Color(int(response.content, base=base))
+                return color
+            except Exception as e:
+                continue
 
     def filter_msg(self, msg):
         # assert filters != None, TypeError("You must set filters to filter a message.")
