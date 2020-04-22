@@ -65,7 +65,7 @@ Here is an exhaustive list of all extensions and the commands they provide. This
 | Clearance     | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
 | *             | this represents the wildcard and means everyone can use the command. No matter their roles |
-| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/organic-bots/ForeBot/blob/master/settings.py#15). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
+| runner        | this role is assigned to only one member: the one with the [`RUNNER_ID`](https://github.com/s0lst1ce/Botanist/blob/dev/src/settings.py#L16). This is defined in the `settings.py` file and should represent the ID of the user responsible for the bot. It is also the only cross-server role. |
 | owner         | this role is automatically assigned to every server owner. It is however server-specific. It gives this member supremacy over all members in his/her server. |
 | administrator | this role gives access to all server commands except the bot configuration ones |
 | manager       | this role gives access to message management, warnings issues and other server moderation commands |
