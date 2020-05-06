@@ -226,6 +226,7 @@ class ConfigFile(UserDict):
         self.fext = fext
         self.force = force
         self.default = default
+        self.data = default
 
         # currently only supports "json" files
         # assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
@@ -276,6 +277,10 @@ class ConfigFile(UserDict):
                 self.data = json.load(file)
 
             return self.data
+        except json.JSONDecodeError:
+            with open(os.path.join(self.folder, self.file), "w") as file:
+                json.dump(self.default, file)
+            return self.default
 
         except Exception as e:
             local_logger.error(f"An exception occured while reading {self.file}.")
