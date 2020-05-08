@@ -1,7 +1,8 @@
 <p align="center">
   <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
 </p>
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)]
 
 # Botanist
 
