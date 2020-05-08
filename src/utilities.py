@@ -254,6 +254,15 @@ class ConfigFile(UserDict):
                 os.path.join(self.folder, self.file), "w", encoding="utf-8"
             ) as file:
                 json.dump(self.default, file)  # creating empty file
+        else:
+            with open(os.path.join(self.folder, self.file), "r") as file:
+                try:
+                    json.load(file)
+                except Exception as e:
+                    if self.force:
+                        json.dump(self.default, file)
+                    else:
+                        return False
         return True
 
     def save(self):
@@ -270,17 +279,10 @@ class ConfigFile(UserDict):
     def read(self):
         """builds the dict from the file """
         try:
-            if not self.make_file:
-                return self.data
-
             with open(os.path.join(self.folder, self.file), "r") as file:
                 self.data = json.load(file)
 
             return self.data
-        except json.JSONDecodeError:
-            with open(os.path.join(self.folder, self.file), "w") as file:
-                json.dump(self.default, file)
-            return self.default
 
         except Exception as e:
             local_logger.error(f"An exception occured while reading {self.file}.")
@@ -345,8 +347,8 @@ class Translator(object):
             )
 
 
-def get_lang(ctx):
-    with ConfigFile(ctx.guild.id) as conf:
+def get_lang(guild_id):
+    with ConfigFile(guild_id) as conf:
         return conf["lang"]
 
 
@@ -483,3 +485,20 @@ class ConfigEntry(object):
     async def run(self, ctx):
         """this functions serves as placeholder for the instances which should override it"""
         pass
+
+
+async def audit(guild, *args, **kwargs):
+    """audits the provided message to the moderation channel of the guild if set"""
+    try:
+        with ConfigFile(guild.id) as config:
+            audit_chan = config["commode"]["reports_chan"]
+            if audit_chan:
+                audit_chan = guild.get_channel(audit_chan)
+                await audit_chan.send(*args, **kwargs)
+
+    except Exception as e:
+        local_logger.error(
+            f"Couldn't record audit log in the moderation channel of {guild}."
+        )
+        local_logger.exception(e)
+        raise e

@@ -2,6 +2,7 @@ import logging
 import discord
 import asyncio
 import datetime
+from time import asctime, gmtime
 import os
 from settings import *
 from utilities import *
@@ -37,7 +38,7 @@ class CommunityModerationConfigEntry(ConfigEntry):
         super().__init__(bot, cfg_chan_id)
 
     async def run(self, ctx):
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         try:
             await ctx.send(tr["start_conf"])
             pursue = await self.get_yn(ctx, tr["pursue"])
@@ -100,7 +101,7 @@ class Slapping(commands.Cog):
     @has_auth("manager")
     async def slap(self, ctx, member: discord.Member, *reason):
         """Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server"""
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         if not len(reason):
             reason = tr["default_reason"]
         else:
@@ -144,7 +145,7 @@ class Slapping(commands.Cog):
     @is_init()
     @has_auth("manager")
     async def forgive(self, ctx, member: discord.Member, nbr=0):
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         """Pardonning a member to reduce his slap count"""
 
         with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
@@ -164,7 +165,8 @@ class Slapping(commands.Cog):
             # pardon
             slp_nbr = nbr or tr["slp_nbr_all"]
             pardon = discord.Embed(
-                description=tr["forgive_description"].format(nbr or "all", count), color=6281471,
+                description=tr["forgive_description"].format(nbr or "all", count),
+                color=6281471,
             )
             pardon.set_author(
                 name=tr["forgive_title"].format(member, ctx.author.name),
@@ -179,66 +181,19 @@ class Slapping(commands.Cog):
         # making audit to mod chan
         await audit(ctx.guild, embed=pardon)
 
-    async def slaps_overview(self, ctx):
-        tr = Translator(name, get_lang(ctx))
-
-        with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
-            # building slapped members listing
-            member_list = ""
-            obsolete_entries = []
-            for m in slaps:
-                member = ctx.guild.get_member(int(m))
-
-                # making sure the user is still a member, if not, delete
-                if not member:
-                    obsolete_entries.append(m)
-                    continue
-
-                member_list += f"\n{member.mention}:\t**{len(slaps[m])}**"
-
-            for entry in obsolete_entries:
-                slaps.pop(entry)
-
-            # checking if there's any slap
-            if len(slaps) == 0:
-                await ctx.send(tr["no_slaps"] + EMOJIS["tada"])
-                return
-
-        # if a user has been slapped
-        embed = discord.Embed(
-            title=tr["slaps_title"] + EMOJIS["hammer"],
-            description=tr["slaps_description"],
-            colour=16741632,
-        )  # used to be blurpple 7506394
-
-        embed.add_field(name=tr["member_list"], value=member_list)
-        return embed
-
-    def get_member_slaps(self, ctx, member):
-        tr = Translator(name, get_lang(ctx))
-        with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
-            if str(member.id) not in slaps:
-                return tr["not_slap_hist"]
-
-            slaps_list = ""
-            for slap in slaps[str(member.id)]:
-                slaps_list += tr["crt_str"].format(
-                    slap[1], ctx.guild.get_member(slap[0]).mention, slap[2]
-                )
-
-        return slaps_list
-
     @commands.command(aliases=["warnings"])
     @is_init()
     @has_auth("manager")
     async def slaps(self, ctx, *members: discord.Member):
         """returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided."""
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
 
         if len(members) == 0:
-            eb = await self.slaps_overview(ctx)
+            eb = await self.slaps_overview(ctx.guild)
             if eb:
                 await ctx.send(embed=eb)
+            else:
+                await ctx.send(tr["no_slaps"] + EMOJIS["tada"])
             return
 
         # only selecting the 10 first members because we can't have more fields
@@ -256,20 +211,68 @@ class Slapping(commands.Cog):
         for member in members[:10]:
             embed.add_field(
                 name=tr["new_field_name"].format(member),
-                value=self.get_member_slaps(ctx, member),
+                value=self.get_member_slaps(ctx, guild, member),
             )
 
         await ctx.send(*opt_msg, embed=embed)
 
+    async def slaps_overview(self, guild):
+        tr = Translator(name, get_lang(guild.id))
+
+        with ConfigFile(guild.id, folder=SLAPPING_FOLDER) as slaps:
+            # building slapped members listing
+            member_list = ""
+            obsolete_entries = []
+            for m in slaps:
+                member = guild.get_member(int(m))
+
+                # making sure the user is still a member, if not, delete
+                if not member:
+                    obsolete_entries.append(m)
+                    continue
+
+                member_list += f"\n{member.mention}:\t**{len(slaps[m])}**"
+
+            for entry in obsolete_entries:
+                slaps.pop(entry)
+
+            # checking if there's any slap
+            if len(slaps) == 0:
+                return False
+
+        # if a user has been slapped
+        embed = discord.Embed(
+            title=tr["slaps_title"] + EMOJIS["hammer"],
+            description=tr["slaps_description"],
+            colour=16741632,
+        )  # used to be blurpple 7506394
+
+        embed.add_field(name=tr["member_list"], value=member_list)
+        return embed
+
+    def get_member_slaps(self, guild, member):
+        tr = Translator(name, get_lang(guild.id))
+        with ConfigFile(guild.id, folder=SLAPPING_FOLDER) as slaps:
+            if str(member.id) not in slaps:
+                return tr["not_slap_hist"]
+
+            slaps_list = ""
+            for slap in slaps[str(member.id)]:
+                slaps_list += tr["crt_str"].format(
+                    slap[1], guild.get_member(slap[0]).mention, slap[2]
+                )
+
+        return slaps_list
+
     async def make_mute(self, channel, member, time):
         seconds = time.total_seconds()
 
-        with ConfigFile(channel.guild.id, folder=TIMES_FOLDER) as count:
+        with ConfigFile(channel.guild.id, folder=TIME_FOLDER) as count:
             free_at = datetime.datetime.now().timestamp() + seconds
             if str(member.id) in count.keys():
                 same = False
                 for chan in count[str(member.id)]:
-                    if int(chan[0]) == channel.id:
+                    if chan[0] == channel.id:
                         chan[1] = int(chan[1]) + seconds
                         same = True
 
@@ -282,7 +285,20 @@ class Slapping(commands.Cog):
         await channel.set_permissions(
             member, overwrite=discord.PermissionOverwrite(send_messages=False)
         )
-        await asyncio.sleep(seconds)
+
+    async def make_umute(self, channel, member):
+        with ConfigFile(channel.guild.id, folder=TIME_FOLDER) as count:
+            if str(member.id) in count.keys():
+                for chan, i in zip(
+                    count[str(member.id)], range(len(count[str(member.id)]))
+                ):
+                    if chan[0] == channel.id:
+                        if len(count[str(member.id)]) == 1:
+                            count.pop(str(member.id))
+                        else:
+                            count[str(member.id)].pop(i)
+                        break
+
         await channel.set_permissions(
             member, overwrite=discord.PermissionOverwrite(send_messages=None)
         )
@@ -290,18 +306,136 @@ class Slapping(commands.Cog):
     @commands.command()
     @is_init()
     @has_auth("manager")
-    async def mute(self, ctx, member: discord.Member, time, whole: bool = False):
+    async def mute(
+        self, ctx, member: discord.Member, time, *channels: discord.TextChannel
+    ):
+        tr = Translator(name, get_lang(ctx.guild.id))
+
         until = to_datetime(time, sub=False)
-        if not whole:
-            await self.make_mute(ctx.channel, member, until)
+        if not until:
+            await ctx.send(embed=get_embed_err(ERR_MISFORMED))
+            return
+
+        if len(channels) == 0:
+            channels = ctx.guild.text_channels
+
+        remaining = 3
+        chans_str = ""
+        for chan in channels:
+            await self.make_mute(chan, member, until)
+            
+            #mentionning too many channels isn'is hard to read so we throtle and ellipse it if needed
+            remaining -= 1
+            if remaining >= 0:
+                chans_str += f" {chan.mention}"
+
+        if remaining <0:
+            chans_str += tr["ellipse"].format(-remaining)
+
+        # building audit entries
+        start = discord.Embed(
+            description=tr["mute_description"].format(
+                asctime(gmtime(until.total_seconds())), chans_str
+            ),
+        )
+        start.set_author(
+            name=tr["mute_title"].format(member, ctx.author.name),
+            icon_url=member.avatar_url,
+        )
+
+        end = discord.Embed(description=tr["unmute_description"].format(chans_str))
+        end.set_author(
+            name=tr["unmute_title"].format(member),
+            icon_url=member.avatar_url,
+        )
+
+        #auditing
+        if not member.bot:
+            await member.send(tr["mute_dm"].format(ctx.guild.name), embed=start)
+        await audit(ctx.guild, embed=start)
+
+        await asyncio.sleep(until.total_seconds())
+
+        #unmuting
+        for chan in channels:
+            await self.make_umute(chan, member)
+
+        #auditing
+        if not member.bot:
+            await member.send(tr["mute_dm"].format(ctx.guild.name), embed=end)
+        await audit(ctx.guild, embed=end)
+
+    @commands.command()
+    @is_init()
+    @has_auth("manager")
+    async def mutes(self, ctx, *members: discord.Member):
+        tr = Translator(name, get_lang(ctx.guild.id))
+        if len(members) == 0:
+            eb = self.mutes_overview(ctx.guild)
+            if eb:
+                await ctx.send(embed=eb)
+            else:
+                await ctx.send(tr["no_mutes"] + EMOJIS["tada"])
+            return
+
+        # only selecting the 10 first members because we can't have more fields
+        if len(members) > 10:
+            opt_msg = [tr["too_many"].format(len(members))]
         else:
-            await ctx.send(COMING_SOON)
+            opt_msg = []
+
+        embed = discord.Embed(
+            title=tr["mutes_title"] + EMOJIS["zip"],
+            description=tr["member_mutes_description"],
+        )
+
+        for member in members[:10]:
+            embed.add_field(
+                name=tr["mutes_new_field_name"].format(member),
+                value=self.get_member_mutes(ctx.guild, member),
+            )
+
+        await ctx.send(*opt_msg, embed=embed)
+
+    def mutes_overview(self, guild):
+        tr = Translator(name, get_lang(guild.id))
+        embed = discord.Embed(
+            title=tr["mutes_title"] + EMOJIS["zip"], description=tr["mutes_description"]
+        )
+
+        muted_list = ""
+        with ConfigFile(guild.id, folder=TIME_FOLDER) as muted:
+            for member in muted:
+                muted_list += tr["muted_entry"].format(
+                    guild.get_member(int(member)).mention, len(muted[member])
+                )
+
+        if len(muted_list) == 0:
+            return False
+
+        embed.add_field(name=tr["member_list"], value=muted_list)
+        return embed
+
+    def get_member_mutes(self, guild, member):
+        tr = Translator(name, get_lang(guild.id))
+
+        with ConfigFile(guild.id, folder=TIME_FOLDER) as muted:
+            if str(member.id) not in muted:
+                return tr["not_muted_hist"]
+
+            mutes_listing = ""
+            crt_mutes = muted[str(member.id)]
+            for chan in crt_mutes:
+                mutes_listing += tr["mute_entry"].format(
+                    asctime(gmtime(chan[1])), guild.get_channel(chan[0]).mention
+                )
+            return mutes_listing
 
     @commands.command()
     @is_init()
     async def spam(self, ctx, member: discord.Member):
         """allows users to report spamming"""
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         if not ctx.guild in self.spams:
             self.spams[ctx.guild] = {}
 
@@ -338,7 +472,7 @@ class Slapping(commands.Cog):
                 "You need to provide a reason."
             )
 
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         with ConfigFile(ctx.guild.id) as conf:
             mod_chan = conf["commode"]["reports_chan"]
 
@@ -346,8 +480,6 @@ class Slapping(commands.Cog):
             await ctx.send(
                 "The server owner has disabled this feature because he didn't set any moderation channel. Contact him/her if you think this is not right."
             )
-        else:
-            mod_chan = ctx.guild.get_channel(mod_chan)
 
         reason_str = ""
         for word in reason:
@@ -369,7 +501,7 @@ class Slapping(commands.Cog):
 
         card.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
         card.add_field(name=tr["reason_name"], value=reason_str)
-        await mod_chan.send(embed=card)
+        await audit(ctx.guild, embed=card)
 
 
 def setup(bot):
