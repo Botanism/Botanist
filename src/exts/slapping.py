@@ -101,35 +101,44 @@ class Slapping(commands.Cog):
     async def slap(self, ctx, member: discord.Member, *reason):
         """Meant to give a warning to misbehavioring members. Cumulated slaps will result in warnings, role removal and eventually kick. Beware the slaps are loged throughout history and are cross-server"""
         tr = Translator(name, get_lang(ctx))
-        if len(reason):
-            reason_str = ""
-            for w in reason:
-                reason_str += f" {w}"
+        if not len(reason):
+            reason = tr["default_reason"]
         else:
-            reason_str = tr["default_reason"]
+            reason_str = ""
+            for word in reason:
+                reason_str += f" {word}"
+            reason = reason_str
 
         with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
-            # building audit log entry
-            audit = f"{ctx.channel.id}/{ctx.message.id}"
-
-            # updating dict
-            if str(member.id) in slaps:
-                slaps[str(member.id)].append(audit)
+            if member.id in slaps:
+                count = len(slaps[str(member.id)]) + 1
             else:
-                slaps[str(member.id)] = [audit]
+                count = 1
 
             # warning
             warning = discord.Embed(
-                title=tr["slap_title"].format(len(slaps[str(member.id)])),
-                description=tr["slap_description"].format(
-                    member.mention, len(slaps[str(member.id)]), reason_str
-                ),
-                color=16741632,
+                color=16741632, description=tr["slap_description"].format(reason, count)
             )
             warning.set_author(
-                name=ctx.author.display_name, icon_url=ctx.author.avatar_url
+                name=tr["slap_title"].format(member, ctx.author.name),
+                icon_url=member.avatar_url,
             )
-            await ctx.send(embed=warning)
+            msg = await ctx.send(embed=warning)
+            if not member.bot:
+                await member.send(
+                    tr["slap_dm"].format(ctx.guild.name, ctx.channel.mention),
+                    embed=warning,
+                )
+            await ctx.message.delete()
+
+            # building slap log for `slaps`
+            entry = [ctx.author.id, msg.jump_url, reason]
+            history = slaps.setdefault(str(member.id), [entry])
+            if history != [entry]:
+                history.append(entry)
+
+        # making audit to mod chan
+        await audit(ctx.guild, embed=warning)
 
     @commands.command(alias=["pardon"])
     @is_init()
@@ -139,87 +148,61 @@ class Slapping(commands.Cog):
         """Pardonning a member to reduce his slap count"""
 
         with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
+            if not str(member.id) in slaps:
+                await ctx.send(tr["not_slapped"].format(member))
+                return
+
             s = slaps[str(member.id)]
             if nbr == 0 or len(s) < nbr:
                 slaps.pop(str(member.id))
+                count = 0
             else:
                 for i in range(nbr):
                     slaps[str(member.id)].pop()
+                count = len(slaps[str(member.id)])
 
             # pardon
             slp_nbr = nbr or tr["slp_nbr_all"]
             pardon = discord.Embed(
-                title=tr["forgive_title"].format(slp_nbr),
-                description=tr["forgive_description"].format(
-                    ctx.message.author.name, member.mention
-                ),
-                color=6281471,
+                description=tr["forgive_description"].format(nbr or "all", count), color=6281471,
             )
             pardon.set_author(
-                name=ctx.author.display_name, icon_url=ctx.author.avatar_url
+                name=tr["forgive_title"].format(member, ctx.author.name),
+                icon_url=member.avatar_url,
             )
-            await ctx.send(embed=pardon)
+            if not member.bot:
+                await member.send(
+                    tr["slap_dm"].format(ctx.guild.name, ctx.channel.mention),
+                    embed=pardon,
+                )
 
-    @commands.command(aliases=["warnings"])
-    @is_init()
-    @has_auth("manager")
-    async def slaps(self, ctx, *members: discord.Member):
-        """returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided."""
+        # making audit to mod chan
+        await audit(ctx.guild, embed=pardon)
+
+    async def slaps_overview(self, ctx):
         tr = Translator(name, get_lang(ctx))
-        fields = []
-        # a single string if there's no member argument
-        if not len(members):
-            fields = ""
-
-        m_ids = [str(m.id) for m in members]
 
         with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
+            # building slapped members listing
+            member_list = ""
+            obsolete_entries = []
             for m in slaps:
-                # checking member
                 member = ctx.guild.get_member(int(m))
-                if member == None:
+
+                # making sure the user is still a member, if not, delete
+                if not member:
+                    obsolete_entries.append(m)
                     continue
 
-                # building string for embed fields
-                if len(members) == 0:
-                    fields += f"**{member.name}**: {len(slaps[m])}\n"
+                member_list += f"\n{member.mention}:\t**{len(slaps[m])}**"
 
-                elif m in m_ids:
-                    crt_str = ""
-                    for s in slaps[m]:
-                        try:
-                            message = await self.bot.get_channel(
-                                int(s.split("/")[0])
-                            ).fetch_message(int(s.split("/")[1]))
-                            # building reason
-                            reason = message.content.split(" ", 2)
-                            if len(reason) == 2:
-                                reason = tr["slaps_default_reason"]
-                            else:
-                                reason = tr["other_reason"].format(reason[2])
-                            author = message.author.name
-                        except discord.NotFound as e:
-                            reason = tr["message_deleted"]
-                            author = None
+            for entry in obsolete_entries:
+                slaps.pop(entry)
 
-                        # building string
-                        crt_str += tr["crt_str"].format(
-                            author, ctx.guild.id, s, member.name, reason
-                        )
-                    fields.append(
-                        {
-                            "name": tr["new_field_name"].format(
-                                member.name, len(slaps[m])
-                            ),
-                            "value": crt_str,
-                            "inline": False,
-                        }
-                    )
-
-        # checking if a member has been slapped
-        if not fields:
-            await ctx.send(tr["no_slaps"] + EMOJIS["tada"])
-            return
+            # checking if there's any slap
+            if len(slaps) == 0:
+                await ctx.send(tr["no_slaps"] + EMOJIS["tada"])
+                return
 
         # if a user has been slapped
         embed = discord.Embed(
@@ -228,15 +211,55 @@ class Slapping(commands.Cog):
             colour=16741632,
         )  # used to be blurpple 7506394
 
-        # adding fields
-        if not len(members):
-            embed.add_field(name=tr["member_list"], value=fields)
+        embed.add_field(name=tr["member_list"], value=member_list)
+        return embed
 
+    def get_member_slaps(self, ctx, member):
+        tr = Translator(name, get_lang(ctx))
+        with ConfigFile(ctx.guild.id, folder=SLAPPING_FOLDER) as slaps:
+            if str(member.id) not in slaps:
+                return tr["not_slap_hist"]
+
+            slaps_list = ""
+            for slap in slaps[str(member.id)]:
+                slaps_list += tr["crt_str"].format(
+                    slap[1], ctx.guild.get_member(slap[0]).mention, slap[2]
+                )
+
+        return slaps_list
+
+    @commands.command(aliases=["warnings"])
+    @is_init()
+    @has_auth("manager")
+    async def slaps(self, ctx, *members: discord.Member):
+        """returns an embed representing the number of slaps of each member. More detailed info can be obtained if member arguments are provided."""
+        tr = Translator(name, get_lang(ctx))
+
+        if len(members) == 0:
+            eb = await self.slaps_overview(ctx)
+            if eb:
+                await ctx.send(embed=eb)
+            return
+
+        # only selecting the 10 first members because we can't have more fields
+        if len(members) > 10:
+            opt_msg = [tr["too_many"].format(len(members))]
         else:
-            for field in fields:
-                embed.add_field(**field)
+            opt_msg = []
 
-        await ctx.send(embed=embed)
+        embed = discord.Embed(
+            title=tr["slaps_title"] + EMOJIS["hammer"],
+            description=tr["slaps_description"],
+            colour=16741632,  # used to be blurple 7506394
+        )
+
+        for member in members[:10]:
+            embed.add_field(
+                name=tr["new_field_name"].format(member),
+                value=self.get_member_slaps(ctx, member),
+            )
+
+        await ctx.send(*opt_msg, embed=embed)
 
     async def make_mute(self, channel, member, time):
         seconds = time.total_seconds()
