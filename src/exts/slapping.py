@@ -286,7 +286,7 @@ class Slapping(commands.Cog):
             member, overwrite=discord.PermissionOverwrite(send_messages=False)
         )
 
-    async def make_umute(self, channel, member):
+    async def make_unmute(self, channel, member):
         with ConfigFile(channel.guild.id, folder=TIME_FOLDER) as count:
             if str(member.id) in count.keys():
                 for chan, i in zip(
@@ -332,38 +332,45 @@ class Slapping(commands.Cog):
         if remaining <0:
             chans_str += tr["ellipse"].format(-remaining)
 
-        # building audit entries
+        await self.notify_mute(ctx.guild, ctx.author.name, member, chans_str, until.total_seconds())
+
+        await asyncio.sleep(until.total_seconds())
+
+        #unmuting
+        for chan in channels:
+            await self.make_unmute(chan, member)
+
+        await self.notify_unmute(ctx.guild, member, chans_str)
+
+    async def notify_mute(self, guild:discord.Guild, author_name:str, member:discord.Member, chans_str:str, until: int):
+        """notifies user and audits"""
+        tr = Translator(name, get_lang(guild.id))
         start = discord.Embed(
             description=tr["mute_description"].format(
-                asctime(gmtime(until.total_seconds())), chans_str
+                asctime(gmtime(until)), chans_str
             ),
         )
         start.set_author(
-            name=tr["mute_title"].format(member, ctx.author.name),
+            name=tr["mute_title"].format(member, author_name),
             icon_url=member.avatar_url,
         )
 
+        if not member.bot:
+            await member.send(tr["mute_dm"].format(guild.name), embed=start)
+        await audit(guild, embed=start)
+
+    async def notify_unmute(self, guild, member, chans_str):
+        """notifies user and audits"""
+        tr = Translator(name, get_lang(guild.id))
         end = discord.Embed(description=tr["unmute_description"].format(chans_str))
         end.set_author(
             name=tr["unmute_title"].format(member),
             icon_url=member.avatar_url,
         )
 
-        #auditing
         if not member.bot:
-            await member.send(tr["mute_dm"].format(ctx.guild.name), embed=start)
-        await audit(ctx.guild, embed=start)
-
-        await asyncio.sleep(until.total_seconds())
-
-        #unmuting
-        for chan in channels:
-            await self.make_umute(chan, member)
-
-        #auditing
-        if not member.bot:
-            await member.send(tr["mute_dm"].format(ctx.guild.name), embed=end)
-        await audit(ctx.guild, embed=end)
+            await member.send(tr["mute_dm"].format(guild.name), embed=end)
+        await audit(guild, embed=end)
 
     @commands.command()
     @is_init()
@@ -461,6 +468,12 @@ class Slapping(commands.Cog):
                         await ctx.send(
                             EMOJIS["zip"] + tr["spam_muted"].format(member.mention)
                         )
+
+                        delay = 600
+                        await self.notify_mute(ctx.guild, tr["community"], member, ctx.channel.mention, time()+delay)
+                        await asyncio.sleep(delay)
+                        await self.make_unmute(ctx.channel, member)
+                        await self.notify_unmute(ctx.guild, member, ctx.channel.mention)
 
         self.spams[ctx.guild] = g_spams
 

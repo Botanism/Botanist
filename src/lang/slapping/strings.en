@@ -45,5 +45,6 @@
 	"mute_dm": "Your mute status has been update for server {}!",
 	"unmute_description": "**Channel(s):**: {}",
 	"unmute_title": "{} was unmutted",
-	"ellipse": " +{}"
+	"ellipse": " +{}",
+	"community": "the community"
 }
