@@ -37,7 +37,7 @@ class PollConfigEntry(ConfigEntry):
 
     async def run(self, ctx):
         try:
-            tr = Translator(name, get_lang(ctx))
+            tr = Translator(name, get_lang(ctx.guild.id))
             await self.config_channel.send(tr["start_conf"])
             pursue = await self.get_yn(ctx, tr["pursue"])
             if not pursue:

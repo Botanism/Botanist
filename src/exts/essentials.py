@@ -42,7 +42,7 @@ class EssentialsConfigEntry(ConfigEntry):
 
     async def run(self, ctx):
         # welcome & goodbye messages
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         msgs = {
             "welcome": [tr["welcome1"], tr["welcome2"]],
             "goodbye": [tr["goodbye1"], tr["goodbye2"]],
@@ -146,7 +146,7 @@ class Essentials(commands.Cog):
     @commands.command()
     async def ping(self, ctx):
         """This command responds with the current latency."""
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         latency = self.bot.latency
         await ctx.send(EMOJIS["ping_pong"] + tr["latency"].format(latency))
 
@@ -237,7 +237,7 @@ class Essentials(commands.Cog):
     @commands.command()
     async def status(self, ctx):
         """returns some statistics about the server and their members"""
-        tr = Translator(name, get_lang(ctx))
+        tr = Translator(name, get_lang(ctx.guild.id))
         stats = discord.Embed(
             name=tr["stats_name"],
             description=tr["stats_description"].format(

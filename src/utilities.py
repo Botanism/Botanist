@@ -213,6 +213,7 @@ class ConfigFile(UserDict):
             folder: the folder to read the file from. This represents the kind of data handled
             fext:   the file extension. Only supports "json" for now
             force:  creates the file if not found
+            default:default dict to write in-place
             """
 
     def __init__(
