@@ -210,8 +210,8 @@ class Poll(commands.Cog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             return
-        if not isinstance(self.get_destination(), discord.Guild):
-            #we're in a DM
+        if isinstance(message.channel, discord.DMChannel):
+            # we're in a DM
             return
 
         if not was_init(message):
