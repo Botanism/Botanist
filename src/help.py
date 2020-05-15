@@ -50,8 +50,11 @@ class InteractiveHelp(discord.ext.commands.DefaultHelpCommand):
         return True
 
     def get_help_lang(self):
-        with ConfigFile(self.get_destination().guild.id) as conf:
-            lang = conf["lang"]
+        if isinstance(self.get_destination(), discord.Guild):
+            with ConfigFile(self.get_destination().guild.id) as conf:
+                lang = conf["lang"]
+        else:
+            lang = "en"
         return lang
 
     async def set_reactions(self, msg: discord.Message, pages: int):
