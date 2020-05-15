@@ -66,16 +66,17 @@ async def ext(ctx):
 
 
 @ext.command()
-async def reload(ctx, extension: str):
-    try:
-        bot.reload_extension(str(EXT_FOLDER + "." + extension))
-        await ctx.send("Successfully reloaded {}".format(extension))
-    except Exception as e:
-        main_logger.error(
-            f"Couldn't reaload extension {extension} because of the following exception",
-            e,
-        )
-        raise e
+async def reload(ctx, *extensions: str):
+    for extension in extensions:
+        try:
+            bot.reload_extension(str(EXT_FOLDER + "." + extension))
+            await ctx.send("Successfully reloaded {}".format(extension))
+        except Exception as e:
+            main_logger.error(
+                f"Couldn't reaload extension {extension} because of the following exception",
+                e,
+            )
+            raise e
 
 
 @ext.command()
