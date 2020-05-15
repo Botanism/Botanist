@@ -2,7 +2,7 @@ import logging
 import discord
 import asyncio
 import datetime
-from time import asctime, gmtime
+from time import asctime, gmtime, time
 import os
 from settings import *
 from utilities import *
@@ -95,6 +95,10 @@ class Slapping(commands.Cog):
         self.bot = bot
         self.config_entry = CommunityModerationConfigEntry
         self.spams = {}
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.lookup_outdated()
 
     @commands.command(aliases=["warn"])
     @is_init()
@@ -303,6 +307,99 @@ class Slapping(commands.Cog):
             member, overwrite=discord.PermissionOverwrite(send_messages=None)
         )
 
+    async def lookup_outdated(self):
+        """read all mutes files and starts countdown if necessary"""
+        now = time()
+        for guild_id in os.listdir(TIME_FOLDER):
+            guild = self.bot.get_guild(int(guild_id.split(".")[0]))
+            if not guild:
+                continue
+
+            # resolving all mute countdowns in order to restart them
+            must_update = {}
+            for_later = {}  # these are the ones that are not outdated
+            times = {}
+            with ConfigFile(guild.id, folder=TIME_FOLDER) as mutes:
+                for member_id in mutes:
+                    for mute in mutes[member_id]:
+                        if member_id in must_update:
+                            must_update[member_id].append(mute[0])
+                        else:
+                            must_update[member_id] = [mute[0]]
+
+                        # here we tag the ones that must be restarted for later unmuting
+                        if mute[1] > now:
+                            if member_id in must_update:
+                                for_later[member_id].append(mute[0])
+                                times[member_id].append(mute[1])
+                            else:
+                                for_later[member_id] = [mute[0]]
+                                times[member_id] = [mute[1]]
+
+            # unmutting necessary when possible
+            for member_id in must_update:
+                member = guild.get_member(int(member_id))
+                if not member:
+                    await audit(
+                        guild,
+                        EMOJIS["warn"] + tr["cant_resolve_member"].format(member_id),
+                    )
+                    continue
+
+                remaining = (
+                    AUDIT_MAX_CHANS  # this is redundant with slap, maybe refactor it?
+                )
+                validated_chans = ""
+                for_later_chans = {}
+                for channel_id in must_update[member_id]:
+                    channel = guild.get_channel(int(channel_id))
+                    if not channel:
+                        must_update[member_id].pop(channel_id)
+                        await audit(
+                            guild,
+                            EMOJIS["warn"]
+                            + tr["cant_resolve_chan"].format(member, channel_id),
+                        )
+                        continue
+
+                    if for_later and (channel_id in for_later[member_id]):
+                        until = time[for_later[member_id].index(channel)]
+                        if until in for_later_chans:
+                            for_later_chans[until].append(channel)
+                        else:
+                            for_later_chans[until] = [channel]
+
+                        continue
+
+                    remaining -= 1
+                    if remaining >= 0:
+                        validated_chans += f" {channel.mention}"
+
+                    await self.make_unmute(channel, member)
+
+                if validated_chans:
+                    if remaining < 0:
+                        tr = Translator(name, get_lang(guild.id))
+                        validated_chans += tr["ellipse"].format(-remaining)
+                    await self.notify_unmute(guild, member, validated_chans)
+
+                if for_later_chans:
+                    for moment in for_later_chans:
+                        await asyncio.sleep(moment)
+
+                        remaining = AUDIT_MAX_CHANS
+                        chans_str = ""
+                        for chan in for_later_chans[moment]:
+                            await self.make_unmute(chan, member)
+                            remaining -= 1
+                            if remaining >= 0:
+                                chans_str += f" {chan.mention}"
+
+                        if remaining < 0:
+                            tr = Translator(name, get_lang(guild.id))
+                            chans_str += tr["ellipse"].format(-remaining)
+                        await self.notify_unmute(guild, member, chans_str)
+
     @commands.command()
     @is_init()
     @has_auth("manager")
@@ -319,35 +416,44 @@ class Slapping(commands.Cog):
         if len(channels) == 0:
             channels = ctx.guild.text_channels
 
-        remaining = 3
+        remaining = AUDIT_MAX_CHANS
         chans_str = ""
         for chan in channels:
             await self.make_mute(chan, member, until)
-            
-            #mentionning too many channels isn'is hard to read so we throtle and ellipse it if needed
+
+            # mentionning too many channels isn'is hard to read so we throtle and ellipse it if needed
             remaining -= 1
             if remaining >= 0:
                 chans_str += f" {chan.mention}"
 
-        if remaining <0:
+        if remaining < 0:
             chans_str += tr["ellipse"].format(-remaining)
 
-        await self.notify_mute(ctx.guild, ctx.author.name, member, chans_str, until.total_seconds())
+        await self.notify_mute(
+            ctx.guild, ctx.author.name, member, chans_str, until.total_seconds()
+        )
 
         await asyncio.sleep(until.total_seconds())
 
-        #unmuting
+        # unmuting
         for chan in channels:
             await self.make_unmute(chan, member)
 
         await self.notify_unmute(ctx.guild, member, chans_str)
 
-    async def notify_mute(self, guild:discord.Guild, author_name:str, member:discord.Member, chans_str:str, until: int):
+    async def notify_mute(
+        self,
+        guild: discord.Guild,
+        author_name: str,
+        member: discord.Member,
+        chans_str: str,
+        until: int,
+    ):
         """notifies user and audits"""
         tr = Translator(name, get_lang(guild.id))
         start = discord.Embed(
             description=tr["mute_description"].format(
-                asctime(gmtime(until)), chans_str
+                asctime(gmtime(until+time())), chans_str
             ),
         )
         start.set_author(
@@ -364,8 +470,7 @@ class Slapping(commands.Cog):
         tr = Translator(name, get_lang(guild.id))
         end = discord.Embed(description=tr["unmute_description"].format(chans_str))
         end.set_author(
-            name=tr["unmute_title"].format(member),
-            icon_url=member.avatar_url,
+            name=tr["unmute_title"].format(member), icon_url=member.avatar_url,
         )
 
         if not member.bot:
@@ -470,7 +575,13 @@ class Slapping(commands.Cog):
                         )
 
                         delay = 600
-                        await self.notify_mute(ctx.guild, tr["community"], member, ctx.channel.mention, time()+delay)
+                        await self.notify_mute(
+                            ctx.guild,
+                            tr["community"],
+                            member,
+                            ctx.channel.mention,
+                            time() + delay,
+                        )
                         await asyncio.sleep(delay)
                         await self.make_unmute(ctx.channel, member)
                         await self.notify_unmute(ctx.guild, member, ctx.channel.mention)

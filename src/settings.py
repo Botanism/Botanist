@@ -67,6 +67,8 @@ HELP_TAB = "  "
 ALLOWED_LANGS = ["en"]
 HELP_TIME = 180  # maximum time to wait for a reaction on a help message
 
+# SLAPPING Settings
+AUDIT_MAX_CHANS = 3
 
 #########################################
 #                                       #
@@ -119,6 +121,8 @@ DEFAULT_SERVER_FILE = {
 }
 
 DEFAULT_TODO_FILE = {"groups": {"default": []}, "types": {"default": "000000"}}
+DEFAULT_MUTE_FILE = {"user_id": [[0, 0]]}
+
 
 #########################################
 #                                       #
@@ -128,6 +132,7 @@ DEFAULT_TODO_FILE = {"groups": {"default": []}, "types": {"default": "000000"}}
 #                                       #
 #########################################
 
+DISCORD_LOG_CHAN = 289426079544901633
 LOG_FILE = "botanist.log"
 LOGGING_HANDLER = logging.FileHandler(LOG_FILE, "a")
 LOGGING_FORMATTER = logging.Formatter("\n[%(asctime)s][%(name)s]:%(message)s")
@@ -194,7 +199,7 @@ ERR_UNSUFFICIENT_PERMS = (
     True,
 )
 ERR_CONVERSION = (
-    """Conversion error", "One of your arguments couldn't be converted into. This is either a `member`, `role` or `channel`. Do note that the arguments are **case-sensitive** and that they must be surrounded by quotes (`"`) if they contain spaces. If you can't get it to work, try mentionning the role/member/channel. If even this fails then whatever you tried to mention isn't part of this server anymore and there's nothing we can do about it!""",
+    """Conversion error", "One of your arguments couldn't be converted. This is either a `member`, `role` or `channel`. Do note that the arguments are **case-sensitive** and that they must be surrounded by quotes (`"`) if they contain spaces. If you can't get it to work, try mentionning the role/member/channel. If even this fails then whatever you tried to mention isn't part of this server anymore and there's nothing we can do about it!""",
     False,
 )
 

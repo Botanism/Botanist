@@ -46,5 +46,7 @@
 	"unmute_description": "**Channel(s):**: {}",
 	"unmute_title": "{} was unmutted",
 	"ellipse": " +{}",
-	"community": "the community"
+	"community": "the community",
+	"cant_resolve_member": "couldn't unmute a user (ID: {}). Maybe the user left?",
+	"cant_resolve_chan": "couldn't unmute {} from a channel (ID: {}). Maybe the channel got deleted?"
 }
