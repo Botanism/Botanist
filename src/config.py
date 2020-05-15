@@ -63,7 +63,7 @@ class MendatoryConfigEntries(ConfigEntry):
                 "Role setup is **mandatory** for the bot to work correctly. Otherwise no one will be able to use administration commands."
             )
             await self.config_channel.send(
-                "**\nStarting role configuration**\nThis bot uses two hierachical level of clearance plus an independant one for its commands.\nThe first level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.\nThe second one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\n The last is **planner** and allows its bearers to post events in the server."
+                "**\nStarting role configuration**\nThis bot uses two hierachical level of clearance plus an independant one for its commands.\nThe first level of clearance is **admin**. Anyone who has a role with this level of clearance can use all commands but the ones related to the bot configuration. This is reserved to the server owner. All roles with this level of clearance inherit **manager** clearance as well.\nThe second one is the **manager** level of clearance. Everyone with a role with this clearance can use commands related to server management. This includes but is not limited to message management and issuing warnings.\nThe last is **planner** and allows its bearers to post events in the server."
             )
 
             new_roles = []
@@ -136,6 +136,7 @@ class MendatoryConfigEntries(ConfigEntry):
             with ConfigFile(ctx.guild.id) as conf:
                 conf["roles"]["manager"] = new_roles[0]
                 conf["roles"]["admin"] = new_roles[1]
+                conf["roles"]["planner"] = new_roles[2]
 
             await self.config_channel.send("Successfully updated role configuration")
 
