@@ -215,9 +215,16 @@ class ConfigFile(UserDict):
             force:  creates the file if not found
             default:default dict to write in-place
             """
+    folder_mapping = {
+    CONFIG_FOLDER: DEFAULT_SERVER_FILE,
+    TIME_FOLDER: DEFAULT_MUTE_FILE,
+    SLAPPING_FOLDER: DEFAULT_SLAPPED_FILE,
+    REMINDERS_FOLDER: {},
+    EVENT_FOLDER: {"partial": {}, "sent": {}},
+    }
 
     def __init__(
-        self, file, folder=CONFIG_FOLDER, fext="json", force=True, default={"0": 0}
+        self, file, folder=CONFIG_FOLDER, fext="json", force=True, default=None
     ):
         super(ConfigFile, self).__init__()
         # since the ID is an int -> making sure it is considered as a string
@@ -226,8 +233,10 @@ class ConfigFile(UserDict):
         self.folder = folder
         self.fext = fext
         self.force = force
-        self.default = default
-        self.data = default
+
+        if not default:
+            assert folder in ConfigFile.folder_mapping, local_logger.critical("Couldn't find a default for folder "+ folder)
+            self.default = self.data = ConfigFile.folder_mapping[folder]
 
         # currently only supports "json" files
         # assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
