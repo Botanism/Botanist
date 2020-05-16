@@ -79,14 +79,16 @@ AUDIT_MAX_CHANS = 3
 #########################################
 
 # Files
-EXT_FOLDER = "exts"
 EXTENSIONS_FILE = "enabled_exts.json"
-SLAPPING_FOLDER = "slapping"
+
+#folders
 CONFIG_FOLDER = "servers"
-TODO_FOLDER = "todo"
+SLAPPING_FOLDER = "slapping"
 TIME_FOLDER = "countdowns"
 REMINDERS_FOLDER = "remind"
 EVENT_FOLDER = "events"
+EXT_FOLDER = "exts"
+TODO_FOLDER = "todo"
 # REMINDERS_FOLDER = os.path.join(TIME_FOLDER, "users")
 # EVENT_FOLDER = os.path.join(TIME_FOLDER, "events")
 LANG_FOLDER = "lang"

@@ -239,15 +239,14 @@ class ConfigFile(UserDict):
             self.default = self.data = ConfigFile.folder_mapping[folder]
 
         # currently only supports "json" files
-        # assert fext=="json", local_logger.error(f'''Can't load file with extension: {fext}''')
-        # if the extension is correct -> appending the extension name to the filename
         self.file += "." + self.fext
         # making path
         self.path = os.path.join(self.folder, self.file)
         # self.last_m_time = os.path.getmtime(self.path)
 
     def __enter__(self):
-        self.make_file()
+        if not self.make_file():
+            return self.default
         self.read()
         return self
 
@@ -275,8 +274,20 @@ class ConfigFile(UserDict):
                         return False
         return True
 
+    def is_json(self, file):
+        try:
+            out = json.loads(file)
+        except:
+            return False
+        return True
+
     def save(self):
-        """makes the file from the dict"""
+        """makes the file from the dict
+        can we really do anything if it fails to write? Save the original contents are write them again?"""
+        if not self.is_json(self.data):
+            raise ValueError(f"Incorrect JSON for updated {self.file}")
+            local_logger.critical(f"Discarding changes to {self.file} because they invalidated the JSON file.")
+
         try:
             with open(self.path, "w", encoding="utf-8") as file:
                 json.dump(self.data, file)
@@ -298,6 +309,8 @@ class ConfigFile(UserDict):
             local_logger.error(f"An exception occured while reading {self.file}.")
             local_logger.exception(e)
             raise e
+            return self.default
+
 
 
 class Translator(object):
