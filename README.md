@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="512" height="512" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
+  <img sizes="(min-width: 512px) 512px, 512px" src="https://raw.githubusercontent.com/s0lst1ce/assets/master/sunflower_logo_1.png">
 </p>
 
 # Botanist
