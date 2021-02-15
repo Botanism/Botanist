@@ -1,4 +1,3 @@
-*.log
-*.pyc
-*.json
-OLD*
+/target
+Cargo.lock
+.env
