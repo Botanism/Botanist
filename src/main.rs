@@ -1,5 +1,9 @@
+#[macro_use]
+extern crate diesel;
+
 mod checks;
 mod commands;
+mod utils;
 
 use serenity::{
     async_trait,

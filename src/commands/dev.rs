@@ -22,6 +22,7 @@ async fn shutdown(ctx: &Context, msg: &Message) -> CommandResult {
         msg.reply(ctx, "Shutting down!").await?;
         manager.lock().await.shutdown_all().await;
     } else {
+        //we contact the dev directly
         msg.author
             .dm(ctx, |m| {
                 {
