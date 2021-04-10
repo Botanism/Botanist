@@ -1,3 +1,4 @@
+use crate::utils::*;
 use crate::ShardManagerContainer;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
@@ -5,12 +6,14 @@ use serenity::{
     client::bridge::gateway::ShardId,
     framework::standard::{
         macros::{command, group},
-        CommandResult,
+        CommandError, CommandResult,
     },
 };
-
+use std::env;
+use std::path::Path;
+use tracing::{error, info};
 #[group]
-#[commands(shutdown, latency)]
+#[commands(shutdown, latency, log)]
 struct Development;
 
 #[command]
@@ -88,6 +91,40 @@ async fn update(ctx: &Context, msg: &Message) -> CommandResult {
             .await?
             .dm(ctx, |m| m.content(&msg.content))
             .await?;
+    }
+    Ok(())
+}
+
+#[command]
+#[owners_only]
+#[only_in(dm)]
+//sends the log file over to discord
+async fn log(ctx: &Context, msg: &Message) -> CommandResult {
+    let path = match env::var("LOG_FILE") {
+        Ok(path) => path,
+        Err(err) => {
+            error!("{:#}", err);
+            let error = BotError::new(
+                "LOG_FILE is missing",
+                Some(BotErrorKind::EnvironmentError),
+                Some(msg),
+            );
+            report_error(ctx, &msg.channel(ctx).await.unwrap(), &error).await;
+            return Err(CommandError::from(err));
+        }
+    };
+    match msg
+        .channel_id
+        .send_files(ctx, vec![path.as_str()], |m| m)
+        .await
+    {
+        Ok(_) => (),
+        //we know the only error that can occur is HttpError::UnsuccessfulRequest(ErrorResponse) (file too large)
+        Err(_) => {
+            msg.channel_id
+                .say(ctx, "The log is too large to be sent")
+                .await?;
+        }
     }
     Ok(())
 }

@@ -1,56 +1,85 @@
-use diesel::{backend::Backend, prelude::*};
+use serenity::{
+    builder::{CreateEmbed, CreateEmbedFooter},
+    framework::standard::{
+        macros::{command, group},
+        CommandError, DispatchError,
+    },
+    model::prelude::*,
+    prelude::*,
+};
+use std::fmt::Display;
+use tracing::{error, info};
 
-pub fn parse_ids(text: &str) -> Vec<u64> {
-    text.as_bytes()
-        .chunks_exact(64)
-        .map(|seq| {
-            u64::from_str_radix(std::str::from_utf8(seq).expect("u64 sequence incorrect"), 2)
-                .unwrap()
-        })
-        .collect()
+//Error handler for bot
+//Logs the error and sends an embed error report on discord
+//if it succeeds in doing so it returns a command error that can be returned by the command which issued the
+//original error. Otherwise a DispatchError is created if report_error failed
+pub async fn report_error<'a, 'b>(
+    ctx: &Context,
+    channel: &Channel,
+    error: &BotError<'a, 'b>,
+) -> () {
+    let mut embed = CreateEmbed::default();
+    embed
+        .color(16720951)
+        .description(error.description)
+        .title(match &error.kind {
+            None => "UnexpectedError",
+            Some(kind) => stringify!(kind),
+        });
+
+    if let Some(msg) = error.origin {
+        embed.timestamp(&msg.timestamp);
+        embed.url(msg.link());
+        let cause_user = &msg.author;
+        embed.footer(|f| {
+            f.text(format!("caused by {:#}", cause_user.name)).icon_url(
+                cause_user
+                    .avatar_url()
+                    .unwrap_or(cause_user.default_avatar_url()),
+            )
+        });
+    };
+
+    if let Some(kind) = &error.kind {
+        embed.field("❓ How to fix this", format!("{:#}", kind), false);
+    };
+
+    embed.field("🐛 Bug report", String::from("[GitHub](https://github.com/Botanism/Botanist/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5BREPORTED+BUG%5D) | [Official Server](https://discord.gg/mpGM5cg)"), false);
+
+    channel.id().send_message(ctx, |m| m.set_embed(embed)).await;
 }
 
-#[derive(Debug, Queryable)]
-pub struct GuildConfig {
-    pub id: u64,
-    pub welcome_message: String,
-    pub goodbye_message: String,
-    pub advertise: bool,
-    pub admin_chan: u64,
-    #[diesel(deserialize_as = "IdList")]
-    pub poll_chans: Vec<u64>,
-    #[diesel(deserialize_as = "IdList")]
-    pub priv_manager: Vec<u64>,
-    #[diesel(deserialize_as = "IdList")]
-    pub priv_admin: Vec<u64>,
-    #[diesel(deserialize_as = "IdList")]
-    pub priv_event: Vec<u64>,
+pub struct BotError<'a, 'b> {
+    description: &'a str,
+    //optionally provide additional information on this kind of error
+    kind: Option<BotErrorKind>,
+    //sometimes the error doesn't originate from a specific message or command -> None
+    origin: Option<&'b Message>,
 }
 
-#[derive(Debug, Queryable)]
-pub struct SlapRecord {
-    pub message_id: u64,
-    pub guild_id: u64,
-    pub chan_id: u64,
-    reason: String,
-}
-
-pub struct IdList(Vec<u64>);
-
-impl Into<Vec<u64>> for IdList {
-    fn into(self) -> Vec<u64> {
-        self.0
+impl<'a, 'b> BotError<'a, 'b> {
+    pub fn new(
+        description: &'a str,
+        kind: Option<BotErrorKind>,
+        origin: Option<&'b Message>,
+    ) -> BotError<'a, 'b> {
+        BotError {
+            description,
+            kind,
+            origin,
+        }
     }
 }
 
-impl<DB, ST> Queryable<ST, DB> for IdList
-where
-    DB: Backend,
-    String: Queryable<ST, DB>,
-{
-    type Row = <String as Queryable<ST, DB>>::Row;
+pub enum BotErrorKind {
+    EnvironmentError,
+}
 
-    fn build(row: Self::Row) -> Self {
-        IdList(parse_ids(&String::build(row)))
+impl Display for BotErrorKind {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+        match self {
+            BotErrorKind::EnvironmentError => write!(fmt, "The bot was incorrectly configured by its owner. Please contact a bot administrator so that they can fix this ASAP!"),
+        }
     }
 }

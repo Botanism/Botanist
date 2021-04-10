@@ -1,6 +1,7 @@
 mod checks;
 mod commands;
 mod db;
+mod utils;
 
 use std::borrow::Cow;
 use std::{collections::HashSet, env, sync::Arc};
@@ -120,7 +121,6 @@ async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError)
 #[tokio::main]
 async fn main() {
     // This will load the environment variables located at `./.env`, relative to
-    // the CWD. See `./.env.example` for an example on how to structure this.
     dotenv::dotenv().expect("Failed to load .env file");
 
     // Initialize the logger to use environment variables.
