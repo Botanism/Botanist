@@ -1,9 +1,11 @@
-#[macro_use]
-extern crate diesel;
-
 mod checks;
 mod commands;
-mod utils;
+mod db;
+
+use std::borrow::Cow;
+use std::{collections::HashSet, env, sync::Arc};
+
+use sqlx::{query, MySqlPool};
 
 use serenity::{
     async_trait,
@@ -12,28 +14,53 @@ use serenity::{
         standard::{macros::hook, DispatchError},
         StandardFramework,
     },
-    http::Http,
-    model::{channel::Message, event::ResumedEvent, gateway::Ready},
+    http::{CacheHttp, Http},
+    model::{
+        channel::Message,
+        event::ResumedEvent,
+        gateway::Ready,
+        guild::{Guild, Member},
+        id::{GuildId, UserId},
+    },
     prelude::*,
 };
-use std::borrow::Cow;
-use std::{collections::HashSet, env, sync::Arc};
 
 use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{dev::*, misc::*};
-
+use db::insert_new_guild;
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
+pub struct BotId(UserId);
+
+impl TypeMapKey for BotId {
+    type Value = BotId;
+}
+
+pub struct DBConn(MySqlPool);
+
+impl TypeMapKey for DBConn {
+    type Value = DBConn;
+}
+
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    //sent when a a guild's data is sent to us (one)
+    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
+        if is_new {
+            //move data access into its own block to free access sooner
+            let data = ctx.data.read().await;
+            let conn = &data.get::<DBConn>().unwrap().0;
+            insert_new_guild(&conn, guild.id).await;
+        }
+    }
     async fn ready(&self, _: Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
     }
@@ -43,7 +70,7 @@ impl EventHandler for Handler {
     }
 }
 
-//used if the bott couldn't report an error to a user by replying to it
+//used if the bot couldn't report an error to a user by replying to it
 //since it's a fallback it mustn't fail, however acttuall delivery may for network error reasons
 //or if the user has blocked DMs
 async fn error_report_fallback<Cause: std::fmt::Display>(
@@ -145,9 +172,17 @@ async fn main() {
         .await
         .expect("Err creating client");
 
+    //DB setup
+    let db_url = env::var("DATABASE_URL").expect("`DATABASE_URL` is not set");
+    let pool = MySqlPool::connect(&db_url)
+        .await
+        .expect("Could not establish DB connection");
+
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
+        data.insert::<BotId>(BotId(bot_id));
+        data.insert::<DBConn>(DBConn(pool));
     }
 
     let shard_manager = client.shard_manager.clone();

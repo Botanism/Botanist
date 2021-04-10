@@ -11,9 +11,9 @@ dotenv = "0.15"
 tracing = "0.1.23"
 tracing-subscriber = "0.2"
 
-[dependencies.diesel]
-version = "1.4.4"
-features = ["mysql"]
+[dependencies.sqlx]
+version = "0.5"
+features = ["macros", "runtime-tokio-rustls", "mysql"]
 
 [dependencies.serenity]
 version = "0.10"

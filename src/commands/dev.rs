@@ -27,7 +27,7 @@ async fn shutdown(ctx: &Context, msg: &Message) -> CommandResult {
             .dm(ctx, |m| {
                 {
                     {
-                        m.content("There was a problem getting the sard manager. ")
+                        m.content("There was a problem getting the sard manager.")
                     }
                 }
             })

@@ -3,7 +3,10 @@ use diesel::{backend::Backend, prelude::*};
 pub fn parse_ids(text: &str) -> Vec<u64> {
     text.as_bytes()
         .chunks_exact(64)
-        .map(|seq| u64::from_str_radix(unsafe { std::str::from_utf8_unchecked(seq) }, 2).unwrap())
+        .map(|seq| {
+            u64::from_str_radix(std::str::from_utf8(seq).expect("u64 sequence incorrect"), 2)
+                .unwrap()
+        })
         .collect()
 }
 
