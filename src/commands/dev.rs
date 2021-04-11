@@ -109,7 +109,7 @@ async fn log(ctx: &Context, msg: &Message) -> CommandResult {
                 Some(BotErrorKind::EnvironmentError),
                 Some(msg),
             );
-            report_error(ctx, &msg.channel(ctx).await.unwrap(), &error).await;
+            report_error(ctx, &msg.channel_id, &error).await;
             return Err(CommandError::from(err));
         }
     };

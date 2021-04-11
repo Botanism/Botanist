@@ -8,6 +8,7 @@ use std::{collections::HashSet, env, sync::Arc};
 
 use sqlx::{query, MySqlPool};
 
+use crate::utils::*;
 use serenity::{
     async_trait,
     client::bridge::gateway::ShardManager,
@@ -71,51 +72,33 @@ impl EventHandler for Handler {
     }
 }
 
-//used if the bot couldn't report an error to a user by replying to it
-//since it's a fallback it mustn't fail, however acttuall delivery may for network error reasons
-//or if the user has blocked DMs
-async fn error_report_fallback<Cause: std::fmt::Display>(
-    ctx: &Context,
-    msg: &Message,
-    reason: &Cause,
-) {
-    //link to the channel
-    let chan_name = match msg.channel_id.to_channel(ctx).await {
-        Ok(chan) => Cow::Owned(chan.mention().to_string()),
-        Err(_) => Cow::Borrowed("an unknown channel"),
-    };
-    match msg
-        .author
-        .dm(ctx, |m| {
-            m.content(format!(
-                "Could not report error in {}\nOriginal error:\t {}",
-                chan_name, reason
-            ))
-        })
-        .await
-    {
-        Err(_) => error!("Fallback error reporting failed because the DM couldn't be sent"),
-        _ => (),
-    }
-}
-
-//reporting an error tthat occured during a command call to the user
-async fn report_error<Cause: std::fmt::Display>(ctx: &Context, msg: &Message, cause: Cause) {
-    match msg.reply_ping(ctx, &cause).await {
-        Err(_) => error_report_fallback(ctx, msg, &cause).await,
-        Ok(_) => (),
-    }
-}
-
 #[hook]
 async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError) {
-    match error {
-        DispatchError::CheckFailed(_, reason) => report_error(ctx, msg, reason).await,
-        DispatchError::OnlyForOwners => {
-            report_error(ctx, msg, "You need `owner` privilege to run this.").await
-        }
-        _ => error!("Unhandled dispatch error {:?}", error),
+    let (description, kind) = match error {
+        DispatchError::CheckFailed(_, reason) => ("a check failed", None),
+        DispatchError::OnlyForOwners => (
+            "This commands requires the `runner` privilege, which you are missing.",
+            None,
+        ),
+        DispatchError::NotEnoughArguments { min, given } => (
+            format!(
+                "You only provided {:#} arguments when the command expects a minimum of {:#}.",
+                given, min
+            )
+            .as_str(),
+            Some(BotErrorKind::IncorrectNumberOfArgs),
+        ),
+        _ => (
+            "An undocumented error occured with the command you just used.",
+            Some(BotErrorKind::UnexpectedError),
+        ),
     };
+    report_error(
+        ctx,
+        &msg.channel_id,
+        &BotError::new(description, kind, Some(msg)),
+    )
+    .await;
 }
 
 #[tokio::main]
