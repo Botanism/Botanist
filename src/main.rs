@@ -74,29 +74,28 @@ impl EventHandler for Handler {
 
 #[hook]
 async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError) {
-    let (description, kind) = match error {
-        DispatchError::CheckFailed(_, reason) => ("a check failed", None),
+    let (description, kind): (Cow<'static, str>, Option<BotErrorKind>) = match error {
+        DispatchError::CheckFailed(_, reason) => (Cow::Borrowed("a check failed"), None),
         DispatchError::OnlyForOwners => (
-            "This commands requires the `runner` privilege, which you are missing.",
+            Cow::Borrowed("This commands requires the `runner` privilege, which you are missing."),
             None,
         ),
         DispatchError::NotEnoughArguments { min, given } => (
-            format!(
+            Cow::Owned(format!(
                 "You only provided {:#} arguments when the command expects a minimum of {:#}.",
                 given, min
-            )
-            .as_str(),
+            )),
             Some(BotErrorKind::IncorrectNumberOfArgs),
         ),
         _ => (
-            "An undocumented error occured with the command you just used.",
+            Cow::Borrowed("An undocumented error occured with the command you just used."),
             Some(BotErrorKind::UnexpectedError),
         ),
     };
     report_error(
         ctx,
         &msg.channel_id,
-        &BotError::new(description, kind, Some(msg)),
+        &BotError::new(&description, kind, Some(msg)),
     )
     .await;
 }

@@ -1,19 +1,9 @@
-use serenity::{
-    builder::{CreateEmbed, CreateEmbedFooter},
-    framework::standard::{
-        macros::{command, group},
-        CommandError, DispatchError,
-    },
-    model::prelude::*,
-    prelude::*,
-};
+use serenity::{builder::CreateEmbed, model::prelude::*, prelude::*};
 use std::fmt::Display;
 use tracing::{error, info};
 
-//Error handler for bot
+//Error handler
 //Logs the error and sends an embed error report on discord
-//if it succeeds in doing so it returns a command error that can be returned by the command which issued the
-//original error. Otherwise a DispatchError is created if report_error failed
 pub async fn report_error<'a, 'b>(
     ctx: &Context,
     channel: &ChannelId,
@@ -119,9 +109,10 @@ pub enum BotErrorKind {
 
 impl Display for BotErrorKind {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
-        match self {
-            EnvironmentError => write!(f, "The bot was incorrectly configured by its owner. Please contact a bot administrator so that they can fix this ASAP!"),
-            IncorrectNumberOfArgs => write!(f, "You called a command but provided an incorrect number of arguments. Consult the online documentation or type `::help <command>` to know which arguments are expected. If you think you've provided the right number of arguments make sure they are separated by a valid delimiter. For arguments containing space(s), surround them with quotes: `:: <command> \"arg with spaces\"`"),
-        }
+        write!(f, "{}", match self {
+            BotErrorKind::EnvironmentError => "The bot was incorrectly configured by its owner. Please contact a bot administrator so that they can fix this ASAP!",
+            BotErrorKind::IncorrectNumberOfArgs => "You called a command but provided an incorrect number of arguments. Consult the online documentation or type `::help <command>` to know which arguments are expected. If you think you've provided the right number of arguments make sure they are separated by a valid delimiter. For arguments containing space(s), surround them with quotes: `:: <command> \"arg with spaces\"`",
+            BotErrorKind::UnexpectedError => "This error is not covered. It is either undocumented or comes from an unforseen series of events. Either way this is a bug. **Please report it!**",
+        })
     }
 }
