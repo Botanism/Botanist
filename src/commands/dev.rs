@@ -10,8 +10,7 @@ use serenity::{
     },
 };
 use std::env;
-use std::path::Path;
-use tracing::{error, info};
+use tracing::error;
 #[group]
 #[commands(shutdown, latency, log)]
 struct Development;

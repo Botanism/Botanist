@@ -1,8 +1,10 @@
 use serenity::{builder::CreateEmbed, model::prelude::*, prelude::*};
 use std::fmt::Display;
 use std::time::Duration;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
+///Two weeks in seconds
+pub const TWO_WEEKS: i64 = 1209600;
 //Error handler
 //Logs the error and sends an embed error report on discord
 pub async fn report_error<'a, 'b>(
@@ -10,6 +12,7 @@ pub async fn report_error<'a, 'b>(
     channel: &ChannelId,
     error: &BotError<'a, 'b>,
 ) -> () {
+    debug!("The error report {:?} was sent in {:?}", error, channel);
     let mut embed = CreateEmbed::default();
     embed
         .color(16720951)

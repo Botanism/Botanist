@@ -1,4 +1,5 @@
 use crate::utils::*;
+use chrono::offset::Utc;
 use serenity::framework::standard::{
     macros::{command, group},
     ArgError, Args, CommandResult,
@@ -8,7 +9,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 use serenity::utils::Parse;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tracing::debug;
+use tracing::info;
 #[group]
 #[commands(ping, provoke_error, clear)]
 struct Misc;
@@ -40,7 +41,6 @@ async fn provoke_error(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[aliases(clean)]
 #[min_args(1)]
-#[max_args(3)]
 async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     //upper limit?
     let number = match args.parse::<u64>() {
@@ -60,7 +60,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
 
     //deletion with only an upper limit
-    if number.is_some() && args.remaining() == 0 {
+    /*if number.is_some() && args.remaining() == 0 {
         return Ok(bulk_delete(ctx, &msg.channel_id, {
             let mut limit = number.unwrap();
             let mut messages = Vec::with_capacity(limit as usize);
@@ -77,17 +77,21 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             messages
         })
         .await?);
-    }
+    }*/
 
     //duration criteria?
-    let since = match parse_duration(args.current().unwrap()) {
-        Ok(duration) => {
-            args.advance();
-            Some(duration)
+    let since = if args.remaining() > 0 {
+        match parse_duration(args.current().unwrap()) {
+            Ok(duration) => {
+                args.advance();
+                Some(duration)
+            }
+            //not having a duration by now doesn't mean the inputed arguments were wrong
+            //there can still be a combination of amount & members
+            Err(_err) => None,
         }
-        //not having a duration by now doesn't mean the inputed arguments were wrong
-        //there can still be a combination of amount & members
-        Err(_err) => None,
+    } else {
+        None
     };
 
     //member criteria?
@@ -111,7 +115,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                         ),
                     )
                     .await;
-                    debug!("Couldn't correclty parse {:?}", args.raw());
+                    info!("Couldn't correclty parse {:?}", args.raw());
                     return Err(From::from(BotanistError::SerenityUserIdParseError(
                         parse_err,
                     )));
@@ -124,7 +128,15 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     //argument parsing is done -> we select the messages to be deleted
     let mut messages: Vec<Message> = Vec::new();
     let mut history = msg.channel_id.messages_iter(ctx).boxed();
-    let mut limit = number.unwrap_or(u64::MAX);
+    let mut limit = if let Some(amount) = number {
+        if !members.is_empty() && !members.contains(&msg.author.id) {
+            amount
+        } else {
+            amount + 1
+        }
+    } else {
+        u64::MAX
+    };
     let time_cap = if let Some(dur) = since {
         Some(
             SystemTime::now()
@@ -142,7 +154,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 if limit <= 0 {
                     break;
                 }
-                if !members.contains(&message.author.id) {
+                if !members.is_empty() && !members.contains(&message.author.id) {
                     continue;
                 }
                 if time_cap.is_some() {
@@ -151,12 +163,41 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                         break;
                     }
                 }
-                messages.push(message);
+                if Utc::now()
+                    .signed_duration_since(message.timestamp)
+                    .num_seconds()
+                    >= TWO_WEEKS
+                {
+                    dbg!("the message was over two weeks old so we manually delete it");
+                    if let Err(err) = message.delete(ctx).await {
+                        report_error(
+                            ctx,
+                            &msg.channel_id,
+                            &BotError::new(
+                                "Missing permissions to delete messages in this channel",
+                                Some(BotErrorKind::MissingPermissions),
+                                Some(&msg),
+                            ),
+                        )
+                        .await;
+                        info!(
+                            "missing permissions to delete messages in {:?}",
+                            &msg.channel_id
+                        );
+                        info!("{}", err);
+                        return Err(From::from(err));
+                    };
+                } else {
+                    messages.push(message);
+                }
+
                 limit -= 1;
             }
             Err(_) => (),
         }
     }
+
+    info!("trying to delete {:?} messages", messages.len());
     match bulk_delete(ctx, &msg.channel_id, messages).await {
         Ok(_) => return Ok(()),
         Err(err) => {
@@ -164,16 +205,17 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 ctx,
                 &msg.channel_id,
                 &BotError::new(
-                    "missing permissions to delete messages in this channel",
+                    "Missing permissions to delete messages in this channel",
                     Some(BotErrorKind::MissingPermissions),
                     Some(&msg),
                 ),
             )
             .await;
-            debug!(
+            info!(
                 "missing permissions to delete messages in {:?}",
                 &msg.channel_id
             );
+            info!("{:?}", err);
             return Err(From::from(BotanistError::Serenity(err)));
         }
     };

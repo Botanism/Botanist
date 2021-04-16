@@ -74,6 +74,7 @@ impl EventHandler for Handler {
 
 #[hook]
 async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError) {
+    error!("{:?}", error);
     let (description, kind): (Cow<'static, str>, Option<BotErrorKind>) = match error {
         DispatchError::CheckFailed(_, reason) => (Cow::Borrowed("a check failed"), None),
         DispatchError::OnlyForOwners => (
