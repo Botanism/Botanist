@@ -18,8 +18,8 @@ pub async fn report_error<'a, 'b>(
         .color(16720951)
         .description(error.description)
         .title(match &error.kind {
-            None => "UnexpectedError",
-            Some(kind) => "An error occured",
+            None => "UNEXPECTED",
+            Some(kind) => kind.pretty_name(),
         });
 
     let cause_user: Option<&User> = None;
@@ -115,6 +115,19 @@ pub enum BotErrorKind {
     DurationSyntaxError,
     ModelParsingError,
     MissingPermissions,
+}
+
+impl BotErrorKind {
+    pub fn pretty_name(&self) -> &'static str {
+        match self {
+            BotErrorKind::EnvironmentError => "Misconfigured",
+            BotErrorKind::IncorrectNumberOfArgs => "Incorrect number of arguments provided",
+            BotErrorKind::UnexpectedError => "UNEXPECTED",
+            BotErrorKind::DurationSyntaxError => "Not a duration",
+            BotErrorKind::ModelParsingError => "Unrecognized datum type",
+            BotErrorKind::MissingPermissions => "Botanist misses permissions",
+        }
+    }
 }
 
 impl Display for BotErrorKind {

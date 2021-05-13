@@ -1,6 +1,7 @@
 mod checks;
 mod commands;
 mod db;
+mod tweak;
 mod utils;
 
 use std::borrow::Cow;

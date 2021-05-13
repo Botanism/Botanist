@@ -6,12 +6,15 @@ use serenity::framework::standard::{
 };
 use serenity::futures::StreamExt;
 use serenity::model::prelude::*;
+use serenity::model::user::OnlineStatus;
 use serenity::prelude::*;
 use serenity::utils::Parse;
+use std::collections::HashMap;
+use std::fmt::Display;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
 #[group]
-#[commands(ping, provoke_error, clear)]
+#[commands(ping, provoke_error, clear, status)]
 struct Misc;
 
 #[command]
@@ -236,5 +239,80 @@ async fn bulk_delete(
         }
     }
 
+    Ok(())
+}
+
+struct MembersStatus {
+    online: usize,
+    dnd: usize,
+    idle: usize,
+    offline: usize,
+}
+
+impl MembersStatus {
+    fn new(online: usize, dnd: usize, idle: usize, offline: usize) -> MembersStatus {
+        MembersStatus {
+            online,
+            dnd,
+            idle,
+            offline,
+        }
+    }
+}
+
+impl Display for MembersStatus {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
+        let max = self.online.max(self.dnd.max(self.idle.max(self.offline)));
+        write!(f, "**{:<width$}**🟢 online\n", self.online, width = max)?;
+        write!(f, "**{:<width$}**🟠 idle \n", self.idle, width = max)?;
+        write!(f, "**{:<width$}**🔴 dnd\n", self.dnd, width = max)?;
+        write!(f, "**{:<width$}**⚪ offline\n", self.offline, width = max)
+    }
+}
+
+impl From<&HashMap<UserId, Presence>> for MembersStatus {
+    fn from(map: &HashMap<UserId, Presence>) -> Self {
+        let mut online = 0;
+        let mut idle = 0;
+        let mut dnd = 0;
+        let mut offline = 0;
+        dbg!(&map);
+        for (_, presence) in map.iter() {
+            match presence.status {
+                OnlineStatus::Online => online += 1,
+                OnlineStatus::Idle => idle += 1,
+                OnlineStatus::DoNotDisturb => dnd += 1,
+                OnlineStatus::Offline => offline += 1,
+                OnlineStatus::Invisible => offline += 1,
+                _ => (), //discord may add new statuses without notice
+            }
+        }
+        MembersStatus::new(online, dnd, idle, offline)
+    }
+}
+
+#[command]
+#[only_in(guilds)]
+async fn status(ctx: &Context, msg: &Message) -> CommandResult {
+    let guild = msg.guild(ctx).await.expect("missing guild in cache");
+    let owned_name = guild.owner_id.to_user(ctx).await.unwrap();
+    //we deduce the age of the guild through its id (snowflake)
+    let creation_date = guild.id.created_at();
+    let mut roles = String::new();
+    for (role_id, _) in &guild.roles {
+        roles.push_str(role_id.mention().to_string().as_str())
+    }
+    let members = MembersStatus::from(&guild.presences);
+    msg.channel_id
+        .send_message(ctx, |m| {
+            m.embed(|e| {
+                e.color(7506394).description(format!(
+                    "{:#} is owned by {:#} and was created on {:#}. Since then {:#} members joined.",
+                    guild.name, owned_name, creation_date, guild.member_count
+                )).field("Roles", roles, true).field("Members", members, true); if let Some(url) = guild.icon_url(){e.thumbnail(url);};
+                 e
+            })
+        })
+        .await?;
     Ok(())
 }
