@@ -38,7 +38,6 @@ body:
     label: Context
     description: Where the error occured
     options: [DM, Channel, Website]
-    render: markdown
   validations:
     required: true
 - type: textarea
