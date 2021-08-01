@@ -1,7 +1,7 @@
 name: New command
 description: A new command
 title: "<title>"
-labels: [Command, feature]
+labels: [command, enhancement]
 body:
 - type: checkboxes
   attributes:
