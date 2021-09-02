@@ -5,7 +5,7 @@
 
 # Botanist
 
-This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using discord.py API which offers full compatibility to the official Discord API.
+This program is a Discord bot which is basically a mod to the real time messaging platform. It is built using py-cord API which offers full compatibility to the official Discord API.
 
 ​	This bot is a collection of several commands and suite of commands. They are regrouped under several extensions which can be loaded, updated and disabled on the fly, without ever having to take the bot off line. This allows one to stay use only the functions he wishes and keep them updated without any penalties.
 
