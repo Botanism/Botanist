@@ -120,13 +120,13 @@ def assert_struct(guilds):
             LANG_FOLDER,
             EVENT_FOLDER,
             TIME_FOLDER,
-            EVENT_FOLDER,
-            REMINDERS_FOLDER
+            REMINDERS_FOLDER,
             POLL_FOLDER,
         ]
         for folder in to_make:
             if folder not in files:
                 os.mkdir(folder)
+                files.append(folder)
 
         # making sure all config files are here, with their at least their default content
         for folder in [CONFIG_FOLDER, SLAPPING_FOLDER]:
