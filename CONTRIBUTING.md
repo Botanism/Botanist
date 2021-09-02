@@ -19,7 +19,7 @@ This is a *guideline* which means that some exceptions may be made. However it i
 
 ### Requirements
 
-You will need python >= 3.7 and the library [py-cord](https://github.com/Pycord-Development/pycord) ==1.7.3.
+You will need python >= 3.8 and the library [py-cord](https://github.com/Pycord-Development/pycord) on the development branch. Use the requirements.txt to install.
 
 ### The serious stuff
 
