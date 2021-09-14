@@ -62,26 +62,6 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         },
     };
 
-    //deletion with only an upper limit
-    /*if number.is_some() && args.remaining() == 0 {
-        return Ok(bulk_delete(ctx, &msg.channel_id, {
-            let mut limit = number.unwrap();
-            let mut messages = Vec::with_capacity(limit as usize);
-            while limit > 0 {
-                let chunk = 100.min(limit);
-                limit -= chunk;
-                messages.append(
-                    &mut msg
-                        .channel_id
-                        .messages(ctx, |history| history.limit(chunk))
-                        .await?,
-                )
-            }
-            messages
-        })
-        .await?);
-    }*/
-
     //duration criteria?
     let since = if args.remaining() > 0 {
         match parse_duration(args.current().unwrap()) {

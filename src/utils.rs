@@ -184,6 +184,9 @@ impl Display for DurationParseError {
 }
 impl std::error::Error for DurationParseError {}
 
+///Parses a String into a duration using its own convention.
+///XdYhZmAs would be parsed a duration of X days Y hours
+///Z minutes and A seconds
 pub fn parse_duration<S: AsRef<str>>(string: S) -> Result<Duration, DurationParseError> {
     const TIME_IDENTIFIERS: [char; 4] = ['d', 'h', 'm', 's'];
     const TIME_VALUES: [u64; 4] = [86400, 3600, 60, 1];

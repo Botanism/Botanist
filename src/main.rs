@@ -1,13 +1,13 @@
 mod checks;
 mod commands;
-mod db;
 mod tweak;
 mod utils;
 
+use db_adapter::establish_connection;
 use std::borrow::Cow;
 use std::{collections::HashSet, env, sync::Arc};
 
-use sqlx::{query, MySqlPool};
+use sqlx::MySqlPool;
 
 use crate::utils::*;
 use serenity::{
@@ -17,14 +17,8 @@ use serenity::{
         standard::{macros::hook, DispatchError},
         StandardFramework,
     },
-    http::{CacheHttp, Http},
-    model::{
-        channel::Message,
-        event::ResumedEvent,
-        gateway::Ready,
-        guild::{Guild, Member},
-        id::{GuildId, UserId},
-    },
+    http::Http,
+    model::{channel::Message, event::ResumedEvent, gateway::Ready, guild::Guild, id::UserId},
     prelude::*,
 };
 
@@ -32,7 +26,6 @@ use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 use commands::{dev::*, misc::*};
-use db::insert_new_guild;
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
@@ -58,10 +51,9 @@ impl EventHandler for Handler {
     //sent when a a guild's data is sent to us (one)
     async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
         if is_new {
-            //move data access into its own block to free access sooner
             let data = ctx.data.read().await;
             let conn = &data.get::<DBConn>().unwrap().0;
-            insert_new_guild(&conn, guild.id).await;
+            insert_new_guild(&conn, guild.id).await.unwrap();
         }
     }
     async fn ready(&self, _: Context, ready: Ready) {
@@ -106,6 +98,7 @@ async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError)
 async fn main() {
     // This will load the environment variables located at `./.env`, relative to
     dotenv::dotenv().expect("Failed to load .env file");
+    let pool = establish_connection().await;
 
     // Initialize the logger to use environment variables.
     //
