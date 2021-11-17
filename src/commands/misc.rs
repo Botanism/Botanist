@@ -1,138 +1,67 @@
-use crate::utils::*;
+use crate::{utils::*, Context, Result};
 use chrono::offset::Utc;
-use serenity::framework::standard::{
-    macros::{command, group},
-    ArgError, Args, CommandResult,
+use poise::{
+    command,
+    serenity::{
+        futures::StreamExt,
+        model::{
+            channel::Message,
+            id::{ChannelId, UserId},
+        },
+        utils::ArgumentConvert,
+    },
 };
-use serenity::futures::StreamExt;
-use serenity::model::prelude::*;
-use serenity::model::user::OnlineStatus;
-use serenity::prelude::*;
-use serenity::utils::Parse;
-use std::collections::HashMap;
-use std::fmt::Display;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tracing::info;
-#[group]
-#[commands(ping, provoke_error, clear, status)]
-struct Misc;
 
-#[command]
-// Limit command usage to guilds.
-#[only_in(guilds)]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, "Pong!").await?;
+/// TODO: remove
+/// this is only supposed to be used to test out error reporting
+#[command(slash_command)]
+pub async fn provoke_error(_ctx: Context<'_>) -> Result<()> {
+    Err(BotError::EnvironmentError)
+}
+
+/// Check if the bot is online and responsive
+#[command(slash_command)]
+pub async fn ping(ctx: Context<'_>) -> Result<()> {
+    // Limit command usage to guilds.
+    in_guild!(ctx)?;
+
+    ctx.say("Pong!").await?;
 
     Ok(())
 }
 
-#[command]
-async fn provoke_error(ctx: &Context, msg: &Message) -> CommandResult {
-    report_error(
-        ctx,
-        &msg.channel_id,
-        &BotError::new(
-            "the dev is dumb",
-            Some(BotErrorKind::EnvironmentError),
-            Some(&msg),
-        ),
-    )
-    .await;
-    Ok(())
-}
-
-#[command]
-#[aliases(clean)]
-#[min_args(1)]
-async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    //upper limit?
-    let number = match args.parse::<u64>() {
-        Ok(number) => {
-            args.advance();
-            Some(number)
-        }
-        Err(err) => match err {
-            //no upper limit or the number was not correctly formed
-            ArgError::Parse(_) => None,
-            ArgError::Eos => {
-                //since we have `#[min_args(1)]`
-                unreachable!()
-            }
-            _ => unreachable!(),
-        },
-    };
-
-    //deletion with only an upper limit
-    /*if number.is_some() && args.remaining() == 0 {
-        return Ok(bulk_delete(ctx, &msg.channel_id, {
-            let mut limit = number.unwrap();
-            let mut messages = Vec::with_capacity(limit as usize);
-            while limit > 0 {
-                let chunk = 100.min(limit);
-                limit -= chunk;
-                messages.append(
-                    &mut msg
-                        .channel_id
-                        .messages(ctx, |history| history.limit(chunk))
-                        .await?,
-                )
-            }
-            messages
-        })
-        .await?);
-    }*/
-
+#[command(slash_command, aliases("clean"))]
+//#[min_args(1)]
+/// Delete messages from the current channel
+/// filters can be mixed as desired
+pub async fn clear(
+    ctx: Context<'_>,
+    #[description = "The maximum number of messages to delete"] number: Option<u64>,
+    #[description = "The maximum age of the messages to be deleted. All messages more recent than the date given that also meet the other filters will be deleted"]
+    since: Option<String>,
+    // TODO: find a way to support multiple users
+    #[description = "Only delete messages from these members"] who: Option<UserId>,
+) -> Result<()> {
     //duration criteria?
-    let since = if args.remaining() > 0 {
-        match parse_duration(args.current().unwrap()) {
-            Ok(duration) => {
-                args.advance();
-                Some(duration)
-            }
-            //not having a duration by now doesn't mean the inputed arguments were wrong
-            //there can still be a combination of amount & members
-            Err(_err) => None,
-        }
-    } else {
-        None
-    };
+    let since = since.map(|str| parse_duration(str)).transpose()?;
 
     //member criteria?
-    let mut members: Vec<UserId> = Vec::with_capacity(args.remaining());
-    while args.remaining() > 0 {
-        members.push(
-            match Parse::parse(ctx, msg, args.current().unwrap()).await {
-                Ok(m) => m,
-                Err(parse_err) => {
-                    report_error(
-                        ctx,
-                        &msg.channel_id,
-                        &BotError::new(
-                            format!(
-                                "{:#} cannot be understood as a member of this server.",
-                                args.current().unwrap()
-                            )
-                            .as_str(),
-                            Some(BotErrorKind::ModelParsingError),
-                            Some(msg),
-                        ),
-                    )
-                    .await;
-                    info!("Couldn't correclty parse {:?}", args.raw());
-                    return Err(From::from(BotanistError::SerenityUserIdParseError(
-                        parse_err,
-                    )));
-                }
-            },
-        );
-        args.advance();
+    let mut members: Vec<UserId> = Vec::new();
+    if let Some(member) = who {
+        members.push(member)
     }
+    /*while args.remaining() > 0 {
+        members.push(ArgumentConvert::convert(ctx, msg, args.current().unwrap()).await?);
+        args.advance();
+    }*/
 
     //argument parsing is done -> we select the messages to be deleted
     let mut messages: Vec<Message> = Vec::new();
-    let mut history = msg.channel_id.messages_iter(ctx).boxed();
+    let mut history = ctx.channel_id().messages_iter(ctx.discord()).boxed();
     let mut limit = if let Some(amount) = number {
-        if !members.is_empty() && !members.contains(&msg.author.id) {
+        if !members.is_empty() && !members.contains(&ctx.author().id) {
             amount
         } else {
             amount + 1
@@ -172,24 +101,7 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                     >= TWO_WEEKS
                 {
                     dbg!("the message was over two weeks old so we manually delete it");
-                    if let Err(err) = message.delete(ctx).await {
-                        report_error(
-                            ctx,
-                            &msg.channel_id,
-                            &BotError::new(
-                                "Missing permissions to delete messages in this channel",
-                                Some(BotErrorKind::MissingPermissions),
-                                Some(&msg),
-                            ),
-                        )
-                        .await;
-                        info!(
-                            "missing permissions to delete messages in {:?}",
-                            &msg.channel_id
-                        );
-                        info!("{}", err);
-                        return Err(From::from(err));
-                    };
+                    message.delete(ctx.discord()).await?
                 } else {
                     messages.push(message);
                 }
@@ -201,118 +113,19 @@ async fn clear(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     }
 
     info!("trying to delete {:?} messages", messages.len());
-    match bulk_delete(ctx, &msg.channel_id, messages).await {
-        Ok(_) => return Ok(()),
-        Err(err) => {
-            report_error(
-                ctx,
-                &msg.channel_id,
-                &BotError::new(
-                    "Missing permissions to delete messages in this channel",
-                    Some(BotErrorKind::MissingPermissions),
-                    Some(&msg),
-                ),
-            )
-            .await;
-            info!(
-                "missing permissions to delete messages in {:?}",
-                &msg.channel_id
-            );
-            info!("{:?}", err);
-            return Err(From::from(BotanistError::Serenity(err)));
-        }
-    };
+    bulk_delete(ctx, &ctx.channel_id(), messages).await
 }
 
 //bulks deletes messages, even if there are more than 100
 //because of this the only possible error is missing permissions to delete the msgs
-async fn bulk_delete(
-    ctx: &Context,
-    chan: &ChannelId,
-    messages: Vec<Message>,
-) -> Result<(), SerenityError> {
+async fn bulk_delete(ctx: Context<'_>, chan: &ChannelId, messages: Vec<Message>) -> Result<()> {
     if messages.is_empty() {
         return Ok(());
     } else {
         for chunk in messages.chunks(100) {
-            chan.delete_messages(ctx, chunk).await?;
+            chan.delete_messages(ctx.discord(), chunk).await?;
         }
     }
 
-    Ok(())
-}
-
-struct MembersStatus {
-    online: usize,
-    dnd: usize,
-    idle: usize,
-    offline: usize,
-}
-
-impl MembersStatus {
-    fn new(online: usize, dnd: usize, idle: usize, offline: usize) -> MembersStatus {
-        MembersStatus {
-            online,
-            dnd,
-            idle,
-            offline,
-        }
-    }
-}
-
-impl Display for MembersStatus {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
-        let max = self.online.max(self.dnd.max(self.idle.max(self.offline)));
-        write!(f, "**{:<width$}**🟢 online\n", self.online, width = max)?;
-        write!(f, "**{:<width$}**🟠 idle \n", self.idle, width = max)?;
-        write!(f, "**{:<width$}**🔴 dnd\n", self.dnd, width = max)?;
-        write!(f, "**{:<width$}**⚪ offline\n", self.offline, width = max)
-    }
-}
-
-impl From<&HashMap<UserId, Presence>> for MembersStatus {
-    fn from(map: &HashMap<UserId, Presence>) -> Self {
-        let mut online = 0;
-        let mut idle = 0;
-        let mut dnd = 0;
-        let mut offline = 0;
-        dbg!(&map);
-        for (_, presence) in map.iter() {
-            match presence.status {
-                OnlineStatus::Online => online += 1,
-                OnlineStatus::Idle => idle += 1,
-                OnlineStatus::DoNotDisturb => dnd += 1,
-                OnlineStatus::Offline => offline += 1,
-                OnlineStatus::Invisible => offline += 1,
-                _ => (), //discord may add new statuses without notice
-            }
-        }
-        MembersStatus::new(online, dnd, idle, offline)
-    }
-}
-
-#[command]
-#[only_in(guilds)]
-async fn status(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(ctx).await.expect("missing guild in cache");
-    let owned_name = guild.owner_id.to_user(ctx).await.unwrap();
-    //we deduce the age of the guild through its id (snowflake)
-    let creation_date = guild.id.created_at();
-    let mut roles = String::new();
-    for (role_id, _) in &guild.roles {
-        roles.push_str(role_id.mention().to_string().as_str())
-    }
-    let members = MembersStatus::from(&guild.presences);
-    msg.channel_id
-        .send_message(ctx, |m| {
-            m.embed(|e| {
-                e.color(7506394).description(format!(
-                    "{:#} is owned by {:#} and was created on {:#}. Since then {:#} members joined.",
-                    guild.name, owned_name, creation_date, guild.member_count
-                )).field("Roles", roles, true).field("Members", members, true); if let Some(url) = guild.icon_url(){e.thumbnail(url);};
-                 e
-            })
-        })
-        .await?;
     Ok(())
 }

@@ -1,105 +1,103 @@
-mod checks;
 mod commands;
-mod db;
-mod tweak;
 mod utils;
 
-use std::borrow::Cow;
-use std::{collections::HashSet, env, sync::Arc};
+use db_adapter::guild::{GuildConfig, GuildConfigBuilder};
+use db_adapter::{establish_connection, PgPool};
+use poise::PrefixFrameworkOptions;
 
-use sqlx::{query, MySqlPool};
+use std::{collections::HashSet, env};
 
 use crate::utils::*;
-use serenity::{
-    async_trait,
-    client::bridge::gateway::ShardManager,
-    framework::{
-        standard::{macros::hook, DispatchError},
-        StandardFramework,
+use poise::{
+    serenity::{
+        async_trait,
+        http::Http,
+        model::{event::ResumedEvent, gateway::Ready, guild::Guild},
+        prelude::*,
     },
-    http::{CacheHttp, Http},
-    model::{
-        channel::Message,
-        event::ResumedEvent,
-        gateway::Ready,
-        guild::{Guild, Member},
-        id::{GuildId, UserId},
-    },
-    prelude::*,
+    ErrorContext,
 };
 
 use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-use commands::{dev::*, misc::*};
-use db::insert_new_guild;
-pub struct ShardManagerContainer;
-
-impl TypeMapKey for ShardManagerContainer {
-    type Value = Arc<Mutex<ShardManager>>;
+//Shared data contained in the Context
+pub struct GlobalData {
+    pub pool: PgPool,
 }
 
-pub struct BotId(UserId);
-
-impl TypeMapKey for BotId {
-    type Value = BotId;
+struct DBPool;
+impl TypeMapKey for DBPool {
+    type Value = PgPool;
 }
 
-pub struct DBConn(MySqlPool);
-
-impl TypeMapKey for DBConn {
-    type Value = DBConn;
-}
+//Context type passed to every command
+pub type Context<'a> = poise::Context<'a, GlobalData, BotError>;
+pub type Result<T> = std::result::Result<T, BotError>;
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
     //sent when a a guild's data is sent to us (one)
-    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: bool) {
+    async fn guild_create(
+        &self,
+        ctx: poise::serenity::prelude::Context,
+        guild: Guild,
+        is_new: bool,
+    ) {
         if is_new {
-            //move data access into its own block to free access sooner
             let data = ctx.data.read().await;
-            let conn = &data.get::<DBConn>().unwrap().0;
-            insert_new_guild(&conn, guild.id).await;
+            let conn = &data.get::<DBPool>().unwrap();
+            GuildConfig::new(*conn, GuildConfigBuilder::new(guild.id))
+                .await
+                .unwrap();
         }
     }
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, _: poise::serenity::prelude::Context, ready: Ready) {
         info!("Connected as {}", ready.user.name);
     }
 
-    async fn resume(&self, _: Context, _: ResumedEvent) {
+    async fn resume(&self, _: poise::serenity::prelude::Context, _: ResumedEvent) {
         info!("Connection resumed");
     }
 }
 
-#[hook]
-async fn dispatch_error_hook(ctx: &Context, msg: &Message, error: DispatchError) {
+async fn on_error<'a>(err_ctx: ErrorContext<'_, GlobalData, BotError>, error: BotError) {
     error!("{:?}", error);
-    let (description, kind): (Cow<'static, str>, Option<BotErrorKind>) = match error {
-        DispatchError::CheckFailed(_, reason) => (Cow::Borrowed("a check failed"), None),
-        DispatchError::OnlyForOwners => (
-            Cow::Borrowed("This commands requires the `runner` privilege, which you are missing."),
-            None,
-        ),
-        DispatchError::NotEnoughArguments { min, given } => (
-            Cow::Owned(format!(
-                "You only provided {:#} arguments when the command expects a minimum of {:#}.",
-                given, min
-            )),
-            Some(BotErrorKind::IncorrectNumberOfArgs),
-        ),
-        _ => (
-            Cow::Borrowed("An undocumented error occured with the command you just used."),
-            Some(BotErrorKind::UnexpectedError),
-        ),
+    use poise::ErrorContext::*;
+    let ctx = match err_ctx {
+        Command(ctx) => ctx.ctx(),
+        _ => unimplemented!(),
     };
-    report_error(
+
+    report_error(ctx, error).await
+}
+
+/// Show this help menu
+#[poise::command(prefix_command, track_edits, slash_command)]
+async fn help(
+    ctx: Context<'_>,
+    #[description = "Specific command to show help about"] command: Option<String>,
+) -> Result<()> {
+    poise::builtins::help(
         ctx,
-        &msg.channel_id,
-        &BotError::new(&description, kind, Some(msg)),
+        command.as_deref(),
+        "Made with love by Toude#6601",
+        poise::builtins::HelpResponseMode::Ephemeral,
     )
-    .await;
+    .await?;
+    Ok(())
+}
+
+/// Register application commands in this guild or globally
+///
+/// Run with no arguments to register in guild, run with argument "global" to register globally.
+#[poise::command(prefix_command, hide_in_help)]
+async fn register(ctx: Context<'_>, #[flag] global: bool) -> Result<()> {
+    poise::builtins::register_application_commands(ctx, global).await?;
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -117,11 +115,10 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber).expect("Failed to start the logger");
 
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
-
+    let token = std::env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    //TODO: is this the right way to do it?
     let http = Http::new_with_token(&token);
-
-    // We will fetch your bot's owners and id
+    // We fetch the bot's owners and id
     let (owners, bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
             let mut owners = HashSet::new();
@@ -136,49 +133,64 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
-    let prefix = env::var("DISCORD_PREFIX").expect("Expected a prefix in the environment");
-
-    // Create the framework
-    let framework = StandardFramework::new()
-        .configure(|c| {
-            c.owners(owners)
-                .prefix(prefix.as_str())
-                .on_mention(Some(bot_id))
-                .with_whitespace(true)
+    let mut framework_builder = poise::Framework::<GlobalData, BotError>::build()
+        .token(token)
+        .user_data_setup(move |_ctx, _ready, _framework| {
+            Box::pin(async move {
+                Ok(GlobalData {
+                    pool: establish_connection().await,
+                })
+            })
         })
-        .on_dispatch_error(dispatch_error_hook)
-        .group(&DEVELOPMENT_GROUP)
-        .group(&MISC_GROUP);
+        .options(poise::FrameworkOptions {
+            // configure framework here
+            prefix_options: PrefixFrameworkOptions {
+                prefix: Some(
+                    env::var("DISCORD_PREFIX").expect("Expected a prefix in the environment"),
+                ),
 
-    let mut client = Client::builder(&token)
-        .framework(framework)
-        .event_handler(Handler)
-        .await
-        .expect("Err creating client");
+                ..Default::default()
+            },
+            owners,
+            on_error: |error, ctx| Box::pin(on_error(ctx, error)),
+            ..Default::default()
+        });
 
-    //DB setup
-    let db_url = env::var("DATABASE_URL").expect("`DATABASE_URL` is not set");
-    let pool = MySqlPool::connect(&db_url)
-        .await
-        .expect("Could not establish DB connection");
+    framework_builder = {
+        use commands::misc::{clear, ping, provoke_error};
+        add_commands!(
+            framework_builder,
+            help,
+            register,
+            //clear,
+            ping,
+            provoke_error
+        )
+    };
 
-    {
-        let mut data = client.data.write().await;
-        data.insert::<ShardManagerContainer>(client.shard_manager.clone());
-        data.insert::<BotId>(BotId(bot_id));
-        data.insert::<DBConn>(DBConn(pool));
+    let framework = framework_builder.build().await.unwrap();
+
+    dbg!(env::var("DISCORD_PREFIX").expect("Expected a prefix in the environment"));
+
+    //running the bot until an error occurs
+    if let Err(why) = framework.clone().start().await {
+        error!("Client error: {:?}", why);
     }
 
-    let shard_manager = client.shard_manager.clone();
-
+    //halting the bot through INTERRUPT
+    let shard_manager = framework.shard_manager();
     tokio::spawn(async move {
         tokio::signal::ctrl_c()
             .await
             .expect("Could not register ctrl+c handler");
         shard_manager.lock().await.shutdown_all().await;
     });
+}
 
-    if let Err(why) = client.start().await {
-        error!("Client error: {:?}", why);
-    }
+#[macro_export]
+macro_rules! add_commands {
+    ($framework_builder:ident, $($command:path),*) => {{
+        $($framework_builder = $framework_builder.command($command(), |f| f);)*
+        $framework_builder
+    }};
 }
