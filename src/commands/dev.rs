@@ -1,16 +1,17 @@
 use crate::utils::*;
 use crate::ShardManagerContainer;
-use serenity::model::prelude::*;
-use serenity::prelude::*;
 use serenity::{
     client::bridge::gateway::ShardId,
     framework::standard::{
         macros::{command, group},
         CommandError, CommandResult,
     },
+    model::prelude::*,
+    prelude::*,
 };
 use std::env;
 use tracing::error;
+
 #[group]
 #[commands(shutdown, latency, log)]
 struct Development;
@@ -103,7 +104,7 @@ async fn log(ctx: &Context, msg: &Message) -> CommandResult {
         Ok(path) => path,
         Err(err) => {
             error!("{:#}", err);
-            let error = BotError::new(
+            let error = BotErrorReport::new(
                 "LOG_FILE is missing",
                 Some(BotErrorKind::EnvironmentError),
                 Some(msg),
